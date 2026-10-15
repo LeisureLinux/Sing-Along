@@ -36,18 +36,16 @@
                 }"
                 @click="onLineClick(line)"
               >
-                <template v-if="hasWordSync(syncedLines, index)">
+                <template v-if="isLinePlaying(line, index)">
                   <span
-                    v-for="(word, wordIndex) in getLineWords(syncedLines, index)"
+                    v-for="(word, wordIndex) in getKaraokeWords(line, index)"
                     :key="wordIndex"
-                    class="whitespace-pre-wrap"
-                    :class="{
-                      'text-yellow-500 dark:text-yellow-400':
-                        isLinePlaying(line, index) &&
-                        isWordPlaying(syncedLines, index, wordIndex, progressMs),
-                    }"
-                    >{{ word.text }}</span
+                    class="karaoke"
+                    :style="karaokeWordStyle(line, index, wordIndex)"
                   >
+                    <span class="karaoke-base">{{ word.text }}</span>
+                    <span class="karaoke-fill" aria-hidden="true">{{ word.text }}</span>
+                  </span>
                 </template>
                 <template v-else>
                   {{ line.text }}
@@ -94,21 +92,28 @@
             :key="currentLyrics"
             class="flex w-full justify-center items-center text-neutral-800 dark:text-neutral-200 text-sm grow font-bold"
           >
-            <template v-if="hasWordSync(syncedLines, primaryPlayingLineIndex)">
+            <template
+              v-if="
+                primaryPlayingLineIndex >= 0 &&
+                isLinePlaying(syncedLines[primaryPlayingLineIndex], primaryPlayingLineIndex)
+              "
+            >
               <span
-                v-for="(word, wordIndex) in getLineWords(syncedLines, primaryPlayingLineIndex)"
+                v-for="(word, wordIndex) in getKaraokeWords(
+                  syncedLines[primaryPlayingLineIndex],
+                  primaryPlayingLineIndex
+                )"
                 :key="wordIndex"
-                class="whitespace-pre-wrap"
-                :class="{
-                  'text-yellow-500 dark:text-yellow-400': isWordPlaying(
-                    syncedLines,
-                    primaryPlayingLineIndex,
-                    wordIndex,
-                    progressMs
-                  ),
-                }"
-                >{{ word.text }}</span
+                class="karaoke"
+                :style="karaokeWordStyle(
+                  syncedLines[primaryPlayingLineIndex],
+                  primaryPlayingLineIndex,
+                  wordIndex
+                )"
               >
+                <span class="karaoke-base">{{ word.text }}</span>
+                <span class="karaoke-fill" aria-hidden="true">{{ word.text }}</span>
+              </span>
             </template>
             <template v-else>
               {{ currentLyrics }}
@@ -126,6 +131,7 @@ import ContentCopy from '~icons/mdi/content-copy'
 import { ref, watch, nextTick } from 'vue'
 import { computed } from 'vue'
 import { parseLyricsfile } from '@/utils/lyricsfile.js'
+import { ensureLineWords } from '@/utils/word-tokenizer.js'
 
 const props = defineProps(['duration', 'progress', 'lyricsfile'])
 const emit = defineEmits(['lyricsClicked'])
@@ -200,25 +206,6 @@ const currentLyrics = computed(() => {
   return line?.text || '…'
 })
 
-const getCurrentWordIndex = (line, currentTimeMs) => {
-  if (!line?.words || !Array.isArray(line.words) || line.words.length === 0) {
-    return -1
-  }
-
-  for (let i = 0; i < line.words.length; i++) {
-    const word = line.words[i]
-    const nextWord = line.words[i + 1]
-    const wordStart = word.start_ms
-    const wordEnd = nextWord ? nextWord.start_ms : Infinity
-
-    if (currentTimeMs >= wordStart && currentTimeMs < wordEnd) {
-      return i
-    }
-  }
-
-  return -1
-}
-
 const hasWordSync = (lines, index) => {
   if (!lines || index === null || index < 0) {
     return false
@@ -227,26 +214,78 @@ const hasWordSync = (lines, index) => {
   return line && line.words && Array.isArray(line.words) && line.words.length > 0
 }
 
-const getLineWords = (lines, index) => {
-  if (!lines || index === null || index < 0) {
-    return []
+/*
+ * Karaoke highlight.
+ *
+ * Lines that carry real word timings sweep word by word. Lines that only have
+ * line-level timings get their words filled in by `ensureLineWords` (the same
+ * helper the word-timing editor uses), so the highlight sweeps for every song
+ * instead of snapping between whole lines.
+ *
+ * Tokenizing is expensive and this component re-renders on every playback tick
+ * (~25fps), so the per-line word lists are derived once per lyricsfile below
+ * rather than recomputed during render.
+ */
+const karaokeWordsByLine = computed(() =>
+  syncedLines.value.map((line, index) => {
+    if (!line) {
+      return []
+    }
+    if (hasWordSync(syncedLines.value, index)) {
+      return line.words
+    }
+    if (!line.text) {
+      return []
+    }
+    return ensureLineWords(line, syncedLines.value, index)?.words ?? []
+  })
+)
+
+const getKaraokeWords = (line, index) => karaokeWordsByLine.value[index] ?? []
+
+// Resolve the end time of a line: explicit end_ms, else the next line's start.
+const getLineEndMs = (line, index) => {
+  if (Number.isFinite(line?.end_ms)) {
+    return line.end_ms
   }
-  const line = lines[index]
-  if (!line || !line.words || !Array.isArray(line.words)) {
-    return []
-  }
-  return line.words
+  const next = syncedLines.value[index + 1]
+  return Number.isFinite(next?.start_ms) ? next.start_ms : line?.start_ms + 4000
 }
 
-const isWordPlaying = (lines, lineIndex, wordIndex, progressMs) => {
-  if (!lines || lineIndex === null || lineIndex < 0) {
-    return false
+// Resolve a word's end time: explicit end_ms, else the next word's start, else
+// the end of the line it belongs to.
+const getWordEndMs = (words, line, lineIndex, wordIndex) => {
+  const word = words?.[wordIndex]
+  if (!word) {
+    return null
   }
-  const line = lines[lineIndex]
-  if (!line || !line.words || !Array.isArray(line.words)) {
-    return false
+  if (Number.isFinite(word.end_ms)) {
+    return word.end_ms
   }
-  return getCurrentWordIndex(line, progressMs) === wordIndex
+  const next = words[wordIndex + 1]
+  return Number.isFinite(next?.start_ms) ? next.start_ms : getLineEndMs(line, lineIndex)
+}
+
+// Fraction of a span [start, end] already elapsed at the current playback time.
+const fillRatio = (start, end) => {
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+    return progressMs.value >= start ? 1 : 0
+  }
+  const ratio = (progressMs.value - start) / (end - start)
+  return Math.min(1, Math.max(0, ratio))
+}
+
+// Karaoke fill for a single word. Finished words stay fully filled while the
+// active one sweeps continuously, so the yellow grows rather than jumping.
+const karaokeWordStyle = (line, lineIndex, wordIndex) => {
+  const words = getKaraokeWords(line, lineIndex)
+  const word = words[wordIndex]
+  if (!word || !Number.isFinite(word.start_ms)) {
+    return { '--karaoke-fill': '0%' }
+  }
+  const end = getWordEndMs(words, line, lineIndex, wordIndex)
+  const ratio = fillRatio(word.start_ms, end)
+  return { '--karaoke-fill': `${(ratio * 100).toFixed(2)}%` }
 }
 
 // For expanded view scrolling: use the primary playing line for scroll position
@@ -308,6 +347,39 @@ watch(
 </script>
 
 <style scoped>
+/*
+ * Karaoke fill: the base layer paints the plain text, and the fill layer on top
+ * is clipped to --karaoke-fill (0-100%) so the highlight sweeps across instead of
+ * snapping word by word.
+ */
+.karaoke {
+  position: relative;
+  display: inline-block;
+  white-space: pre-wrap;
+  --karaoke-fill: 0%;
+  --karaoke-color: #eab308; /* tailwind yellow-500 */
+}
+
+.dark .karaoke {
+  --karaoke-color: #facc15; /* tailwind yellow-400 */
+}
+
+.karaoke-base {
+  white-space: pre-wrap;
+}
+
+.karaoke-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  white-space: pre-wrap;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--karaoke-color);
+  clip-path: inset(0 calc(100% - var(--karaoke-fill)) 0 0);
+}
+
 .slide-fade-enter-active {
   transition: all 0.05s ease-out;
 }
