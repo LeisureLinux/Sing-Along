@@ -1832,7 +1832,11 @@ async fn main() {
                 const PLAYING_TICK: std::time::Duration = std::time::Duration::from_millis(100);
                 const IDLE_TICK: std::time::Duration = std::time::Duration::from_millis(500);
 
-                let mut announced = false;
+                // Compare against what was last sent, not against the state at the
+                // start of this tick: commands (set_shuffle, set_repeat_mode,
+                // play_track) mutate the player directly, so a
+                // before/after comparison inside renew_state cannot see them.
+                let mut last_emitted: Option<player::PlayerSnapshot> = None;
 
                 loop {
                     // Advance the queue for tracks that ended on their own.
@@ -1876,18 +1880,18 @@ async fn main() {
                         let tick = match app_state.player.lock() {
                             Ok(mut player_guard) => match *player_guard {
                                 Some(ref mut player) => {
-                                    let changed = player.renew_state();
+                                    // Refreshes progress/status from the audio
+                                    // backend; the queue may also have moved.
+                                    player.renew_state();
                                     let playing = player.is_playing();
+                                    let snapshot = player.snapshot();
 
-                                    // Emit once at startup so the frontend gets
-                                    // the persisted volume, then only on change.
-                                    if changed || !announced {
-                                        if let Err(e) =
-                                            handle_clone.emit("player-state", &player.snapshot())
+                                    if last_emitted.as_ref() != Some(&snapshot) {
+                                        if let Err(e) = handle_clone.emit("player-state", &snapshot)
                                         {
                                             eprintln!("Failed to emit player state: {}", e);
                                         } else {
-                                            announced = true;
+                                            last_emitted = Some(snapshot);
                                         }
                                     }
 

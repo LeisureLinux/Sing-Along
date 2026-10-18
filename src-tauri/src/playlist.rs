@@ -142,8 +142,8 @@ impl Playlist {
             }
             ids.extend(rest);
 
+            self.cursor = if ids.is_empty() { None } else { Some(0) };
             self.ids = ids;
-            self.cursor = if self.current_id().is_some() { Some(0) } else { None };
             self.shuffle = true;
         } else {
             let current = self.current_id();
