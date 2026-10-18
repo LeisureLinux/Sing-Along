@@ -1,6 +1,9 @@
 <template>
   <div class="h-screen w-screen flex flex-col select-none">
-    <div class="fixed top-0 left-0 flex justify-end items-start text-sm flex-none z-50">
+    <div
+      v-if="!isProd"
+      class="fixed top-0 left-0 flex justify-end items-start text-sm flex-none z-50"
+    >
       <div
         class="p-0.5 m-1 rounded-full text-sm text-hoa-1400 hover:bg-hoa-600 active:bg-hoa-800 transition"
         @click="openDevtools"
