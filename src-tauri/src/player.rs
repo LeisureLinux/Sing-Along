@@ -8,6 +8,7 @@ use kira::{
 };
 
 use crate::persistent_entities::PlayableTrack;
+use crate::playlist::{PlaybackDecision, Playlist, RepeatMode};
 use serde::Serialize;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize)]
@@ -21,6 +22,7 @@ pub enum PlayerStatus {
 /// The part of the player the frontend actually needs. Keeping this separate
 /// from `Player` keeps the audio backend handles out of the IPC payload.
 #[derive(Clone, PartialEq, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PlayerSnapshot {
     pub status: PlayerStatus,
     pub track_id: Option<i64>,
@@ -28,6 +30,14 @@ pub struct PlayerSnapshot {
     pub duration: f64,
     pub volume: f64,
     pub playback_speed: f64,
+    /// Queue state, so the frontend can render transport controls without
+    /// duplicating the cursor logic.
+    pub queue_length: usize,
+    pub queue_index: Option<usize>,
+    pub shuffle: bool,
+    pub repeat: RepeatMode,
+    pub has_next: bool,
+    pub has_previous: bool,
 }
 
 pub struct Player {
@@ -41,6 +51,14 @@ pub struct Player {
     duration: f64,
     volume: f64,
     playback_speed: f64,
+    /// Ids of the tracks that have ended and are waiting to be handled.
+    ///
+    /// `renew_state` only discovers the end of a track; it cannot start the next
+    /// one, because resolving an id to a file path needs the database and takes
+    /// the DB lock. The state loop drains this after releasing the player lock,
+    /// which also avoids the player lock being held across file I/O.
+    pub finished: Vec<i64>,
+    playlist: Playlist,
 }
 
 impl Player {
@@ -54,6 +72,8 @@ impl Player {
             duration: 0.0,
             volume: initial_volume,
             playback_speed: 1.0,
+            finished: Vec::new(),
+            playlist: Playlist::default(),
         }
     }
 
@@ -65,7 +85,21 @@ impl Player {
             duration: self.duration,
             volume: self.volume,
             playback_speed: self.playback_speed,
+            queue_length: self.playlist.len(),
+            queue_index: self.playlist.index(),
+            shuffle: self.playlist.is_shuffle(),
+            repeat: self.playlist.repeat(),
+            has_next: self.playlist.has_next(),
+            has_previous: self.playlist.has_previous(),
         }
+    }
+
+    pub fn playlist(&self) -> &Playlist {
+        &self.playlist
+    }
+
+    pub fn playlist_mut(&mut self) -> &mut Playlist {
+        &mut self.playlist
     }
 
     pub fn is_playing(&self) -> bool {
@@ -77,8 +111,12 @@ impl Player {
     /// Returns whether anything observable changed since the previous call, so
     /// the state emitter can stay silent on an idle player instead of pushing
     /// 25 identical payloads per second.
+    ///
+    /// This also detects the end of a track and records it in `finished`; see
+    /// that field for why the transition itself happens elsewhere.
     pub fn renew_state(&mut self) -> bool {
         let before = self.snapshot();
+        let previous_status = self.status;
 
         if let Some(ref mut sound_handle) = self.sound_handle {
             match sound_handle.state() {
@@ -91,11 +129,44 @@ impl Player {
                 PlaybackState::Stopped => self.status = PlayerStatus::Stopped,
             }
             self.progress = sound_handle.position();
+
+            // Natural end of track: it was playing, and the backend now reports
+            // stopped. An explicit `stop()` clears `sound_handle`, and a seek
+            // never leaves the backend in `Stopped`, so this cannot misfire on
+            // a user action.
+            let ended_naturally = matches!(previous_status, PlayerStatus::Playing)
+                && matches!(self.status, PlayerStatus::Stopped);
+
+            if ended_naturally {
+                if let Some(track_id) = self.track.as_ref().and_then(|track| track.id) {
+                    self.finished.push(track_id);
+                }
+            }
         } else {
             self.status = PlayerStatus::Stopped
         }
 
         self.snapshot() != before
+    }
+
+    /// Whether a finished track is waiting for the caller to advance the queue.
+    pub fn take_finished(&mut self) -> Option<i64> {
+        if self.finished.is_empty() {
+            None
+        } else {
+            Some(self.finished.remove(0))
+        }
+    }
+
+    /// How a finished track should be handled, based on the queue and repeat
+    /// mode. Returns `None` when the track was not started from the queue (a
+    /// single file-picker track, for example), leaving the UI to just stop.
+    pub fn decide_after_end(&mut self, finished_track_id: i64) -> Option<PlaybackDecision> {
+        if self.playlist.current_id() != Some(finished_track_id) {
+            return None;
+        }
+
+        Some(self.playlist.on_track_ended())
     }
 
     fn ensure_manager(&mut self) -> Result<()> {

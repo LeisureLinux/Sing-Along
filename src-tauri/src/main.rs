@@ -10,6 +10,7 @@ pub mod lrclib;
 pub mod lyricsfile;
 pub mod parser;
 pub mod persistent_entities;
+pub mod playlist;
 pub mod player;
 pub mod scanner;
 pub mod state;
@@ -18,6 +19,7 @@ pub mod word_segmentation;
 
 use persistent_entities::{PersistentAlbum, PersistentArtist, PersistentConfig, PersistentTrack, PlayableTrack};
 use player::Player;
+use playlist::{PlaybackDecision, RepeatMode};
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use state::{AppState, Notify, NotifyType, ServiceAccess};
@@ -1239,6 +1241,33 @@ async fn flag_lyrics(
     Ok(())
 }
 
+/// Resolve a library track id to something the player can open.
+fn resolve_library_track(app_handle: &AppHandle, track_id: i64) -> Result<PlayableTrack, String> {
+    app_handle
+        .db(|db| db::get_track_by_id(track_id, db))
+        .map(PlayableTrack::from)
+        .map_err(|err| err.to_string())
+}
+
+/// Start a track that came from the queue (end-of-track advance, next, previous,
+/// or a shuffle/selection change).
+///
+/// Deliberately uses `player.play()`, which keeps the `AudioManager` alive, and
+/// never `release_audio_device()`: reopening the output device between tracks
+/// would add a gap of device setup latency on every transition.
+fn start_queued_track(app_handle: &AppHandle, track_id: i64) -> Result<(), String> {
+    let playable_track = resolve_library_track(app_handle, track_id)?;
+
+    let app_state: State<AppState> = app_handle.state();
+    let mut player_guard = app_state.player.lock().map_err(|e| e.to_string())?;
+
+    if let Some(ref mut player) = *player_guard {
+        return player.play(playable_track).map_err(|err| err.to_string());
+    }
+
+    Err("Player is not available".to_owned())
+}
+
 #[tauri::command]
 async fn play_track(
     track_id: Option<i64>,
@@ -1248,15 +1277,13 @@ async fn play_track(
     artist_name: Option<String>,
     album_artist_name: Option<String>,
     duration: Option<f64>,
+    queue: Option<Vec<i64>>,
+    index: Option<usize>,
     app_state: State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
     let playable_track: PlayableTrack = if let Some(id) = track_id {
-        // Database track - fetch and convert
-        let db_track = app_handle
-            .db(|db| db::get_track_by_id(id, db))
-            .map_err(|err| err.to_string())?;
-        PlayableTrack::from(db_track)
+        resolve_library_track(&app_handle, id)?
     } else if let Some(path) = file_path {
         // File-based track - create from metadata
         let path_obj = std::path::Path::new(&path);
@@ -1303,6 +1330,18 @@ async fn play_track(
 
     let mut player_guard = app_state.player.lock().unwrap();
     if let Some(ref mut player) = *player_guard {
+        // Keep the queue in sync with what is actually starting. A file-picker
+        // track (or a bare `play_track` with no queue) collapses to a one-track
+        // queue so that transport controls behave predictably instead of
+        // reporting a stale queue from a previous selection.
+        match (queue, index) {
+            (Some(ids), Some(start)) if !ids.is_empty() => player.playlist_mut().load(ids, start),
+            _ => match playable_track.id {
+                Some(id) => player.playlist_mut().load_single(id),
+                None => player.playlist_mut().clear(),
+            },
+        }
+
         // The audio device is opened on first playback; surface that failure as
         // a notification too, since it is no longer reported at startup.
         if let Err(err) = player.play(playable_track) {
@@ -1529,8 +1568,71 @@ fn stop_track(app_state: tauri::State<AppState>) -> Result<(), String> {
 
     if let Some(ref mut player) = *player_guard {
         // An explicit stop also hands the audio device back, so a stopped player
-        // stops consuming CPU on an idle output stream.
+        // stops consuming CPU on an idle output stream. The queue survives, so
+        // pressing play again resumes the same position in it.
         player.release_audio_device();
+    }
+
+    Ok(())
+}
+
+/// Skip to the next queue entry.
+///
+/// Unlike the end-of-track path, an explicit skip always advances: repeat-one
+/// should not swallow a deliberate "next" press.
+#[tauri::command]
+async fn play_next(app_handle: AppHandle) -> Result<(), String> {
+    let next_id = {
+        let app_state: State<AppState> = app_handle.state();
+        let mut player_guard = app_state.player.lock().map_err(|e| e.to_string())?;
+
+        match *player_guard {
+            Some(ref mut player) => player.playlist_mut().advance(),
+            None => None,
+        }
+    };
+
+    match next_id {
+        Some(track_id) => start_queued_track(&app_handle, track_id),
+        None => Ok(()),
+    }
+}
+
+#[tauri::command]
+async fn play_previous(app_handle: AppHandle) -> Result<(), String> {
+    let previous_id = {
+        let app_state: State<AppState> = app_handle.state();
+        let mut player_guard = app_state.player.lock().map_err(|e| e.to_string())?;
+
+        match *player_guard {
+            Some(ref mut player) => player.playlist_mut().rewind(),
+            None => None,
+        }
+    };
+
+    match previous_id {
+        Some(track_id) => start_queued_track(&app_handle, track_id),
+        None => Ok(()),
+    }
+}
+
+#[tauri::command]
+fn set_shuffle(shuffle: bool, app_state: tauri::State<AppState>) -> Result<(), String> {
+    let mut player_guard = app_state.player.lock().map_err(|e| e.to_string())?;
+
+    if let Some(ref mut player) = *player_guard {
+        player.playlist_mut().set_shuffle(shuffle);
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+fn set_repeat_mode(repeat: RepeatMode, app_state: tauri::State<AppState>) -> Result<(), String> {
+    let mut player_guard = app_state.player.lock().map_err(|e| e.to_string())?;
+
+    if let Some(ref mut player) = *player_guard {
+        player.playlist_mut().set_repeat(repeat);
     }
 
     Ok(())
@@ -1676,6 +1778,10 @@ async fn main() {
             get_track_ids_with_lyrics,
             flag_lyrics,
             play_track,
+            play_next,
+            play_previous,
+            set_shuffle,
+            set_repeat_mode,
             pause_track,
             resume_track,
             seek_track,
@@ -1729,6 +1835,41 @@ async fn main() {
                 let mut announced = false;
 
                 loop {
+                    // Advance the queue for tracks that ended on their own.
+                    //
+                    // `renew_state` only detects the end; resolving the next id
+                    // to a file path needs the DB, so it happens out here, with
+                    // the player lock released. This keeps the player lock from
+                    // being held across file I/O and avoids a lock-order hazard
+                    // between `player` and `db`.
+                    let finished = {
+                        let app_state: State<AppState> = handle_clone.state();
+                        let mut finished = Vec::new();
+
+                        if let Ok(mut player_guard) = app_state.player.lock() {
+                            if let Some(ref mut player) = *player_guard {
+                                while let Some(track_id) = player.take_finished() {
+                                    if let Some(decision) = player.decide_after_end(track_id) {
+                                        finished.push(decision);
+                                    }
+                                }
+                            }
+                        }
+
+                        finished
+                    };
+
+                    for decision in finished {
+                        match decision {
+                            PlaybackDecision::Play(track_id) | PlaybackDecision::Replay(track_id) => {
+                                if let Err(err) = start_queued_track(&handle_clone, track_id) {
+                                    eprintln!("Failed to advance the playlist: {}", err);
+                                }
+                            }
+                            PlaybackDecision::Stop => {}
+                        }
+                    }
+
                     let tick = {
                         let app_state: State<AppState> = handle_clone.state();
 
