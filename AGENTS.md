@@ -15,10 +15,12 @@ If your changes are related to the backend, run `cargo check` in the `src-tauri/
 
 ## Inspecting a running dev build (W3C WebDriver)
 
-`npm run tauri dev` compiles with `--features dev`, which enables a W3C WebDriver server on `http://127.0.0.1:4445` (via `tauri-plugin-webdriver`, backend details in `src-tauri/ARCHITECTURE.md`); drive it with any WebDriver client (Selenium, WebdriverIO, raw curl). Works on X11 and any Wayland compositor — no extra tools needed. Release builds have no server (`npm run tauri build` does not enable the feature), so a WebDriver-free binary is the default. `npm run tauri:dev` additionally turns on `devtools`.
+`npm run tauri:dev` compiles with `--features dev,devtools`, which enables a W3C WebDriver server on `http://127.0.0.1:4445` (via `tauri-plugin-webdriver`, backend details in `src-tauri/ARCHITECTURE.md`); drive it with any WebDriver client (Selenium, WebdriverIO, raw curl). Works on X11 and any Wayland compositor — no extra tools needed. Release builds have no server (`npm run tauri build` does not enable the feature), so a WebDriver-free binary is the default.
+
+**`tauri dev` does not enable these on its own** — it only passes `--no-default-features`. Use `npm run tauri:dev`, or add `--features dev` yourself; otherwise a debug build has no WebDriver bridge at all.
 
 ```bash
-setsid npm run tauri dev </dev/null > /tmp/lrcget-dev.log 2>&1 & disown
+setsid npm run tauri:dev </dev/null > /tmp/lrcget-dev.log 2>&1 & disown
 while ! curl -sf http://127.0.0.1:4445/status >/dev/null; do sleep 5; done
 ```
 

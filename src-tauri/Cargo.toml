@@ -59,10 +59,11 @@ custom-protocol = [ "tauri/custom-protocol" ]
 # release build carries no devtools API and no WebDriver server.
 devtools = [ "tauri/devtools" ]
 webdriver = [ "dep:tauri-plugin-webdriver" ]
-# `tauri dev` compiles with `--features dev`, which is how the WebDriver bridge
-# ends up in development without any manual flag. `npm run tauri dev` additionally
-# passes `--features devtools` (a devtools UI in a debug build is harmless and
-# useful; the point is only that neither reaches a release).
+# `tauri dev` does NOT enable this on its own -- it only passes
+# `--no-default-features` -- so development builds must ask for it explicitly:
+#   npm run tauri:dev          -> --features dev,devtools
+#   npx tauri dev --features dev
+# Without one of those the WebDriver bridge is absent even in a debug build.
 dev = [ "webdriver" ]
 
 [profile.dev.package.kira]

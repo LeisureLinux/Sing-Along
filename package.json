@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "tauri:dev": "tauri dev --features devtools",
+    "tauri:dev": "tauri dev --features dev,devtools",
     "build": "vite build",
     "preview": "vite preview",
     "tauri": "tauri",
