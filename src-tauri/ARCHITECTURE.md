@@ -316,6 +316,24 @@ Implements `From<PersistentTrack>` for seamless conversion from database entitie
 
 **PersistentConfig:** skip_synced, skip_plain, show_line_count, try_embed, theme_mode, lrclib_instance, volume, auto_export_enabled, export_lrc, export_txt, export_embedded
 
+## Build Features (dev vs release)
+
+Development-only capabilities are opt-in cargo features, never enabled by default:
+
+| Feature | Enables | Turned on by |
+|---------|---------|--------------|
+| `devtools` | `tauri/devtools` (devtools API) | `npm run tauri:dev` |
+| `webdriver` | `tauri-plugin-webdriver` | — |
+| `dev` | `webdriver` | `tauri dev` automatically |
+
+None of them is in `default`, so `cargo build --release` and `npm run tauri build` produce a binary with no devtools API and no WebDriver server. Verify with `cargo tree -i tauri-plugin-webdriver`, which fails to resolve the package at all in the default feature set, or `strings … | grep -c tauri_plugin_webdriver` (0 for release, tens of thousands for debug).
+
+This replaced `[target.'cfg(debug_assertions)'.dependencies]` for the WebDriver plugin, which Cargo silently ignores for dependency selection — it only prints a warning, so the plugin *was* compiled into release builds. `tauri`'s `devtools` feature had the same problem: it was requested unconditionally.
+
+`open_devtools` stays registered in both builds so the command list does not change shape; without the feature it is a no-op.
+
+Build note: charabia's lindera dictionaries are downloaded by build scripts. If that fails (network/TLS), pre-populate a cache directory and point `LINDERA_CACHE` at it — it contains one subdirectory per lindera version, e.g. `LINDERA_CACHE=/path/to/cache` with `0.43.3/lindera-unidic` and `0.43.3/lindera-ko-dic` inside. The script's fast path returns immediately when the built dictionary directory exists.
+
 ## WebDriver Dev Bridge (`tauri-plugin-webdriver`)
 
 Agent-driven inspection (screenshots, DOM queries, JS eval, interaction, logs) via a [W3C WebDriver](https://www.w3.org/TR/webdriver/) server, provided by [tauri-plugin-webdriver](https://github.com/Choochmeque/tauri-plugin-webdriver).

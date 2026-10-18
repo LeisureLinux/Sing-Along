@@ -15,7 +15,7 @@ If your changes are related to the backend, run `cargo check` in the `src-tauri/
 
 ## Inspecting a running dev build (W3C WebDriver)
 
-Debug builds serve a W3C WebDriver server on `http://127.0.0.1:4445` (via `tauri-plugin-webdriver`, backend details in `src-tauri/ARCHITECTURE.md`); drive it with any WebDriver client (Selenium, WebdriverIO, raw curl). Works on X11 and any Wayland compositor — no extra tools needed.
+`npm run tauri dev` compiles with `--features dev`, which enables a W3C WebDriver server on `http://127.0.0.1:4445` (via `tauri-plugin-webdriver`, backend details in `src-tauri/ARCHITECTURE.md`); drive it with any WebDriver client (Selenium, WebdriverIO, raw curl). Works on X11 and any Wayland compositor — no extra tools needed. Release builds have no server (`npm run tauri build` does not enable the feature), so a WebDriver-free binary is the default. `npm run tauri:dev` additionally turns on `devtools`.
 
 ```bash
 setsid npm run tauri dev </dev/null > /tmp/lrcget-dev.log 2>&1 & disown
