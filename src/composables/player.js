@@ -119,6 +119,20 @@ export function usePlayer() {
     setRepeatMode(next)
   }
 
+  // Replay the current track without touching the queue.
+  //
+  // Used by the transport button and the space bar when the player is stopped
+  // (end of queue, or after an explicit stop). Calling `playTrack` here would
+  // send no queue and the backend would collapse to a one-track queue, silently
+  // discarding the playlist the user had built up.
+  const replay = () => {
+    if (!playingTrack.value) {
+      return
+    }
+
+    invoke('replay_current')
+  }
+
   const pause = () => {
     if (!playingTrack.value) {
       return
@@ -177,6 +191,7 @@ export function usePlayer() {
     hasNext,
     hasPrevious,
     playTrack,
+    replay,
     playNext,
     playPrevious,
     setShuffle,

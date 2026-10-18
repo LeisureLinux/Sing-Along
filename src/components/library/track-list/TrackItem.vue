@@ -21,7 +21,7 @@
     <div
       class="flex-none flex p-1"
       :class="{ 'w-[65%]': !isShowTrackNumber, 'w-[60%]': isShowTrackNumber }"
-      @click="playTrack(track)"
+      @click="startTrack"
     >
       <div v-if="track">
         <div class="font-bold text-sm text-neutral-800 flex items-center dark:text-neutral-200">

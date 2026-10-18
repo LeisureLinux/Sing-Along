@@ -29,9 +29,13 @@
               {{ playingTrack.title }}
             </div>
             <div class="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1">
-              <span class="cursor-pointer hover:underline" @click="goToAlbum">{{ playingTrack.album_name }}</span>
+              <span class="cursor-pointer hover:underline" @click="goToAlbum">{{
+                playingTrack.album_name
+              }}</span>
               <span> · </span>
-              <span class="cursor-pointer hover:underline" @click="goToArtist">{{ playingTrack.artist_name }}</span>
+              <span class="cursor-pointer hover:underline" @click="goToArtist">{{
+                playingTrack.artist_name
+              }}</span>
             </div>
           </div>
         </div>
@@ -63,7 +67,7 @@
           <button
             v-else-if="playingTrack && status === 'stopped'"
             class="button button-primary text-white p-2 rounded-full text-xl"
-            @click.prevent="playTrack(playingTrack)"
+            @click.prevent="replay"
           >
             <Replay />
           </button>
@@ -112,7 +116,10 @@
             <RepeatOnce v-if="repeat === 'one'" />
             <Repeat v-else />
           </button>
-          <PlaybackSpeedControl :model-value="playbackSpeed" @update:model-value="setPlaybackSpeed" />
+          <PlaybackSpeedControl
+            :model-value="playbackSpeed"
+            @update:model-value="setPlaybackSpeed"
+          />
           <VolumeSlider :volume="volume" @set-volume="setPlayerVolume" />
         </div>
       </div>
@@ -171,6 +178,7 @@ const {
   hasNext,
   hasPrevious,
   playTrack,
+  replay,
   playNext,
   playPrevious,
   setShuffle,
@@ -276,7 +284,7 @@ onMounted(async () => {
         if (status.value === 'playing') {
           pause()
         } else if (playingTrack.value && status.value === 'stopped') {
-          playTrack(playingTrack.value)
+          replay()
         } else {
           resume()
         }

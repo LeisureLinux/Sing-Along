@@ -1576,6 +1576,31 @@ fn stop_track(app_state: tauri::State<AppState>) -> Result<(), String> {
     Ok(())
 }
 
+/// Restart the current track without changing the queue.
+///
+/// The transport button and the space bar use this when playback is stopped.
+/// Replaying through `play_track` would send no queue and collapse it to a
+/// single track, so the playlist would be lost by pressing play.
+#[tauri::command]
+async fn replay_current(app_handle: AppHandle) -> Result<(), String> {
+    // Read the id from the queue, not from `player.track`: an explicit stop
+    // clears the loaded track while deliberately keeping the queue, so the
+    // track field is gone exactly when replay matters.
+    let track_id = {
+        let app_state: State<AppState> = app_handle.state();
+        let player_guard = app_state.player.lock().map_err(|e| e.to_string())?;
+
+        player_guard
+            .as_ref()
+            .and_then(|player| player.playlist().current_id())
+    };
+
+    match track_id {
+        Some(track_id) => start_queued_track(&app_handle, track_id),
+        None => Ok(()),
+    }
+}
+
 /// Skip to the next queue entry.
 ///
 /// Unlike the end-of-track path, an explicit skip always advances: repeat-one
@@ -1787,6 +1812,7 @@ async fn main() {
             get_track_ids_with_lyrics,
             flag_lyrics,
             play_track,
+            replay_current,
             play_next,
             play_previous,
             set_shuffle,
