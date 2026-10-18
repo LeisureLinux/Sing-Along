@@ -96,9 +96,7 @@ impl Playlist {
     pub fn has_next(&self) -> bool {
         match self.cursor {
             None => false,
-            Some(cursor) => {
-                cursor + 1 < self.ids.len() || matches!(self.repeat, RepeatMode::All)
-            }
+            Some(cursor) => cursor + 1 < self.ids.len() || matches!(self.repeat, RepeatMode::All),
         }
     }
 
@@ -148,7 +146,8 @@ impl Playlist {
         } else {
             let current = self.current_id();
             self.ids = self.original.clone();
-            self.cursor = current.and_then(|id| self.ids.iter().position(|candidate| *candidate == id));
+            self.cursor =
+                current.and_then(|id| self.ids.iter().position(|candidate| *candidate == id));
             self.shuffle = false;
         }
 
@@ -362,7 +361,11 @@ mod tests {
         assert_eq!(playlist.current_id(), Some(3));
 
         playlist.set_shuffle(true);
-        assert_eq!(playlist.current_id(), Some(3), "current track must keep playing");
+        assert_eq!(
+            playlist.current_id(),
+            Some(3),
+            "current track must keep playing"
+        );
         assert_eq!(playlist.order()[0], 3);
         assert_eq!(playlist.len(), 5);
 
