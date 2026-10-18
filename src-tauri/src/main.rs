@@ -1303,7 +1303,14 @@ async fn play_track(
 
     let mut player_guard = app_state.player.lock().unwrap();
     if let Some(ref mut player) = *player_guard {
-        player.play(playable_track).map_err(|err| err.to_string())?;
+        // The audio device is opened on first playback; surface that failure as
+        // a notification too, since it is no longer reported at startup.
+        if let Err(err) = player.play(playable_track) {
+            drop(player_guard);
+            let message = format!("Failed to start playback: {}", err);
+            push_notification(&app_handle, message.clone(), NotifyType::Error);
+            return Err(message);
+        }
     }
 
     Ok(())
@@ -1521,7 +1528,9 @@ fn stop_track(app_state: tauri::State<AppState>) -> Result<(), String> {
     let mut player_guard = app_state.player.lock().map_err(|e| e.to_string())?;
 
     if let Some(ref mut player) = *player_guard {
-        player.stop();
+        // An explicit stop also hands the audio device back, so a stopped player
+        // stops consuming CPU on an idle output stream.
+        player.release_audio_device();
     }
 
     Ok(())
@@ -1611,7 +1620,7 @@ async fn segment_words(text: String) -> Result<Vec<String>, String> {
 // handful of concurrent commands, so a large default worker pool (one thread per
 // core plus extras) just burns stack and memory. A small pool is enough and
 // keeps idle thread count down.
-#[tokio::main]
+#[tokio::main(worker_threads = 4)]
 async fn main() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -1696,47 +1705,69 @@ async fn main() {
                 .map(|config| config.volume)
                 .unwrap_or(1.0);
 
-            let maybe_player = Player::new(initial_volume);
-            match maybe_player {
-                Ok(player) => {
-                    *app_state.player.lock().unwrap() = Some(player);
-                }
-                Err(e) => {
-                    eprintln!("Failed to initialize audio player: {}", e);
-                    push_notification(
-                        &handle,
-                        format!("Failed to initialize audio player: {}", e),
-                        NotifyType::Error,
-                    );
-                }
-            }
+            // The audio device is opened lazily on first playback, so a session
+            // that never plays anything keeps no ALSA/CPAL threads alive.
+            *app_state.player.lock().unwrap() = Some(Player::new(initial_volume));
 
             let handle_clone = handle.clone();
 
+            // State emitter.
+            //
+            // This used to push the whole serialized player 25 times a second,
+            // regardless of whether anything had changed. Now it only emits
+            // when the observable state actually moves, and while nothing is
+            // playing it idles at a slow tick.
+            //
+            // The frontend needs at most ~100ms of seek-bar granularity (the
+            // karaoke sweep interpolates between updates), and it only receives
+            // a small snapshot rather than the serialized player (which used to
+            // carry the full track and its lyricsfile YAML).
             tokio::spawn(async move {
-                let mut interval = tokio::time::interval(std::time::Duration::from_millis(40));
+                const PLAYING_TICK: std::time::Duration = std::time::Duration::from_millis(100);
+                const IDLE_TICK: std::time::Duration = std::time::Duration::from_millis(500);
+
+                let mut announced = false;
+
                 loop {
-                    interval.tick().await;
-                    {
+                    let tick = {
                         let app_state: State<AppState> = handle_clone.state();
-                        let player_guard = app_state.player.lock();
 
-                        match player_guard {
-                            Ok(mut player_guard) => {
-                                if let Some(ref mut player) = *player_guard {
-                                    player.renew_state();
+                        let tick = match app_state.player.lock() {
+                            Ok(mut player_guard) => match *player_guard {
+                                Some(ref mut player) => {
+                                    let changed = player.renew_state();
+                                    let playing = player.is_playing();
 
-                                    let emit_player_state =
-                                        handle_clone.emit("player-state", &player);
+                                    // Emit once at startup so the frontend gets
+                                    // the persisted volume, then only on change.
+                                    if changed || !announced {
+                                        if let Err(e) =
+                                            handle_clone.emit("player-state", &player.snapshot())
+                                        {
+                                            eprintln!("Failed to emit player state: {}", e);
+                                        } else {
+                                            announced = true;
+                                        }
+                                    }
 
-                                    if let Err(e) = emit_player_state {
-                                        eprintln!("Failed to emit player state: {}", e);
+                                    if playing {
+                                        PLAYING_TICK
+                                    } else {
+                                        IDLE_TICK
                                     }
                                 }
+                                None => IDLE_TICK,
+                            },
+                            Err(e) => {
+                                eprintln!("Failed to lock player: {}", e);
+                                IDLE_TICK
                             }
-                            Err(e) => eprintln!("Failed to lock player: {}", e),
-                        }
-                    }
+                        };
+
+                        tick
+                    };
+
+                    tokio::time::sleep(tick).await;
                 }
             });
 

@@ -167,17 +167,23 @@ When tracks are deleted from the library, their associated `lyricsfiles` records
 
 ```rust
 struct Player {
-    manager: AudioManager,              // Kira
+    manager: Option<AudioManager>,          // Kira — created lazily on first play
     sound_handle: Option<StreamingSoundHandle>,
-    track: Option<PlayableTrack>,      // Unified type for DB and file-based tracks
-    status: PlayerStatus,               // Playing/Paused/Stopped
+    track: Option<PlayableTrack>,           // Unified type for DB and file-based tracks
+    status: PlayerStatus,                   // Playing/Paused/Stopped
     progress: f64, duration: f64, volume: f64, playback_speed: f64,
+}
+
+struct PlayerSnapshot {                     // What crosses IPC
+    status, track_id, progress, duration, volume, playback_speed
 }
 ```
 
 The player uses `PlayableTrack` to support both library tracks (from database) and arbitrary tracks (from file picker). This enables playback of tracks not present in the library database.
 
-Background loop (40ms) in `main.rs` emits `player-state` event.
+**Audio device lifecycle:** `AudioManager` is created on the first `play()`, not at startup, and `stop_track` calls `release_audio_device()` which drops it again. `stop()` alone keeps the manager alive because starting a new track stops the previous one first, and reopening the device per track change would add latency. Rationale: the CPAL/ALSA threads (`data-loop.0`, `cpal_alsa_out`) keep waking up on an idle output stream, costing ~7% of a core indefinitely. A session that never plays audio now opens no device at all, and a stopped player returns to that state.
+
+**State events:** the background loop in `main.rs` ticks at 100ms while playing and 500ms otherwise, and **only emits `player-state` when `renew_state()` reports a change** (one payload is forced at startup so the frontend receives the persisted volume). It emits a `PlayerSnapshot`, not the serialized `Player`. Measured: ~10 events/s while playing, **0 events/s while paused or stopped** (previously 25/s unconditionally).
 
 Volume persistence:
 - Player initializes with volume from `config_data` on startup
@@ -327,11 +333,20 @@ Search across all three entity types uses SQLite FTS5 (via `tracks_fts`, `albums
 
 ### Playback & Config
 - `play_track(track_id?, file_path?, title?, album_name?, artist_name?, album_artist_name?, duration?)` - Unified playback for both library tracks (via `track_id`) and file-based tracks (via `file_path` with metadata)
-- `pause/resume_track()`, `seek_track()`, `stop_track()`, `set_volume()` (persists volume to config), `set_playback_speed()`
+- `pause/resume_track()`, `seek_track()`, `set_volume()` (persists volume to config), `set_playback_speed()`
+- `stop_track()` - Stops playback **and releases the audio device** (see Audio Player lifecycle)
 - `get/set_directories()`, `get/set_config()`, `get_init()`
 - `set_export_preferences(auto_export_enabled?, export_lrc?, export_txt?, export_embedded?, skip_tracks_with_synced_lyrics?, skip_tracks_with_plain_lyrics?)` updates only supplied fields in `config_data` and returns config. Download atomically supplies its existing skip flags, toggle, and effective format selections; manual Export supplies shared formats only. Hidden/omitted fields and unrelated settings survive.
 - Volume is loaded from config on startup and auto-saved when changed via `set_volume()`
-- `open_devtools()`, `drain_notifications()`
+- `open_devtools()`, `drain_notifications()` (startup backstop; notifications are pushed via the `notification` event)
+
+### Runtime configuration
+
+`#[tokio::main]` is configured with `worker_threads = 4`. The workload is I/O bound (LRCLIB requests, scanning) with a handful of concurrent commands, so the default one-thread-per-core pool only added idle threads; scans still use `block_in_place`.
+
+### Memory: virtual vs resident
+
+A running LRCGET shows ~74 GB of VSZ on Linux. That is **not a leak or an allocation** — it is WebKit's JavaScriptCore gigacage, a fixed 64 GB `PROT_NONE` reservation (`[anon:JSGigacage]` in `smaps`, RSS 0) plus a 4 GB JS structure heap and 1 GB JIT region. It is identical for any WebKitGTK host and independent of library size. Judge the process by RSS/PSS (~315 MB / ~140 MB), never by VSZ, and never cap VSZ with `ulimit -v` or `cgroup memory.max` — WebKit aborts instead of suspending the gigacage.
 
 ## Events (Backend → Frontend)
 
@@ -339,7 +354,8 @@ Search across all three entity types uses SQLite FTS5 (via `tracks_fts`, `albums
 |-------|---------|---------|
 | `scan-progress` | `{ phase, progress, filesProcessed, filesTotal, message }` | Real-time scan updates |
 | `scan-complete` | `{ totalFiles, added, modified, deleted, moved, unchanged, isInitialScan, durationMs }` | Scan finished |
-| `player-state` | Player status | Playback updates (40ms loop) |
+| `player-state` | `{ status, track_id, progress, duration, volume, playback_speed }` | Playback updates — emitted **only on change**, at 100ms while playing / 500ms otherwise |
+| `notification` | `{ message, type }` | Backend notifications, pushed instead of polled (queue drained once at boot as a backstop) |
 | `reload-track-id` | track_id | Request refresh |
 | `publish-lyrics-progress` | Status | Publishing updates |
 | `flag-lyrics-progress` | Status | Flagging updates |

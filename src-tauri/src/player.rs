@@ -10,7 +10,7 @@ use kira::{
 use crate::persistent_entities::PlayableTrack;
 use serde::Serialize;
 
-#[derive(Serialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PlayerStatus {
     Playing,
@@ -18,27 +18,35 @@ pub enum PlayerStatus {
     Stopped,
 }
 
-#[derive(Serialize)]
-pub struct Player {
-    #[serde(skip)]
-    manager: AudioManager,
-    #[serde(skip)]
-    sound_handle: Option<StreamingSoundHandle<FromFileError>>,
-    #[serde(skip)]
-    pub track: Option<PlayableTrack>,
+/// The part of the player the frontend actually needs. Keeping this separate
+/// from `Player` keeps the audio backend handles out of the IPC payload.
+#[derive(Clone, PartialEq, Debug, Serialize)]
+pub struct PlayerSnapshot {
     pub status: PlayerStatus,
+    pub track_id: Option<i64>,
     pub progress: f64,
     pub duration: f64,
     pub volume: f64,
     pub playback_speed: f64,
 }
 
-impl Player {
-    pub fn new(initial_volume: f64) -> Result<Player> {
-        let manager = AudioManager::<DefaultBackend>::new(AudioManagerSettings::default())?;
+pub struct Player {
+    /// Created on first playback, not at startup, so that a session that never
+    /// plays audio never opens an output device (and its ALSA/CPAL threads).
+    manager: Option<AudioManager<DefaultBackend>>,
+    sound_handle: Option<StreamingSoundHandle<FromFileError>>,
+    pub track: Option<PlayableTrack>,
+    status: PlayerStatus,
+    progress: f64,
+    duration: f64,
+    volume: f64,
+    playback_speed: f64,
+}
 
-        Ok(Player {
-            manager,
+impl Player {
+    pub fn new(initial_volume: f64) -> Player {
+        Player {
+            manager: None,
             sound_handle: None,
             track: None,
             status: PlayerStatus::Stopped,
@@ -46,10 +54,32 @@ impl Player {
             duration: 0.0,
             volume: initial_volume,
             playback_speed: 1.0,
-        })
+        }
     }
 
-    pub fn renew_state(&mut self) {
+    pub fn snapshot(&self) -> PlayerSnapshot {
+        PlayerSnapshot {
+            status: self.status,
+            track_id: self.track.as_ref().and_then(|track| track.id),
+            progress: self.progress,
+            duration: self.duration,
+            volume: self.volume,
+            playback_speed: self.playback_speed,
+        }
+    }
+
+    pub fn is_playing(&self) -> bool {
+        matches!(self.status, PlayerStatus::Playing)
+    }
+
+    /// Refresh the observable state from the audio backend.
+    ///
+    /// Returns whether anything observable changed since the previous call, so
+    /// the state emitter can stay silent on an idle player instead of pushing
+    /// 25 identical payloads per second.
+    pub fn renew_state(&mut self) -> bool {
+        let before = self.snapshot();
+
         if let Some(ref mut sound_handle) = self.sound_handle {
             match sound_handle.state() {
                 PlaybackState::Playing => self.status = PlayerStatus::Playing,
@@ -60,35 +90,37 @@ impl Player {
                 PlaybackState::Paused => self.status = PlayerStatus::Paused,
                 PlaybackState::Stopped => self.status = PlayerStatus::Stopped,
             }
+            self.progress = sound_handle.position();
         } else {
             self.status = PlayerStatus::Stopped
         }
 
-        match self.sound_handle {
-            Some(ref mut sound_handle) => {
-                self.progress = sound_handle.position();
-            }
-            None => {}
+        self.snapshot() != before
+    }
+
+    fn ensure_manager(&mut self) -> Result<()> {
+        if self.manager.is_none() {
+            self.manager =
+                Some(AudioManager::<DefaultBackend>::new(AudioManagerSettings::default())?);
         }
+
+        Ok(())
     }
 
     pub fn play(&mut self, track: PlayableTrack) -> Result<()> {
         let _ = self.stop();
         self.track = Some(track);
 
-        if let Some(ref mut track) = self.track {
+        if let Some(ref track) = self.track {
             let sound_data = StreamingSoundData::from_file(&track.file_path)?;
-
             self.duration = sound_data.duration().as_secs_f64();
-            self.sound_handle = Some(self.manager.play(sound_data)?);
-            self.sound_handle
-                .as_mut()
-                .unwrap()
-                .set_volume(Self::volume_as_decibels(self.volume), Tween::default());
-            self.sound_handle
-                .as_mut()
-                .unwrap()
-                .set_playback_rate(self.playback_speed, Tween::default());
+
+            self.ensure_manager()?;
+            let manager = self.manager.as_mut().unwrap();
+            let mut sound_handle = manager.play(sound_data)?;
+            sound_handle.set_volume(Self::volume_as_decibels(self.volume), Tween::default());
+            sound_handle.set_playback_rate(self.playback_speed, Tween::default());
+            self.sound_handle = Some(sound_handle);
         }
 
         Ok(())
@@ -121,12 +153,26 @@ impl Player {
     pub fn stop(&mut self) {
         if let Some(ref mut sound_handle) = self.sound_handle {
             sound_handle.stop(Tween::default());
-            self.sound_handle = None;
-            self.track = None;
-            self.duration = 0.0;
-            self.progress = 0.0;
-            self.status = PlayerStatus::Stopped;
         }
+
+        self.sound_handle = None;
+        self.track = None;
+        self.duration = 0.0;
+        self.progress = 0.0;
+        self.status = PlayerStatus::Stopped;
+    }
+
+    /// Give the output device back to the system.
+    ///
+    /// `stop()` deliberately keeps the `AudioManager` alive because playing a
+    /// new track stops the previous one first; reopening the device on every
+    /// track change would add latency. An explicit user stop is different: the
+    /// CPAL/ALSA threads keep waking up even when nothing is playing, so a
+    /// player that was used once and then stopped would idle ~7% of a core
+    /// forever. Releasing here makes the next `play()` recreate it lazily.
+    pub fn release_audio_device(&mut self) {
+        self.stop();
+        self.manager = None;
     }
 
     /// Kira doesn't provide a way to create Decibels from an amplitude.
@@ -167,8 +213,7 @@ impl Player {
 
 #[cfg(test)]
 mod tests {
-    use super::Player;
-    use kira::Decibels;
+    use super::*;
 
     #[test]
     fn test_volume_as_decibels() {
@@ -198,5 +243,56 @@ mod tests {
         let _ = Player::volume_as_decibels(0.5);
         let _ = Player::volume_as_decibels(1.0);
         let _ = Player::volume_as_decibels(0.0);
+    }
+
+    #[test]
+    fn new_player_opens_no_audio_device_and_reports_no_change() {
+        let mut player = Player::new(0.8);
+        assert!(player.manager.is_none());
+        assert_eq!(player.snapshot().status, PlayerStatus::Stopped);
+        assert!(!player.is_playing());
+        // An idle player has nothing to report, so the state loop stays silent.
+        assert!(!player.renew_state());
+    }
+
+    #[test]
+    fn snapshot_only_carries_frontend_fields() {
+        let player = Player::new(0.5);
+        let snapshot = player.snapshot();
+        assert_eq!(snapshot.volume, 0.5);
+        assert_eq!(snapshot.playback_speed, 1.0);
+        assert_eq!(snapshot.duration, 0.0);
+        assert_eq!(snapshot.track_id, None);
+    }
+
+    #[test]
+    fn releasing_the_audio_device_leaves_a_stopped_player() {
+        let mut player = Player::new(1.0);
+        player.release_audio_device();
+        assert!(player.manager.is_none());
+        assert!(player.sound_handle.is_none());
+        assert_eq!(player.snapshot().status, PlayerStatus::Stopped);
+        assert!(!player.is_playing());
+    }
+
+    #[test]
+    fn stop_resets_progress_and_track() {
+        let mut player = Player::new(1.0);
+        player.progress = 12.5;
+        player.duration = 100.0;
+        player.stop();
+        let snapshot = player.snapshot();
+        assert_eq!(snapshot.progress, 0.0);
+        assert_eq!(snapshot.duration, 0.0);
+        assert_eq!(snapshot.status, PlayerStatus::Stopped);
+    }
+
+    #[test]
+    fn set_playback_speed_is_clamped_and_detected_as_change() {
+        let mut player = Player::new(1.0);
+        let before = player.snapshot();
+        player.set_playback_speed(9.0);
+        assert_eq!(player.snapshot().playback_speed, 2.0);
+        assert_ne!(player.snapshot(), before);
     }
 }
