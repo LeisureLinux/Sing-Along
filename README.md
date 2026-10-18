@@ -11,6 +11,32 @@ listen.
 Lyrics are retrieved from [LRCLIB](https://lrclib.net). Sing-Along is an
 independent project and is **not** an official client of LRCLIB.
 
+## Why word-level lyrics need converting
+
+Word-level lyric files are not portable. There are at least eight dialects and
+only one of them (TTML) is an actual standard:
+
+| Format                | Line timing | Word timing | Defined by                                                  |
+| --------------------- | ----------- | ----------- | ----------------------------------------------------------- |
+| LRC                   | ✅          | ❌          | a 1998 Winamp plug-in, never standardised                   |
+| LRC A2 (Enhanced LRC) | ✅          | ✅          | the A2 Media Player author                                  |
+| SPL                   | ✅          | ✅          | the Salt Player author                                      |
+| YRC / QRC / KRC       | ✅          | ✅          | NetEase / QQ Music / Kugou (the last two are **encrypted**) |
+| TTML                  | ✅          | ✅          | W3C (started as DFXP in 2003)                               |
+
+So the same library has to be exported twice if you use two players: enhanced
+LRC for players that read the A2 extension (Gramophone, Fluxio), and TTML for
+players whose word highlighting comes only from TTML (Steve on iOS).
+
+Background, with sources, on how these formats came to exist, who owns each
+one, why two of them are encrypted, and why free offline players with
+word-level lyrics are so scarce:
+
+**📖 [从「能免费在车里唱歌」出发，我为什么会撞上三种歌词格式](https://freelamp.com/articles/2026-10-18_lrc-ttml-karaoke-formats/)** (Chinese)
+
+The conversion helpers used for this live in [`tools/`](tools/README.md):
+`lrc-a2-word-sync.py` for enhanced LRC, `lrc-to-ttml.py` for TTML.
+
 ## License and attribution
 
 Sing-Along is a fork of [LRCGET](https://github.com/tranxuanthang/lrcget),
