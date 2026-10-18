@@ -63,7 +63,10 @@
             <TrackItem
               :track-id="virtualRow.key"
               :is-show-track-number="true"
+              :queue="trackIds"
+              :queue-index="virtualRow.index"
               @play-track="playTrack"
+              @play-with-queue="playWithQueue"
               @download-lyrics="downloadLyrics"
             />
           </div>
@@ -83,7 +86,7 @@ import TrackItem from '../track-list/TrackItem.vue'
 import { useDownloadTrigger } from '@/composables/download-options.js'
 
 const props = defineProps(['artist'])
-const emit = defineEmits(['back', 'playTrack', 'downloadLyrics'])
+const emit = defineEmits(['back', 'playTrack', 'playWithQueue', 'downloadLyrics'])
 
 const trackIds = ref([])
 const parentRef = ref(null)
@@ -105,6 +108,10 @@ const totalSize = computed(() => rowVirtualizer.value.getTotalSize())
 
 const playTrack = track => {
   emit('playTrack', track)
+}
+
+const playWithQueue = ({ track, index }) => {
+  emit('playWithQueue', { track, queue: trackIds.value, index })
 }
 
 const downloadLyrics = track => {

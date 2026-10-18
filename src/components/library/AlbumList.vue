@@ -29,7 +29,13 @@
     </div>
 
     <Transition name="slide-fade">
-      <AlbumTrackList v-if="currentAlbum" :album="currentAlbum" @back="currentAlbum = null" />
+      <AlbumTrackList
+        v-if="currentAlbum"
+        :album="currentAlbum"
+        @back="currentAlbum = null"
+        @play-track="track => $emit('playTrack', track)"
+        @play-with-queue="payload => $emit('playWithQueue', payload)"
+      />
     </Transition>
   </div>
 </template>

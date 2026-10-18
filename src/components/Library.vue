@@ -14,11 +14,19 @@
     />
 
     <div id="library-content" class="relative grow overflow-hidden">
-      <TrackList :is-active="activeTab === 'tracks'" />
+      <TrackList :is-active="activeTab === 'tracks'" @play-with-queue="playWithQueue" />
 
-      <AlbumList ref="albumListRef" :is-active="activeTab === 'albums'" />
+      <AlbumList
+        ref="albumListRef"
+        :is-active="activeTab === 'albums'"
+        @play-with-queue="playWithQueue"
+      />
 
-      <ArtistList ref="artistListRef" :is-active="activeTab === 'artists'" />
+      <ArtistList
+        ref="artistListRef"
+        :is-active="activeTab === 'artists'"
+        @play-with-queue="playWithQueue"
+      />
 
       <MyLrclib :is-active="activeTab === 'my-lrclib'" />
     </div>
@@ -71,8 +79,16 @@ import { useToast } from 'vue-toastification'
 import { useModal } from 'vue-final-modal'
 import { useExporter } from '@/composables/export.js'
 import { useLibraryNavigation } from '@/composables/library-navigation.js'
+import { usePlayer } from '@/composables/player.js'
 
 const { request: downloadRequest } = useDownloadOptions()
+const { playTrack } = usePlayer()
+
+// Play from a list: the list supplies its full id order so the backend can build
+// a real queue instead of a single-track one.
+const playWithQueue = ({ track, queue, index }) => {
+  playTrack(track, queue, index)
+}
 
 const props = defineProps({
   shouldScan: {

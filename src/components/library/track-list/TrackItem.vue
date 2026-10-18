@@ -46,14 +46,14 @@
     </div>
 
     <!-- Duration -->
-    <div class="flex-none w-[10%] flex items-center justify-end p-1" @click="playTrack(track)">
+    <div class="flex-none w-[10%] flex items-center justify-end p-1" @click="startTrack">
       <div v-if="track" class="text-neutral-800 font-bold text-xs text-right dark:text-neutral-400">
         {{ humanDuration(track.duration) }}
       </div>
     </div>
 
     <!-- Lyrics indication -->
-    <div class="flex-none w-[10%] flex items-center justify-center p-1" @click="playTrack(track)">
+    <div class="flex-none w-[10%] flex items-center justify-center p-1" @click="startTrack">
       <div v-if="track">
         <span
           v-if="lyricsStatus === 'instrumental'"
@@ -82,11 +82,11 @@
         <button
           v-else-if="isPlaying && status === 'stopped'"
           class="track-button"
-          @click="playTrack(track)"
+          @click="startTrack"
         >
           <Replay />
         </button>
-        <button v-else class="track-button" @click="isPlaying ? resume() : playTrack(track)">
+        <button v-else class="track-button" @click="isPlaying ? resume() : startTrack">
           <Play />
         </button>
         <button class="track-button" @click="searchLyrics(track)">
@@ -134,8 +134,15 @@ const goToArtist = () => {
 
 const { searchLyrics } = useSearchLyrics()
 const { editLyricsV2, editingAudioSource } = useEditLyricsV2()
-const props = defineProps(['trackId', 'isShowTrackNumber'])
+const props = defineProps(['trackId', 'isShowTrackNumber', 'queue', 'queueIndex'])
+const emit = defineEmits(['playWithQueue'])
 const track = ref(null)
+
+// The list owns the queue (it knows the current filter result); a row only knows
+// its own id, so starting playback has to go back up to it.
+const startTrack = () => {
+  emit('playWithQueue', { track: track.value, index: props.queueIndex })
+}
 
 const isPlaying = computed(() => {
   return playingTrack.value && track.value && playingTrack.value.id === track.value.id

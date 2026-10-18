@@ -38,6 +38,16 @@
 
         <div class="basis-1/3 flex-1 flex justify-center items-center gap-2">
           <button
+            v-if="queueLength > 1"
+            class="button button-secondary p-1 m-1 rounded-full text-lg"
+            :class="{ 'opacity-40 cursor-not-allowed': !hasPrevious }"
+            :disabled="!hasPrevious"
+            title="Previous track"
+            @click.prevent="playPrevious"
+          >
+            <SkipPrevious />
+          </button>
+          <button
             class="button button-secondary p-1 m-1 rounded-full text-lg"
             @click.prevent="seek(reverse10)"
           >
@@ -70,9 +80,38 @@
           >
             <FastForward_10 />
           </button>
+          <button
+            v-if="queueLength > 1"
+            class="button button-secondary p-1 m-1 rounded-full text-lg"
+            :class="{ 'opacity-40 cursor-not-allowed': !hasNext }"
+            :disabled="!hasNext"
+            title="Next track"
+            @click.prevent="playNext"
+          >
+            <SkipNext />
+          </button>
         </div>
 
         <div class="basis-1/3 flex-1 flex justify-end items-center gap-2">
+          <button
+            v-if="queueLength > 1"
+            class="button button-secondary p-1 m-1 rounded-full text-lg"
+            :class="{ 'text-hoa-1100': shuffle }"
+            :title="shuffle ? 'Shuffle on' : 'Shuffle off'"
+            @click.prevent="setShuffle(!shuffle)"
+          >
+            <Shuffle />
+          </button>
+          <button
+            v-if="queueLength > 1"
+            class="button button-secondary p-1 m-1 rounded-full text-lg"
+            :class="{ 'text-hoa-1100': repeat !== 'off' }"
+            :title="repeatTitle"
+            @click.prevent="cycleRepeatMode"
+          >
+            <RepeatOnce v-if="repeat === 'one'" />
+            <Repeat v-else />
+          </button>
           <PlaybackSpeedControl :model-value="playbackSpeed" @update:model-value="setPlaybackSpeed" />
           <VolumeSlider :volume="volume" @set-volume="setPlayerVolume" />
         </div>
@@ -93,6 +132,11 @@ import Pause from '~icons/mdi/pause'
 import Replay from '~icons/mdi/replay'
 import Rewind_10 from '~icons/mdi/rewind-10'
 import FastForward_10 from '~icons/mdi/fast-forward-10'
+import SkipPrevious from '~icons/mdi/skip-previous'
+import SkipNext from '~icons/mdi/skip-next'
+import Shuffle from '~icons/mdi/shuffle'
+import Repeat from '~icons/mdi/repeat'
+import RepeatOnce from '~icons/mdi/repeat-once'
 import { usePlayer } from '@/composables/player.js'
 import { useGlobalState } from '@/composables/global-state.js'
 import VolumeSlider from './now-playing/VolumeSlider.vue'
@@ -121,7 +165,16 @@ const {
   progress,
   volume,
   playbackSpeed,
+  queueLength,
+  shuffle,
+  repeat,
+  hasNext,
+  hasPrevious,
   playTrack,
+  playNext,
+  playPrevious,
+  setShuffle,
+  cycleRepeatMode,
   pause,
   resume,
   seek,
@@ -130,6 +183,12 @@ const {
 } = usePlayer()
 
 const keydownEvent = ref(null)
+
+const repeatTitle = computed(() => {
+  if (repeat.value === 'one') return 'Repeat one'
+  if (repeat.value === 'all') return 'Repeat all'
+  return 'Repeat off'
+})
 
 const instrumental = computed(() => {
   if (!playingTrack.value) {

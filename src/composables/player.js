@@ -4,6 +4,14 @@ import { listen } from '@tauri-apps/api/event'
 
 const playingTrack = ref(null)
 const status = ref('stopped')
+// Queue state mirrors what the backend reports, so transport controls do not
+// have to duplicate the cursor logic.
+const queueLength = ref(0)
+const queueIndex = ref(null)
+const shuffle = ref(false)
+const repeat = ref('off')
+const hasNext = ref(false)
+const hasPrevious = ref(false)
 const duration = ref(null)
 const progress = ref(null)
 const volume = ref(1.0)
@@ -15,6 +23,33 @@ listen('player-state', async event => {
   status.value = event.payload.status
   volume.value = event.payload.volume
   playbackSpeed.value = event.payload.playback_speed ?? 1.0
+  queueLength.value = event.payload.queue_length ?? 0
+  queueIndex.value = event.payload.queue_index ?? null
+  shuffle.value = event.payload.shuffle ?? false
+  repeat.value = event.payload.repeat ?? 'off'
+  hasNext.value = event.payload.has_next ?? false
+  hasPrevious.value = event.payload.has_previous ?? false
+})
+
+// When playback advances on its own (end of track, next, previous), the backend
+// is the one that knows which track is now playing, so refetch it instead of
+// guessing client-side.
+let lastTrackId = null
+listen('player-state', async event => {
+  const trackId = event.payload.track_id ?? null
+  if (trackId === lastTrackId) {
+    return
+  }
+  lastTrackId = trackId
+
+  if (trackId === null) {
+    return
+  }
+  if (playingTrack.value && playingTrack.value.id === trackId) {
+    return
+  }
+
+  playingTrack.value = await invoke('get_track', { trackId })
 })
 
 listen('reload-track-id', async event => {
@@ -25,8 +60,12 @@ listen('reload-track-id', async event => {
 })
 
 export function usePlayer() {
-  const playTrack = track => {
+  // `queue` + `index` come from the list the user clicked in. Without them the
+  // backend falls back to a one-track queue, which is what a bare call (or a
+  // file-picker track) should do.
+  const playTrack = (track, queue, index) => {
     playingTrack.value = track
+    lastTrackId = track.id ?? null
 
     // Determine if this is a database track or a file-based track
     if (track.id !== undefined && track.id !== null) {
@@ -39,6 +78,8 @@ export function usePlayer() {
         artistName: track.artist_name,
         albumArtistName: track.album_artist_name,
         duration: track.duration,
+        queue: queue ?? null,
+        index: index ?? null,
       })
     } else if (track.file_path) {
       // File-based track (from file picker) - use file_path with metadata
@@ -50,8 +91,32 @@ export function usePlayer() {
         artistName: track.artist_name,
         albumArtistName: track.album_artist_name,
         duration: track.duration,
+        queue: null,
+        index: null,
       })
     }
+  }
+
+  const playNext = () => {
+    invoke('play_next')
+  }
+
+  const playPrevious = () => {
+    invoke('play_previous')
+  }
+
+  const setShuffle = value => {
+    invoke('set_shuffle', { shuffle: value })
+  }
+
+  const setRepeatMode = value => {
+    invoke('set_repeat_mode', { repeat: value })
+  }
+
+  const cycleRepeatMode = () => {
+    const order = ['off', 'all', 'one']
+    const next = order[(order.indexOf(repeat.value) + 1) % order.length]
+    setRepeatMode(next)
   }
 
   const pause = () => {
@@ -105,7 +170,18 @@ export function usePlayer() {
     progress,
     volume,
     playbackSpeed,
+    queueLength,
+    queueIndex,
+    shuffle,
+    repeat,
+    hasNext,
+    hasPrevious,
     playTrack,
+    playNext,
+    playPrevious,
+    setShuffle,
+    setRepeatMode,
+    cycleRepeatMode,
     pause,
     resume,
     stop,

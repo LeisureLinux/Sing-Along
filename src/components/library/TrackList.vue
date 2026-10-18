@@ -27,7 +27,10 @@
           >
             <TrackItem
               :track-id="virtualRow.key"
+              :queue="trackIds"
+              :queue-index="virtualRow.index"
               @play-track="playTrack"
+              @play-with-queue="playWithQueue"
               @download-lyrics="downloadLyrics"
             />
           </div>
@@ -45,7 +48,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { useSearchLibrary } from '@/composables/search-library.js'
 
 const props = defineProps(['isActive'])
-const emit = defineEmits(['playTrack', 'downloadLyrics'])
+const emit = defineEmits(['playTrack', 'playWithQueue', 'downloadLyrics'])
 
 const trackIds = ref([])
 const parentRef = ref(null)
@@ -69,6 +72,10 @@ const totalSize = computed(() => rowVirtualizer.value.getTotalSize())
 
 const playTrack = track => {
   emit('playTrack', track)
+}
+
+const playWithQueue = ({ track, index }) => {
+  emit('playWithQueue', { track, queue: trackIds.value, index })
 }
 
 const downloadLyrics = track => {
