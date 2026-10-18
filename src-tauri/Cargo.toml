@@ -17,7 +17,7 @@ tauri-build = { version = "2.5.6", features = [] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
-tauri = { version = "2.10.1", features = [ "protocol-asset", "devtools"] }
+tauri = { version = "2.10.1", features = ["protocol-asset"] }
 globwalk = "0.9.1"
 reqwest = { version = "0.12.7", features = ["json"] }
 lofty = "0.24.0"
@@ -42,9 +42,11 @@ tauri-plugin-os = "2.3.2"
 tauri-plugin-shell = "2.3.5"
 tauri-plugin-dialog = "2.7.0"
 tauri-plugin-clipboard-manager = "2.3.2"
-# W3C WebDriver server for agent-driven inspection (debug builds only, see AGENTS.md)
-[target.'cfg(debug_assertions)'.dependencies]
-tauri-plugin-webdriver = "0.2"
+# W3C WebDriver server for agent-driven inspection (optional, see AGENTS.md).
+# Optional rather than behind `[target.'cfg(debug_assertions)'.dependencies]`:
+# Cargo does not honour `debug_assertions` there, it only warns, so the plugin
+# used to be compiled into release builds as well.
+tauri-plugin-webdriver = { version = "0.2", optional = true }
 
 [features]
 # by default Tauri runs in production mode
@@ -53,6 +55,15 @@ default = [ "custom-protocol" ]
 # this feature is used used for production builds where `devPath` points to the filesystem
 # DO NOT remove this
 custom-protocol = [ "tauri/custom-protocol" ]
+# Development-only capabilities. Neither is part of the shipped feature set, so a
+# release build carries no devtools API and no WebDriver server.
+devtools = [ "tauri/devtools" ]
+webdriver = [ "dep:tauri-plugin-webdriver" ]
+# `tauri dev` compiles with `--features dev`, which is how the WebDriver bridge
+# ends up in development without any manual flag. `npm run tauri dev` additionally
+# passes `--features devtools` (a devtools UI in a debug build is harmless and
+# useful; the point is only that neither reaches a release).
+dev = [ "webdriver" ]
 
 [profile.dev.package.kira]
 opt-level = 3

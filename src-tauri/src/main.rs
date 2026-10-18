@@ -1672,10 +1672,17 @@ fn set_playback_speed(playback_speed: f64, app_state: tauri::State<AppState>) ->
 
 #[tauri::command]
 fn open_devtools(app_handle: AppHandle) {
-    app_handle
-        .get_webview_window("main")
-        .unwrap()
-        .open_devtools();
+    // `open_devtools` only exists when the `devtools` feature is on, so a release
+    // build exposes the command but does nothing instead of failing to compile.
+    #[cfg(feature = "devtools")]
+    {
+        if let Some(window) = app_handle.get_webview_window("main") {
+            window.open_devtools();
+        }
+    }
+
+    #[cfg(not(feature = "devtools"))]
+    let _ = app_handle;
 }
 
 #[tauri::command]
@@ -1736,10 +1743,12 @@ async fn main() {
             queued_notifications: std::sync::Mutex::new(Vec::new()),
         });
 
-    // W3C WebDriver server (`tauri-plugin-webdriver`) — debug builds only.
+    // W3C WebDriver server (`tauri-plugin-webdriver`) — opt-in via the `webdriver`
+    // feature, which `tauri dev` enables through the `dev` feature.
     // Listens on http://127.0.0.1:4445 (override with TAURI_WEBDRIVER_PORT);
-    // see AGENTS.md for the agent inspection runbook.
-    #[cfg(debug_assertions)]
+    // see AGENTS.md for the agent inspection runbook. Release builds have no
+    // server at all.
+    #[cfg(feature = "webdriver")]
     let builder = builder.plugin(tauri_plugin_webdriver::init());
 
     builder
