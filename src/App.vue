@@ -35,6 +35,7 @@ import WindowClose from '~icons/mdi/window-close'
 import ChooseDirectory from './components/ChooseDirectory.vue'
 import Library from './components/Library.vue'
 import { ref, onMounted, watch } from 'vue'
+import { listen } from '@tauri-apps/api/event'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { invoke } from '@tauri-apps/api/core'
 import { ModalsContainer } from 'vue-final-modal'
@@ -90,7 +91,7 @@ onMounted(async () => {
   darkModeHandle(themeMode.value)
   downloadNext()
   exportNext()
-  drainNotifications()
+  await startNotifications()
 })
 
 const loadGlobalState = async () => {
@@ -102,15 +103,20 @@ const loadGlobalState = async () => {
   setVolume(volume)
 }
 
-const drainNotifications = async () => {
-  setInterval(async () => {
-    const notifications = await invoke('drain_notifications')
-    notifications.forEach(notification => {
-      toast(notification.message, {
-        type: notification.type,
-      })
-    })
-  }, 100)
+// Notifications arrive as backend events. The queue is only drained once at
+// boot to pick up messages produced before this listener existed; polling it on
+// a timer (the previous implementation hit the backend every 100ms forever)
+// avoids nothing and costs an IPC round-trip 10 times a second.
+const startNotifications = async () => {
+  await listen('notification', event => {
+    const notification = event.payload
+    toast(notification.message, { type: notification.type })
+  })
+
+  const queued = await invoke('drain_notifications')
+  queued.forEach(notification => {
+    toast(notification.message, { type: notification.type })
+  })
 }
 
 const darkModeHandle = async themeMode => {

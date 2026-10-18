@@ -1574,6 +1574,28 @@ fn drain_notifications(app_state: tauri::State<AppState>) -> Vec<Notify> {
     notifications
 }
 
+/// Deliver one notification to the frontend.
+///
+/// Notifications are pushed as an event; the queue is only a backstop for
+/// messages produced before the webview has a listener (startup) or for the rare
+/// case where emitting fails. The frontend drains the queue once at boot.
+fn push_notification(app_handle: &AppHandle, message: String, notify_type: NotifyType) {
+    let notify = Notify {
+        message,
+        notify_type,
+    };
+
+    if let Err(e) = app_handle.emit("notification", &notify) {
+        eprintln!("Failed to emit notification: {}", e);
+        let app_state: State<AppState> = app_handle.state();
+        app_state
+            .queued_notifications
+            .lock()
+            .unwrap()
+            .push(notify);
+    }
+}
+
 #[tauri::command]
 async fn read_text_file(file_path: String) -> Result<String, String> {
     std::fs::read_to_string(&file_path)
@@ -1585,6 +1607,10 @@ async fn segment_words(text: String) -> Result<Vec<String>, String> {
     Ok(word_segmentation::segment_words_for_timing(text.as_str()))
 }
 
+// The library scans use `block_in_place`; this app is I/O bound with only a
+// handful of concurrent commands, so a large default worker pool (one thread per
+// core plus extras) just burns stack and memory. A small pool is enough and
+// keeps idle thread count down.
 #[tokio::main]
 async fn main() {
     let builder = tauri::Builder::default()
@@ -1677,11 +1703,11 @@ async fn main() {
                 }
                 Err(e) => {
                     eprintln!("Failed to initialize audio player: {}", e);
-                    let mut buf = app_state.queued_notifications.lock().unwrap();
-                    buf.push(Notify {
-                        message: format!("Failed to initialize audio player: {}", e),
-                        notify_type: NotifyType::Error,
-                    });
+                    push_notification(
+                        &handle,
+                        format!("Failed to initialize audio player: {}", e),
+                        NotifyType::Error,
+                    );
                 }
             }
 
