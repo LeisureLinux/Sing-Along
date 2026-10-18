@@ -183,7 +183,11 @@ The player uses `PlayableTrack` to support both library tracks (from database) a
 
 **Audio device lifecycle:** `AudioManager` is created on the first `play()`, not at startup, and `stop_track` calls `release_audio_device()` which drops it again. `stop()` alone keeps the manager alive because starting a new track stops the previous one first, and reopening the device per track change would add latency. Rationale: the CPAL/ALSA threads (`data-loop.0`, `cpal_alsa_out`) keep waking up on an idle output stream, costing ~7% of a core indefinitely. A session that never plays audio now opens no device at all, and a stopped player returns to that state.
 
-**State events:** the background loop in `main.rs` ticks at 100ms while playing and 500ms otherwise, and **only emits `player-state` when `renew_state()` reports a change** (one payload is forced at startup so the frontend receives the persisted volume). It emits a `PlayerSnapshot`, not the serialized `Player`. Measured: ~10 events/s while playing, **0 events/s while paused or stopped** (previously 25/s unconditionally).
+**State events:** the background loop in `main.rs` ticks at 100ms while playing and 500ms otherwise, and **only emits `player-state` when the snapshot differs from the last one it sent** (one payload is forced at startup so the frontend receives the persisted volume). It emits a `PlayerSnapshot`, not the serialized `Player`. Measured: ~10 events/s while playing, **0 events/s while paused or stopped** (previously 25/s unconditionally).
+
+The comparison is against the last *emitted* snapshot rather than a before/after pair taken inside `renew_state`: commands such as `set_shuffle`, `set_repeat_mode` and `play_track` mutate the player directly, so by the next tick the "before" value would already be the new one and the change would never be emitted.
+
+`PlayerSnapshot` is `#[serde(rename_all = "camelCase")]` and the frontend reads camelCase (`playbackSpeed`, `queueLength`, `hasNext`, ...). Changing one side without the other silently falls back to defaults.
 
 Volume persistence:
 - Player initializes with volume from `config_data` on startup
@@ -194,6 +198,35 @@ Playback speed:
 - Player tracks current `playback_speed` and reapplies it when a new track starts
 - `set_playback_speed()` command updates the active sound handle rate (clamped 0.5x–2.0x)
 - Frontend receives playback speed via `player-state` events
+
+### Play Queue (`playlist.rs`)
+
+```rust
+enum RepeatMode { Off, One, All }
+
+struct Playlist {
+    ids: Vec<i64>,              // play order (shuffled order when shuffle is on)
+    cursor: Option<usize>,
+    original: Vec<i64>,         // restored when shuffle is turned off
+    shuffle: bool,
+    repeat: RepeatMode,
+    playing_original_index: Option<usize>,
+}
+```
+
+Holds ids only: resolving an id to playable metadata is the caller's job, which keeps the queue cloneable into a snapshot and free of file-path concerns.
+
+**Semantics:**
+- `advance` / `rewind` move the cursor; repeat-all wraps, repeat-off stops at the ends. An explicit "next" always advances — repeat-one is implemented in `on_track_ended`, not in `advance`, so a deliberate skip is never swallowed.
+- `on_track_ended` returns `Play` / `Replay` / `Stop`, and is where repeat-one replays the current track.
+- Shuffle reorders a copy of `original`, keeps the playing track first, and re-seats the cursor. The shuffled order is **stored**, so "previous" returns to a track the user actually heard instead of re-randomising on every advance. Turning shuffle off restores `original` and re-selects the playing track.
+- Shuffling uses Fisher-Yates seeded from `RandomState` (SipHash); `rand` is not a dependency of this crate and is not worth adding for one shuffle.
+
+**End-of-track detection** lives in `Player::renew_state`: the backend reported `Playing` last tick and reports `Stopped` now. It cannot misfire on `stop()` (which clears the sound handle) or on seek. It cannot start the next track either — resolving an id needs the database — so the id is pushed onto `Player::finished` and the state loop drains it *after* releasing the player lock. That avoids holding the player lock across file I/O and avoids a player/db lock-order hazard.
+
+Queue transitions go through `start_queued_track`, which uses `play()` and **never** `release_audio_device()`, so the output device is not reopened between tracks.
+
+`play_track` takes an optional `queue` + `index`; a bare track or a file-picker track collapses to a one-track queue so transport controls cannot report a stale queue from a previous selection.
 
 ### Export Module (`export.rs`)
 
@@ -334,7 +367,9 @@ Search across all three entity types uses SQLite FTS5 (via `tracks_fts`, `albums
 ### Playback & Config
 - `play_track(track_id?, file_path?, title?, album_name?, artist_name?, album_artist_name?, duration?)` - Unified playback for both library tracks (via `track_id`) and file-based tracks (via `file_path` with metadata)
 - `pause/resume_track()`, `seek_track()`, `set_volume()` (persists volume to config), `set_playback_speed()`
-- `stop_track()` - Stops playback **and releases the audio device** (see Audio Player lifecycle)
+- `stop_track()` - Stops playback **and releases the audio device** (see Audio Player lifecycle). The queue survives, so play resumes at the same position
+- `play_next()` / `play_previous()` - Skip within the queue. Always advances (repeat-one does not swallow an explicit skip)
+- `set_shuffle(shuffle)` / `set_repeat_mode(repeat)` - Queue modes; `repeat` is `off`/`all`/`one`
 - `get/set_directories()`, `get/set_config()`, `get_init()`
 - `set_export_preferences(auto_export_enabled?, export_lrc?, export_txt?, export_embedded?, skip_tracks_with_synced_lyrics?, skip_tracks_with_plain_lyrics?)` updates only supplied fields in `config_data` and returns config. Download atomically supplies its existing skip flags, toggle, and effective format selections; manual Export supplies shared formats only. Hidden/omitted fields and unrelated settings survive.
 - Volume is loaded from config on startup and auto-saved when changed via `set_volume()`
@@ -354,7 +389,7 @@ A running LRCGET shows ~74 GB of VSZ on Linux. That is **not a leak or an alloca
 |-------|---------|---------|
 | `scan-progress` | `{ phase, progress, filesProcessed, filesTotal, message }` | Real-time scan updates |
 | `scan-complete` | `{ totalFiles, added, modified, deleted, moved, unchanged, isInitialScan, durationMs }` | Scan finished |
-| `player-state` | `{ status, track_id, progress, duration, volume, playback_speed }` | Playback updates — emitted **only on change**, at 100ms while playing / 500ms otherwise |
+| `player-state` | `{ status, trackId, progress, duration, volume, playbackSpeed, queueLength, queueIndex, shuffle, repeat, hasNext, hasPrevious }` | Playback updates — emitted **only on change**, at 100ms while playing / 500ms otherwise |
 | `notification` | `{ message, type }` | Backend notifications, pushed instead of polled (queue drained once at boot as a backstop) |
 | `reload-track-id` | track_id | Request refresh |
 | `publish-lyrics-progress` | Status | Publishing updates |
