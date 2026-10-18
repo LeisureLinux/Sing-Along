@@ -1,0 +1,53 @@
+# NOTICE
+
+Sing-Along is a derivative work of **LRCGET** (https://github.com/tranxuanthang/lrcget),
+Copyright (c) 2023 tranxuanthang, licensed under the MIT License.
+
+The MIT License requires that the original copyright notice and permission
+notice be retained in all copies or substantial portions of the software. They
+are reproduced in full in [LICENSE](LICENSE), and the application's About dialog
+carries the same attribution.
+
+Additional contributors to the upstream project whose work is included here,
+also under the MIT License:
+
+- Victor Seiji Hariki
+- M23SNEZ3
+- SollyBunny
+- Micah Sze
+- Guilherme Silva
+
+## What this project changed
+
+- Product name, application identifier, icons and user-facing branding
+- A play queue with shuffle, repeat and end-of-track advance
+- Playback state events that emit only on change; lazily opened audio device
+- Binary-search lookup of the active lyric line
+- Notifications pushed by the backend instead of polled
+- Development-only features (devtools, WebDriver) moved behind opt-in cargo
+  features so release builds ship without them
+- Linux build fixes: frontend assets are re-embedded when `dist` changes
+
+## Services
+
+Lyrics are retrieved from [LRCLIB](https://lrclib.net). Sing-Along is an
+independent project and is **not** an official client of LRCLIB.
+
+## Third-party dependencies
+
+Dependencies are used under their own licenses. There are no GPL, AGPL or
+LGPL-licensed dependencies in the desktop build. Notable non-permissive terms:
+
+- `symphonia*` (audio decoding) and `cssparser` / `selectors` are **MPL-2.0**.
+  MPL-2.0 is file-level copyleft: it applies only to modified files of those
+  projects, of which there are none here. If you modify them, those files must
+  be published.
+- WebKitGTK (Linux runtime, linked dynamically) is LGPL-2.1+; it is not
+  distributed as part of the binary bundles produced by this repository.
+
+To regenerate the full dependency license list:
+
+```bash
+cd src-tauri && cargo tree --prefix none --format "{p}|{l}"
+npm ls --all
+```

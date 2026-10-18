@@ -1,40 +1,23 @@
-# LRCGET
+# Sing-Along
 
-Utility for mass-downloading LRC synced lyrics for your offline music library.
+Find and edit synced lyrics for your offline music library.
 
-LRCGET will scan every files in your chosen directory for music files, then and try to download lyrics to a LRC files having the same name and save them to the same directory as your music files.
+Sing-Along scans the music files in the folders you choose, looks up matching
+lyrics, and saves them alongside your audio files or embeds them in the tags.
+It is a desktop player-adjacent tool: you can play a track, watch the lyrics
+highlight line by line (or word by word), and correct the timings while you
+listen.
 
-LRCGET is the official client of [LRCLIB](https://lrclib.net) service.
+Lyrics are retrieved from [LRCLIB](https://lrclib.net). Sing-Along is an
+independent project and is **not** an official client of LRCLIB.
 
-## Download
+## License and attribution
 
-🎉 Latest version: v2.2.0
-
-Visit the [release page](https://github.com/tranxuanthang/lrcget/releases) to download.
-
-### Windows
-
-EXE installer (recommended): [LRCGET_2.2.0_x64-setup.exe](https://github.com/tranxuanthang/lrcget/releases/download/2.2.0/LRCGET_2.2.0_x64-setup.exe)
-
-MSI installer: [LRCGET_2.2.0_x64_en-US.msi](https://github.com/tranxuanthang/lrcget/releases/download/2.2.0/LRCGET_2.2.0_x64_en-US.msi)
-
-### Linux
-
-Flatpak build (recommended, for most Linux distros):
-
-<a href='https://flathub.org/en/apps/net.lrclib.lrcget'><img width='120' alt='Get LRCGET on Flathub' src='https://flathub.org/api/badge?locale=en'/></a>
-
-Deb packages (for Ubuntu 24.04+ and Linux Mint 22+): [LRCGET_2.2.0_amd64.deb](https://github.com/tranxuanthang/lrcget/releases/download/2.2.0/LRCGET_2.2.0_amd64.deb)
-
-RPM packages (for Fedora, openSUSE, etc.): [LRCGET-2.2.0-1.x86_64.rpm](https://github.com/tranxuanthang/lrcget/releases/download/2.2.0/LRCGET-2.2.0-1.x86_64.rpm)
-
-AppImage (for most Linux distros): [LRCGET_2.2.0_amd64.AppImage](https://github.com/tranxuanthang/lrcget/releases/download/2.2.0/LRCGET_2.2.0_amd64.AppImage)
-
-### macOS
-
-Mac x64 (Intel): [LRCGET_2.2.0_x64.dmg](https://github.com/tranxuanthang/lrcget/releases/download/2.2.0/LRCGET_2.2.0_x64.dmg)
-
-Mac Apple Silicon: [LRCGET_2.2.0_aarch64.dmg](https://github.com/tranxuanthang/lrcget/releases/download/2.2.0/LRCGET_2.2.0_aarch64.dmg)
+Sing-Along is a fork of [LRCGET](https://github.com/tranxuanthang/lrcget),
+Copyright (c) 2023 tranxuanthang, used under the MIT License. The original
+copyright notice and the MIT permission notice are retained in
+[LICENSE](LICENSE); see [NOTICE](NOTICE) for full attribution and a list of
+what this fork changed. The About dialog in the app carries the same credit.
 
 ## Screenshots
 
@@ -51,34 +34,6 @@ Mac Apple Silicon: [LRCGET_2.2.0_aarch64.dmg](https://github.com/tranxuanthang/l
 
 </details>
 
-## Donation
-
-Toss a coin to your developer?
-
-**GitHub Sponsors (Recommended - 100% of your support goes to the developer):**
-
-https://github.com/sponsors/tranxuanthang
-
-**Buy Me a Coffee:**
-
-https://www.buymeacoffee.com/thangtran
-
-**Paypal:**
-
-https://paypal.me/tranxuanthang98
-
-**Monero (XMR):**
-
-```
-43ZN5qDdGQhPGthFnngD8rjCHYLsEFBcyJjDC1GPZzVxWSfT8R48QCLNGyy6Z9LvatF5j8kSgv23DgJpixJg8bnmMnKm3b7
-```
-
-**Litecoin (LTC):**
-
-```
-ltc1q7texq5qsp59gclqlwf6asrqmhm98gruvz94a48
-```
-
 ## Troubleshooting
 
 **Audio cannot be played in Linux (Ubuntu and other distros)**
@@ -91,7 +46,7 @@ sudo apt install pipewire-alsa
 
 **App won't open in Windows 10/11**
 
-If you are using Windows 10 LTSC, or have tried running some scripts to debloat Windows 10 (which will uninstall Microsoft Edge and its webview component), you might have issues as LRCGET depends on WebView2. Reinstalling Microsoft Edge might fix the problem (see issue https://github.com/tranxuanthang/lrcget/issues/45).
+If you are using Windows 10 LTSC, or have tried running some scripts to debloat Windows 10 (which will uninstall Microsoft Edge and its webview component), you might have issues as Sing-Along depends on WebView2. Reinstalling Microsoft Edge might fix the problem (see issue https://github.com/tranxuanthang/lrcget/issues/45).
 
 **Scrollbar is invisible in Linux (KDE Plasma 5/6)**
 
@@ -99,13 +54,11 @@ The exact cause is still unknown, but it can be fixed by going to System Setting
 
 ## Contact
 
-If you prefer to contact by email:
-
-[hoangtudevops@protonmail.com](mailto:hoangtudevops@protonmail.com)
+Email: [albertxu@freelamp.com](mailto:albertxu@freelamp.com)
 
 ## Development
 
-LRCGET is made with [Tauri](https://tauri.app).
+Sing-Along is made with [Tauri](https://tauri.app).
 
 To start developing the application, you need to do the [prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites) steps according to your operating system.
 

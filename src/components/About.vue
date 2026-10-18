@@ -20,7 +20,7 @@
               New update is available. See what's new and download at
               <span
                 ><a :href="newestReleaseUrl" class="link" target="_blank" @click="downloadUpdate"
-                  >LRCGET GitHub Release Page</a
+                  >Sing-Along release page</a
                 >!</span
               >
             </div>
@@ -36,75 +36,42 @@
         </div>
       </div>
 
-      <div class="mb-6">
-        <label class="group-label mb-2">Donation</label>
-
-        <div class="text-sm">
-          <div class="mb-2">
-            <div class="mb-1">GitHub Sponsors (Recommended):</div>
-            <div>
-              <a href="https://github.com/sponsors/tranxuanthang" class="link" target="_blank">
-                https://github.com/sponsors/tranxuanthang
-              </a>
-            </div>
-          </div>
-
-          <div class="mb-2">
-            <div class="mb-1">Buy Me a Coffee:</div>
-            <div>
-              <a href="https://www.buymeacoffee.com/thangtran" class="link" target="_blank">
-                https://www.buymeacoffee.com/thangtran
-              </a>
-            </div>
-          </div>
-
-          <div class="mb-2">
-            <div class="mb-1">Paypal:</div>
-            <div>
-              <a href="https://paypal.me/tranxuanthang98" class="link" target="_blank">
-                https://paypal.me/tranxuanthang98
-              </a>
-            </div>
-          </div>
-
-          <div class="mb-2">
-            <div class="mb-1">Monero (XMR):</div>
-            <CopyablePre
-              >43ZN5qDdGQhPGthFnngD8rjCHYLsEFBcyJjDC1GPZzVxWSfT8R48QCLNGyy6Z9LvatF5j8kSgv23DgJpixJg8bnmMnKm3b7</CopyablePre
-            >
-          </div>
-
-          <div class="mb-2">
-            <div class="mb-1">Litecoin (LTC):</div>
-            <CopyablePre>ltc1q7texq5qsp59gclqlwf6asrqmhm98gruvz94a48</CopyablePre>
-          </div>
-        </div>
-      </div>
-
       <div>
         <label class="group-label mb-2">Home page, contact and support</label>
 
         <div class="text-sm">
           <div class="mb-1">
             Github URL:
-            <a
-              href="https://github.com/tranxuanthang/lrcget"
-              class="link"
-              target="_blank"
-              @click="downloadUpdate"
-              >github.com/tranxuanthang/lrcget</a
+            <a href="https://github.com/albertxu/sing-along" class="link" target="_blank"
+              >github.com/albertxu/sing-along</a
             >
           </div>
 
           <div>
             Email:
-            <a
-              href="mailto:hoangtudevops@protonmail.com"
-              class="link"
-              target="_blank"
-              @click="downloadUpdate"
-              >hoangtudevops@protonmail.com</a
+            <a href="mailto:albertxu@freelamp.com" class="link" target="_blank"
+              >albertxu@freelamp.com</a
             >
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <label class="group-label mb-2">Credits and license</label>
+
+        <div class="text-sm">
+          <div class="mb-2">
+            Sing-Along is a fork of
+            <a href="https://github.com/tranxuanthang/lrcget" class="link" target="_blank">LRCGET</a
+            >, Copyright (c) 2023 tranxuanthang, used under the MIT License.
+          </div>
+          <div class="mb-2">
+            Previously contributed code by Victor Seiji Hariki, M23SNEZ3, SollyBunny, Micah Sze and
+            Guilherme Silva, also under the MIT License.
+          </div>
+          <div>
+            Lyrics are provided by
+            <a href="https://lrclib.net" class="link" target="_blank">LRCLIB</a>.
           </div>
         </div>
       </div>
@@ -118,7 +85,6 @@ import CheckCircle from '~icons/mdi/check-circle'
 import { ref, computed } from 'vue'
 import { getVersion } from '@tauri-apps/api/app'
 import semver from 'semver'
-import CopyablePre from '@/components/CopyablePre.vue'
 import BaseModal from '@/components/common/BaseModal.vue'
 
 const emit = defineEmits(['close'])
@@ -135,7 +101,7 @@ const isUpdateAvailable = computed(() => {
 const isCheckingForUpdate = ref(true)
 
 async function getLatestReleaseInfo() {
-  const repo = 'tranxuanthang/lrcget'
+  const repo = 'albertxu/sing-along'
   const apiUrl = `https://api.github.com/repos/${repo}/releases/latest`
 
   const response = await fetch(apiUrl)
