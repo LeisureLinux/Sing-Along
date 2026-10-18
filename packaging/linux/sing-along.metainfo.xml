@@ -1,42 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2025 tranxuanthang -->
+<!-- Copyright 2026 Albert Xu; based on LRCGET, Copyright (c) 2023 tranxuanthang (MIT) -->
 <component type="desktop-application">
-  <id>net.lrclib.lrcget</id>
-  <launchable type="desktop-id">lrcget.desktop</launchable>
+  <id>app.singalong.desktop</id>
+  <launchable type="desktop-id">sing-along.desktop</launchable>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
-  <name>LRCGET</name>
-  <developer id="net.lrclib">
-    <name>tranxuanthang</name>
+  <name>Sing-Along</name>
+  <developer id="app.singalong">
+    <name>Albert Xu</name>
   </developer>
-  <update_contact>thang.dovah_AT_gmail.com</update_contact>
-  <summary>Download synced LRC lyrics</summary>
+  <update_contact>albertxu_AT_freelamp.com</update_contact>
+  <summary>Find and edit synced lyrics</summary>
   <description>
-    <p>Mass-download LRC synced lyrics for your offline music library.</p>
-    <p>LRCGET will scan all files in your chosen directory for music files, download lyrics as LRC files with matching names, and save them alongside your music files.</p>
-    <p>LRCGET is the official client of the LRCLIB service.</p>
+    <p>Find and edit synced lyrics for your offline music library.</p>
+    <p>Sing-Along scans the music folders you choose, looks up matching synced lyrics, and saves them alongside your audio files.</p>
+    <p>Lyrics are provided by the LRCLIB service. Sing-Along is an independent project and is not an official LRCLIB client.</p>
   </description>
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/tranxuanthang/lrcget/9e0578bd9411fcc024a56d2f1108701751c5ec3a/screenshots/01.png</image>
+      <image>https://github.com/albertxu/sing-along/raw/main/screenshots/01.png</image>
       <caption>Music playing with synced lyrics</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/tranxuanthang/lrcget/9e0578bd9411fcc024a56d2f1108701751c5ec3a/screenshots/02.png</image>
+      <image>https://github.com/albertxu/sing-along/raw/main/screenshots/02.png</image>
       <caption>Music playing with expanded synced lyrics viewer and export options dropdown</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/tranxuanthang/lrcget/9e0578bd9411fcc024a56d2f1108701751c5ec3a/screenshots/03.png</image>
+      <image>https://github.com/albertxu/sing-along/raw/main/screenshots/03.png</image>
       <caption>Downloading lyrics</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/tranxuanthang/lrcget/9e0578bd9411fcc024a56d2f1108701751c5ec3a/screenshots/04.png</image>
+      <image>https://github.com/albertxu/sing-along/raw/main/screenshots/04.png</image>
       <caption>Editing lyrics</caption>
     </screenshot>
   </screenshots>
   <url type="homepage">https://lrclib.net/</url>
-  <url type="vcs-browser">https://github.com/tranxuanthang/lrcget</url>
-  <url type="bugtracker">https://github.com/tranxuanthang/lrcget/issues</url>
+  <url type="vcs-browser">https://github.com/albertxu/sing-along</url>
+  <url type="bugtracker">https://github.com/albertxu/sing-along/issues</url>
   <content_rating type="oars-1.1"/>
   <releases>
     <release version="2.2.0" date="2026-09-06">

@@ -1,6 +1,6 @@
 <template>
   <VDropdown
-    theme="lrcget-dropdown"
+    theme="singalong-dropdown"
     placement="bottom-end"
     :reference-node="() => session.anchor"
     :shown="true"

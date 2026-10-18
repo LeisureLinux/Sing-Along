@@ -2,7 +2,7 @@
   <div class="flex-none" @keydown.stop @keyup.stop @focusout="handleFocusOut">
     <VDropdown
       v-model:shown="shown"
-      theme="lrcget-dropdown"
+      theme="singalong-dropdown"
       placement="top-end"
       :triggers="[]"
       :container="false"

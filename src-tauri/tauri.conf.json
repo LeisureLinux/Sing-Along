@@ -8,7 +8,7 @@
   "bundle": {
     "active": true,
     "category": "Music",
-    "copyright": "",
+    "copyright": "Copyright (c) 2026 Albert Xu. Based on LRCGET, Copyright (c) 2023 tranxuanthang, MIT License.",
     "windows": {
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
@@ -24,22 +24,22 @@
     ],
     "linux": {
       "deb": {
-        "desktopTemplate": "../packaging/linux/lrcget.desktop",
+        "desktopTemplate": "../packaging/linux/sing-along.desktop",
         "files": {
-          "/usr/share/metainfo/lrcget.metainfo.xml": "../packaging/linux/lrcget.metainfo.xml"
+          "/usr/share/metainfo/sing-along.metainfo.xml": "../packaging/linux/sing-along.metainfo.xml"
         },
         "depends": []
       },
       "appimage": {
         "files": {
-          "/usr/share/metainfo/lrcget.metainfo.xml": "../packaging/linux/lrcget.metainfo.xml"
+          "/usr/share/metainfo/sing-along.metainfo.xml": "../packaging/linux/sing-along.metainfo.xml"
         },
         "bundleMediaFramework": false
       },
       "rpm": {
-        "desktopTemplate": "../packaging/linux/lrcget.desktop",
+        "desktopTemplate": "../packaging/linux/sing-along.desktop",
         "files": {
-          "/usr/share/metainfo/lrcget.metainfo.xml": "../packaging/linux/lrcget.metainfo.xml"
+          "/usr/share/metainfo/sing-along.metainfo.xml": "../packaging/linux/sing-along.metainfo.xml"
         },
         "depends": []
       }
@@ -56,9 +56,9 @@
     "shortDescription": "Utility for mass-downloading LRC synced lyrics for your offline music library.",
     "targets": "all"
   },
-  "productName": "LRCGET",
-  "mainBinaryName": "LRCGET",
-  "identifier": "net.lrclib.lrcget",
+  "productName": "Sing-Along",
+  "mainBinaryName": "sing-along",
+  "identifier": "app.singalong.desktop",
   "plugins": {},
   "app": {
     "withGlobalTauri": false,
@@ -70,7 +70,7 @@
         "width": 1024,
         "height": 768,
         "resizable": true,
-        "title": "LRCGET",
+        "title": "Sing-Along",
         "decorations": true,
         "transparent": false,
         "useHttpsScheme": true

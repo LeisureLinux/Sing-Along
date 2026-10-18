@@ -20,7 +20,7 @@
       </button>
       <VDropdown
         v-if="props.activeTab === 'tracks'"
-        theme="lrcget-dropdown"
+        theme="singalong-dropdown"
         placement="top-start"
       >
         <button

@@ -81,7 +81,7 @@ async fn make_request(
 
     let version = env!("CARGO_PKG_VERSION");
     let user_agent = format!(
-        "LRCGET v{} (https://github.com/tranxuanthang/lrcget)",
+        "Sing-Along v{} (https://github.com/albertxu/sing-along)",
         version
     );
     let client = reqwest::Client::builder()

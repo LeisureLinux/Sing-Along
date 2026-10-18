@@ -22,7 +22,7 @@ app.use(Toast, {
   position: POSITION.BOTTOM_RIGHT,
   timeout: 5000,
   transition: 'Vue-Toastification__fade',
-  toastClassName: 'lrcget-toast',
+  toastClassName: 'singalong-toast',
   bodyClassName: ['toast-body-1', 'toast-body-2'],
   hideProgressBar: true,
   closeButton: false,
@@ -31,14 +31,14 @@ app.use(Toast, {
 })
 app.use(FloatingVue, {
   themes: {
-    'lrcget-tooltip': {
+    'singalong-tooltip': {
       $extend: 'tooltip',
       delay: {
         show: 50,
         hide: 50,
       },
     },
-    'lrcget-dropdown': {
+    'singalong-dropdown': {
       triggers: ['click'],
       autoHide: true,
       placement: 'bottom',

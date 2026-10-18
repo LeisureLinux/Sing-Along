@@ -2930,43 +2930,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e5032e24019045c762d3c0f28f5b6b8bbf38563a65908389bf7978758920897"
 
 [[package]]
-name = "lrcget"
-version = "2.2.2"
-dependencies = [
- "anyhow",
- "charabia",
- "collapse",
- "data-encoding",
- "globwalk",
- "include_dir",
- "indoc",
- "kira",
- "lofty",
- "rayon",
- "regex",
- "reqwest 0.12.23",
- "ring",
- "rusqlite",
- "rusqlite_migration",
- "secular",
- "serde",
- "serde_json",
- "serde_yaml",
- "symphonia",
- "tauri",
- "tauri-build",
- "tauri-plugin-clipboard-manager",
- "tauri-plugin-dialog",
- "tauri-plugin-global-shortcut",
- "tauri-plugin-os",
- "tauri-plugin-shell",
- "tauri-plugin-webdriver",
- "thiserror 1.0.69",
- "tokio",
- "xxhash-rust",
-]
-
-[[package]]
 name = "lru-slab"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5000,6 +4963,43 @@ name = "simd-adler32"
 version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d66dc143e6b11c1eddc06d5c423cfc97062865baf299914ab64caa38182078fe"
+
+[[package]]
+name = "sing-along"
+version = "2.2.2"
+dependencies = [
+ "anyhow",
+ "charabia",
+ "collapse",
+ "data-encoding",
+ "globwalk",
+ "include_dir",
+ "indoc",
+ "kira",
+ "lofty",
+ "rayon",
+ "regex",
+ "reqwest 0.12.23",
+ "ring",
+ "rusqlite",
+ "rusqlite_migration",
+ "secular",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "symphonia",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-clipboard-manager",
+ "tauri-plugin-dialog",
+ "tauri-plugin-global-shortcut",
+ "tauri-plugin-os",
+ "tauri-plugin-shell",
+ "tauri-plugin-webdriver",
+ "thiserror 1.0.69",
+ "tokio",
+ "xxhash-rust",
+]
 
 [[package]]
 name = "siphasher"

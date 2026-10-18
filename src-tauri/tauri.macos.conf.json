@@ -1,8 +1,8 @@
 {
-  "identifier": "net.lrclib.lrcget",
-    "bundle": {
-        "icon": [
-            "icons/macos/icon.icns"
-        ]
-    }
+  "identifier": "app.singalong.desktop",
+  "bundle": {
+    "icon": [
+      "icons/macos/icon.icns"
+    ]
+  }
 }

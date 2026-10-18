@@ -128,7 +128,7 @@
       <VDropdown
         v-else
         ref="exportDropdown"
-        theme="lrcget-dropdown"
+        theme="singalong-dropdown"
         placement="bottom-end"
         class="h-full aspect-square"
         @show="openExportOptions"
@@ -196,7 +196,7 @@
         </template>
       </VDropdown>
 
-      <VDropdown theme="lrcget-dropdown" placement="top-end" class="h-full aspect-square">
+      <VDropdown theme="singalong-dropdown" placement="top-end" class="h-full aspect-square">
         <button class="button button-normal h-full aspect-square rounded-full">
           <DotsVertical />
         </button>

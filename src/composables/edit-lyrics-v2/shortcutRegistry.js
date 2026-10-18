@@ -1,4 +1,4 @@
-const SHORTCUT_OVERRIDES_STORAGE_KEY = 'lrcget.edit-lyrics-v2.shortcut-overrides'
+const SHORTCUT_OVERRIDES_STORAGE_KEY = 'singalong.edit-lyrics-v2.shortcut-overrides'
 
 const normalizeKey = key => (typeof key === 'string' && key.length === 1 ? key.toLowerCase() : key)
 

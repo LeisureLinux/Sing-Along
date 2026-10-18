@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Sing-Along
+Comment=Find and edit synced lyrics for your offline music library
+Categories=AudioVideo;Audio;Music;
+Exec=sing-along
+Icon=sing-along
+StartupWMClass=sing-along

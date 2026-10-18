@@ -1964,7 +1964,7 @@ mod auto_export_tests {
     #[test]
     fn embedded_exports_write_supported_fixtures_and_skip_unsupported_or_disabled() {
         use export::{ExportFormat::Embedded, ExportStatus};
-        let directory = std::env::temp_dir().join(format!("lrcget-embed-{}", std::process::id()));
+        let directory = std::env::temp_dir().join(format!("sing-along-embed-{}", std::process::id()));
         std::fs::create_dir_all(&directory).unwrap();
         let content = lyricsfile::build_lyricsfile(
             &lyricsfile::LyricsfileTrackMetadata::new("Song", "Album", "Artist", 1.0),
@@ -2106,7 +2106,7 @@ mod auto_export_tests {
     #[test]
     fn download_export_messages_keep_success_skips_and_errors_in_writer_order() {
         let directory =
-            std::env::temp_dir().join(format!("lrcget-auto-export-{}", std::process::id()));
+            std::env::temp_dir().join(format!("sing-along-auto-export-{}", std::process::id()));
         std::fs::create_dir_all(&directory).unwrap();
         let track = test_track(&directory.join("song.flac"));
         let content = lyricsfile::build_lyricsfile(

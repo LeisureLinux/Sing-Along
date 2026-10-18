@@ -1,7 +1,7 @@
 <template>
   <div class="flex-none flex gap-2 items-center">
     <div class="flex-none flex">
-      <VTooltip theme="lrcget-tooltip">
+      <VTooltip theme="singalong-tooltip">
         <button
           class="button text-sm px-5 h-8 w-24 rounded-l-full rounded-r-none border-r inline-flex items-center justify-center gap-1.5"
           :class="{ 'button-primary': isDirty, 'button-disabled': !isDirty }"
@@ -20,7 +20,7 @@
         </template>
       </VTooltip>
 
-      <VDropdown theme="lrcget-dropdown" placement="bottom-start" @show="refreshEmbedConfig">
+      <VDropdown theme="singalong-dropdown" placement="bottom-start" @show="refreshEmbedConfig">
         <button
           class="button text-sm px-2 py-1.5 h-8 rounded-r-full rounded-l-none button-normal"
           type="button"
@@ -96,7 +96,7 @@
       </VDropdown>
     </div>
 
-    <VTooltip theme="lrcget-tooltip">
+    <VTooltip theme="singalong-tooltip">
       <button
         class="button text-sm px-3 py-1.5 h-8 rounded-full button-normal inline-flex items-center justify-center"
         @click="emit('debug')"
