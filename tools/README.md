@@ -1,74 +1,84 @@
-# Fake Music Generator
+# Tools
 
-A Python tool to generate fake music files with randomized metadata for testing purposes.
+Helpers for getting a lyric library onto a phone. These are not part of the
+application build; run them by hand.
 
-## Features
+## `sync-to-phone.py`
 
-- Generate MP3 files with fake metadata (artist, album, title, year, genre, track number)
-- Organized folder structure: `Artist/Album/Track - Title.mp3`
-- Parallel processing for fast generation
-- Silent or white noise audio (small file sizes, typically <100KB)
-- Supports 100K+ file generation efficiently
+Builds a staging tree from a messy music folder and copies it to an Android
+device in a layout the player and its folder browser can use.
 
-## Installation
+    python3 tools/sync-to-phone.py                    # -> ~/Music-to-phone
+    python3 tools/sync-to-phone.py --dry-run          # preview only
+    adb push ~/Music-to-phone/. /sdcard/Music/Sing-Along/
 
-```bash
-cd tools
-pip install -r requirements.txt
-```
+What it does:
 
-Optional dependencies:
+- Reads tags, falls back to the existing folder name, then the filename.
+- Normalises artist spellings through `ARTIST_ALIASES` and rejects label names
+  (`滚石唱片`, `ROCK RECORDS`) that were mistakenly stored as artist.
+- Dedupes by content hash. Different recordings of the same title are kept and
+  disambiguated with `[3m48s]` rather than ` (2)`.
+- Writes `Artist/Album/Title.ext` and moves the sidecar `.lrc` beside it with the
+  same stem, which is how players match lyrics.
+- Skips non-music: path patterns (lectures) and durations outside 20s–30min.
 
-- `faker` - More realistic artist/album names
-- `mutagen` - Proper ID3 metadata tags
-- `pydub` - Better MP3 generation
+Re-running is safe: the staging directory is cleared before planning, so the
+collision check never sees its own previous output.
 
-## Usage
+## `lrc-a2-word-sync.py`
 
-Basic usage (1000 files):
+Upgrades line-level `.lrc` files to enhanced LRC (A2) with word timings:
 
-```bash
-python generate_fake_music.py
-```
+    [00:29.25]<00:29.25>2002<00:30.76>年<00:31.14>的<00:31.51>第一<00:32.27>场<00:32.65>雪
 
-Generate 100K files:
+    python3 tools/lrc-a2-word-sync.py FILE.lrc ...
+    python3 tools/lrc-a2-word-sync.py --dry-run FILE.lrc
+    python3 tools/lrc-a2-word-sync.py --revert FILE.lrc   # drop the word tags
 
-```bash
-python generate_fake_music.py -n 100000 -o ./large_library --workers 8
-```
+**Pick the player first.** Word-sync syntax is not portable:
 
-Custom options:
+| Player | Syntax | CJK spacing |
+|---|---|---|
+| Gramophone | `<mm:ss.xx>word` inline (A2) | preserved exactly |
+| Fluxio | same as Gramophone | preserved exactly |
+| Booming | `<word:ss.ss:ss.ss …>` on its own line | **a space is inserted after every word** |
 
-```bash
-# Shorter songs (5-15 seconds)
-python generate_fake_music.py -n 5000 --duration 5 15
+Booming's parser (`LrcLyricsParser.kt:116`) appends a space to every non-final
+word regardless of script, so Chinese lyrics render as `雨 一直 下` instead of
+`雨一直下`. Use A2 for Gramophone/Fluxio; there is no format that avoids the
+space in Booming.
 
-# No external dependencies mode
-python generate_fake_music.py -n 10000 --no-faker
+Segmentation comes from Charabia through `segcli`, not fixed-width slicing:
+`是/你/的/甜言/蜜语/改变/季节` instead of `是你的/甜言/蜜语`.
 
-# Show every file created
-python generate_fake_music.py -n 100 -v
+Timing is proportional to token length and is still an estimate — there is no
+audio analysis, so held notes and fast runs drift. This is a limitation of the
+approach, not a bug to be fixed with different spacing.
 
-# Generate with synced lyrics files
-python generate_fake_music.py -n 500 --lrc
-```
+### Verifying a conversion
 
-## Command Line Arguments
+Word tags must reproduce the original text exactly when stripped. Check against
+a backup of the pre-conversion files:
 
-| Argument       | Short | Default      | Description                 |
-| -------------- | ----- | ------------ | --------------------------- |
-| `--num-files`  | `-n`  | 1000         | Number of files to generate |
-| `--output`     | `-o`  | ./fake_music | Output directory            |
-| `--duration`   |       | 5 30         | Min/max duration in seconds |
-| `--workers`    | `-w`  | 4            | Parallel workers            |
-| `--no-faker`   |       | False        | Use simple random names     |
-| `--audio-type` |       | silent       | silent or white_noise       |
-| `--batch-size` |       | 1000         | Progress update interval    |
-| `--verbose`    | `-v`  | False        | Show each file created      |
-| `--lrc`        |       | False        | Generate .lrc lyrics files  |
+    python3 tools/lrc-a2-word-sync.py --revert /tmp/backup/x.lrc   # compare
 
-## File Size
+Watch for two regressions that bit this script:
 
-Files are typically 20-80KB depending on duration (uses low bitrate MP3).
+- Apostrophe contractions vs. detached words: `it's` must join (`["it","'s"]`),
+  but `'round` / `'cause` after a space must stay separate, or the visible text
+  loses that space.
+- Multiple timestamps per line (`[02:37.49][04:39.23]歌词`): every leading tag has
+  to be consumed, otherwise the second one ends up inside the lyric text.
 
-100,000 files ≈ 4-8GB total storage.
+## `segcli/`
+
+Small stdin→stdout segmenter used by the script above.
+
+    cd tools/segcli && LINDERA_CACHE=/path/to/cache cargo build --release
+    printf '是你的甜言蜜语\n' | ./target/release/segcli
+    ["是","你","的","甜言","蜜语"]
+
+Charabia's lindera dictionaries download at build time; `LINDERA_CACHE` pointing
+at a populated cache makes the build work offline (see
+`src-tauri/ARCHITECTURE.md`).
