@@ -22,13 +22,13 @@ listen('player-state', async event => {
   progress.value = event.payload.progress
   status.value = event.payload.status
   volume.value = event.payload.volume
-  playbackSpeed.value = event.payload.playback_speed ?? 1.0
-  queueLength.value = event.payload.queue_length ?? 0
-  queueIndex.value = event.payload.queue_index ?? null
+  playbackSpeed.value = event.payload.playbackSpeed ?? 1.0
+  queueLength.value = event.payload.queueLength ?? 0
+  queueIndex.value = event.payload.queueIndex ?? null
   shuffle.value = event.payload.shuffle ?? false
   repeat.value = event.payload.repeat ?? 'off'
-  hasNext.value = event.payload.has_next ?? false
-  hasPrevious.value = event.payload.has_previous ?? false
+  hasNext.value = event.payload.hasNext ?? false
+  hasPrevious.value = event.payload.hasPrevious ?? false
 })
 
 // When playback advances on its own (end of track, next, previous), the backend
@@ -36,7 +36,7 @@ listen('player-state', async event => {
 // guessing client-side.
 let lastTrackId = null
 listen('player-state', async event => {
-  const trackId = event.payload.track_id ?? null
+  const trackId = event.payload.trackId ?? null
   if (trackId === lastTrackId) {
     return
   }
