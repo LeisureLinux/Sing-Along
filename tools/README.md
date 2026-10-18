@@ -26,6 +26,45 @@ What it does:
 Re-running is safe: the staging directory is cleared before planning, so the
 collision check never sees its own previous output.
 
+## Which word-sync format? Read this first.
+
+Word-level lyrics are **not portable**. Pick the player, then produce its format:
+
+| Player                        | Format                                     | CJK spacing                              | Tool                  |
+| ----------------------------- | ------------------------------------------ | ---------------------------------------- | --------------------- |
+| **Steve (iOS/iPadOS)**        | **TTML** (`itunes:timing="Word"`)          | correct                                  | `lrc-to-ttml.py`      |
+| Gramophone (Android, F-Droid) | enhanced LRC / A2, `<mm:ss.xx>word` inline | correct                                  | `lrc-a2-word-sync.py` |
+| Fluxio (Android, GitHub only) | same as Gramophone                         | correct                                  | `lrc-a2-word-sync.py` |
+| Booming (Android, F-Droid)    | `<word:start:end …>` on its own line       | **a space is inserted after every word** | not supported         |
+
+Two traps that cost real time:
+
+- **Steve's LRC reader is line-level only and does not strip `<mm:ss.xx>`.** Sending
+  A2 LRC to Steve makes every word tag appear as lyric text. Its App Store
+  description is explicit that word highlighting comes _from TTML_.
+- **Booming appends a space after every non-final word**
+  (`LrcLyricsParser.kt:116`) regardless of script, so Chinese renders as
+  `雨 一直 下`. No file format avoids this; it needs a change in the app.
+
+Steve prefers TTML when both `.lrc` and `.ttml` exist for a track, so an old LRC
+can be left in place after converting.
+
+## `lrc-to-ttml.py`
+
+Line-level `.lrc` → TTML with word timings, for Steve.
+
+    python3 tools/lrc-to-ttml.py FILE.lrc ...        # writes FILE.ttml
+    python3 tools/lrc-to-ttml.py --dry-run FILE.lrc
+    python3 tools/lrc-to-ttml.py --keep-lrc FILE.lrc # keep the source
+
+Produces Apple-Music-style TTML: one `<p>` per line, one `<span begin end>` per
+token, spaces between Latin words written _outside_ the spans so the visible
+text is unchanged.
+
+Verification that matters: parsing the TTML back and concatenating each `<p>`'s
+text must equal the original lyric line exactly. The whole 349-file library was
+checked this way and matched character for character.
+
 ## `lrc-a2-word-sync.py`
 
 Upgrades line-level `.lrc` files to enhanced LRC (A2) with word timings:
@@ -70,6 +109,36 @@ Watch for two regressions that bit this script:
   loses that space.
 - Multiple timestamps per line (`[02:37.49][04:39.23]歌词`): every leading tag has
   to be consumed, otherwise the second one ends up inside the lyric text.
+
+## `steve-upload.py`
+
+Upload a library to Steve Player's Wi-Fi import endpoint.
+
+    # In Steve: Settings -> Wi-Fi import, note the address it shows
+    python3 tools/steve-upload.py --host 192.168.68.202:8080
+    python3 tools/steve-upload.py --host ... --dry-run
+
+The endpoint is a multipart form:
+
+    POST /upload
+    X-Upload-ID: <opaque>
+    X-Upload-File-Count: <n>
+    form field "tracks" repeated per file
+    -> {"ok": true, "message": ...}
+
+    GET /status -> {"phase", "progress", "importedCount", "fileCount"}
+
+Notes:
+
+- Files are grouped so a track and its sidecar lyrics go in the same request;
+  Steve matches lyrics by filename stem.
+- Duplicate basenames across albums are disambiguated with `[album]` rather than
+  overwriting silently.
+- **The service only runs while the Wi-Fi import screen is open and the phone is
+  awake.** It dies on lock screen or backgrounding, which shows up as
+  `Connection refused` or a timeout mid-batch. Raise the auto-lock timeout before
+  a large transfer.
+- There is no delete endpoint. To remove a file, delete it in the app.
 
 ## `segcli/`
 
