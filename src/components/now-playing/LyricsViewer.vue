@@ -132,6 +132,7 @@ import { ref, watch, nextTick } from 'vue'
 import { computed } from 'vue'
 import { parseLyricsfile } from '@/utils/lyricsfile.js'
 import { ensureLineWords } from '@/utils/word-tokenizer.js'
+import { findPrimaryLineIndex, isLineActiveAt } from '@/utils/lyrics-timeline.js'
 
 const props = defineProps(['duration', 'progress', 'lyricsfile'])
 const emit = defineEmits(['lyricsClicked'])
@@ -156,46 +157,14 @@ const syncedLines = computed(() => {
 
 const progressMs = computed(() => (props.progress ?? 0) * 1000)
 
-// Check if a line is currently playing based on its own time range
-const isLinePlaying = (line, index) => {
-  if (!line || !Number.isFinite(line.start_ms)) {
-    return false
-  }
-  const lineStart = line.start_ms
-  const lineEnd = Number.isFinite(line.end_ms)
-    ? line.end_ms
-    : (syncedLines.value[index + 1]?.start_ms ?? Infinity)
-  return progressMs.value >= lineStart && progressMs.value < lineEnd
-}
+// Binary-search lookup (see utils/lyrics-timeline.js): this used to be a full
+// linear scan per playback tick.
+const isLinePlaying = (line, index) =>
+  isLineActiveAt(syncedLines.value, index, progressMs.value)
 
-// For minimal view: find the primary playing line (prioritize by start time if multiple overlap)
-const primaryPlayingLineIndex = computed(() => {
-  const lines = syncedLines.value
-  if (!lines || lines.length === 0) {
-    return -1
-  }
-
-  // Find all lines that are currently playing
-  const playingIndices = []
-  for (let i = 0; i < lines.length; i++) {
-    if (isLinePlaying(lines[i], i)) {
-      playingIndices.push(i)
-    }
-  }
-
-  if (playingIndices.length === 0) {
-    // No line is playing, find the most recent past line
-    for (let i = lines.length - 1; i >= 0; i--) {
-      if (progressMs.value >= lines[i].start_ms) {
-        return i
-      }
-    }
-    return -1
-  }
-
-  // Return the line with the latest start time (most recently started)
-  return playingIndices[playingIndices.length - 1]
-})
+const primaryPlayingLineIndex = computed(() =>
+  findPrimaryLineIndex(syncedLines.value, progressMs.value)
+)
 
 const currentLyrics = computed(() => {
   const index = primaryPlayingLineIndex.value
@@ -290,6 +259,12 @@ const karaokeWordStyle = (line, lineIndex, wordIndex) => {
 
 // For expanded view scrolling: use the primary playing line for scroll position
 const updateCurrentLineElementOffset = () => {
+  // The expanded overlay is the only consumer of this offset, and the lookup
+  // walks the rendered line elements, so skip it while collapsed.
+  if (!expanded.value) {
+    return
+  }
+
   const newCurrentIndex = primaryPlayingLineIndex.value
 
   if (newCurrentIndex === -1) {
@@ -344,6 +319,14 @@ watch(
   },
   { immediate: true }
 )
+
+// Re-measure when the overlay opens or the lyrics change underneath it.
+watch(expanded, () => {
+  nextTick(() => updateCurrentLineElementOffset())
+})
+watch(syncedLines, () => {
+  nextTick(() => updateCurrentLineElementOffset())
+})
 </script>
 
 <style scoped>
