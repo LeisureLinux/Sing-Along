@@ -38,11 +38,11 @@ Upgrades line-level `.lrc` files to enhanced LRC (A2) with word timings:
 
 **Pick the player first.** Word-sync syntax is not portable:
 
-| Player | Syntax | CJK spacing |
-|---|---|---|
-| Gramophone | `<mm:ss.xx>word` inline (A2) | preserved exactly |
-| Fluxio | same as Gramophone | preserved exactly |
-| Booming | `<word:ss.ss:ss.ss …>` on its own line | **a space is inserted after every word** |
+| Player     | Syntax                                 | CJK spacing                              |
+| ---------- | -------------------------------------- | ---------------------------------------- |
+| Gramophone | `<mm:ss.xx>word` inline (A2)           | preserved exactly                        |
+| Fluxio     | same as Gramophone                     | preserved exactly                        |
+| Booming    | `<word:ss.ss:ss.ss …>` on its own line | **a space is inserted after every word** |
 
 Booming's parser (`LrcLyricsParser.kt:116`) appends a space to every non-final
 word regardless of script, so Chinese lyrics render as `雨 一直 下` instead of
