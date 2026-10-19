@@ -11,6 +11,7 @@ import './style.css'
 
 import { VueFinalModal } from 'vue-final-modal'
 import BaseModal from '@/components/common/BaseModal.vue'
+import i18n from './i18n/index.js'
 
 const vfm = createVfm()
 
@@ -45,6 +46,7 @@ app.use(FloatingVue, {
     },
   },
 })
+app.use(i18n)
 app.use(vfm)
 app.mount('#app')
 
