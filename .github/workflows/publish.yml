@@ -70,6 +70,12 @@ jobs:
       - name: run frontend tests
         run: npm test
 
+      # `dist/` must exist before any backend build: tauri.conf.json points
+      # `frontendDist` at it, and tauri-build fails the crate when the path is
+      # missing. So the frontend is built first and the Rust tests run after.
+      - name: build frontend
+        run: npm run build
+
       - name: run backend tests
         working-directory: src-tauri
         run: cargo test
