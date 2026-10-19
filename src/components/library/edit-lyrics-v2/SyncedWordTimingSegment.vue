@@ -185,10 +185,7 @@ const isSelectedDividerForNextSegment = computed(() => {
 })
 
 const showNextWordHint = computed(() => {
-  return (
-    isSelectedDividerForNextSegment.value &&
-    nextWordHintText.value.length > 0
-  )
+  return isSelectedDividerForNextSegment.value && nextWordHintText.value.length > 0
 })
 
 const splitTextByGrapheme = text => {
@@ -266,7 +263,9 @@ const getSplitPreview = clientX => {
 
     if (boundaries.length > 0) {
       let nearestBoundary = boundaries[0]
-      let nearestDistance = Math.abs(pointerClientX - (previewContainerRect.left + nearestBoundary.splitX))
+      let nearestDistance = Math.abs(
+        pointerClientX - (previewContainerRect.left + nearestBoundary.splitX)
+      )
 
       for (const boundary of boundaries.slice(1)) {
         const distance = Math.abs(pointerClientX - (previewContainerRect.left + boundary.splitX))
@@ -396,7 +395,6 @@ const handleSegmentHover = event => {
 const handleSegmentLeave = () => {
   hoverPreview.value = null
 }
-
 </script>
 
 <style scoped>

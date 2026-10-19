@@ -34,7 +34,9 @@
       <!-- Header with line info -->
       <div class="flex items-center justify-between mb-2 shrink-0">
         <div class="flex items-center gap-3 text-xs text-neutral-600 dark:text-neutral-400">
-          <span class="font-mono bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 px-2 py-0.5 rounded">
+          <span
+            class="font-mono bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 px-2 py-0.5 rounded"
+          >
             {{ formatTimestampMs(selectedLine.start_ms) }} -
             {{ formatTimestampMs(actualLineEndMs) }}
           </span>
@@ -56,7 +58,7 @@
             @click="handleSyncWord"
           >
             <Equal class="w-3.5 h-3.5" />
-            <span>Sync word</span>
+            <span>{{ $t('editor.syncWord') }}</span>
           </button>
           <button
             class="button button-normal text-xs px-2 py-1 rounded flex items-center gap-1"
@@ -94,9 +96,7 @@
           :word-index="index"
           :next-word-text="displayedWords[index]?.text || ''"
           :next-word-start-ms="displayedWords[index]?.start_ms ?? null"
-          :next-word-end-ms="
-            index + 1 < displayedWords.length ? getWordEndMs(index + 1) : null
-          "
+          :next-word-end-ms="index + 1 < displayedWords.length ? getWordEndMs(index + 1) : null"
           :start-ms="word.start_ms"
           :end-ms="getWordEndMs(index)"
           :line-start-ms="laneStartMs"
@@ -459,7 +459,10 @@ const handleSegmentSplitAt = ({ wordIndex, splitIndex, splitRatio }) => {
     return
   }
 
-  const fallbackSplitIndex = Math.max(1, Math.min(graphemes.length - 1, Math.floor(graphemes.length / 2)))
+  const fallbackSplitIndex = Math.max(
+    1,
+    Math.min(graphemes.length - 1, Math.floor(graphemes.length / 2))
+  )
   const normalizedSplitIndex = Number.isInteger(splitIndex)
     ? Math.max(1, Math.min(graphemes.length - 1, splitIndex))
     : fallbackSplitIndex
@@ -467,14 +470,19 @@ const handleSegmentSplitAt = ({ wordIndex, splitIndex, splitRatio }) => {
   const leftText = graphemes.slice(0, normalizedSplitIndex).join('')
   const rightText = graphemes.slice(normalizedSplitIndex).join('')
 
-  const wordStartMs = Number.isFinite(currentWord?.start_ms) ? currentWord.start_ms : laneStartMs.value
+  const wordStartMs = Number.isFinite(currentWord?.start_ms)
+    ? currentWord.start_ms
+    : laneStartMs.value
   const wordEndMs = getWordEndMsFromList(displayedWords.value, wordIndex)
   const normalizedSplitRatio = Number.isFinite(splitRatio)
     ? Math.max(0, Math.min(1, splitRatio))
     : normalizedSplitIndex / graphemes.length
   const splitTimeMs = Math.max(
     wordStartMs + 1,
-    Math.min(wordEndMs - 1, Math.round(wordStartMs + (wordEndMs - wordStartMs) * normalizedSplitRatio))
+    Math.min(
+      wordEndMs - 1,
+      Math.round(wordStartMs + (wordEndMs - wordStartMs) * normalizedSplitRatio)
+    )
   )
 
   const updatedWords = [

@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col justify-center items-center w-full h-full p-4">
-    <div class="m-4 text-hoa-1500 text-sm">Select Strategy</div>
+    <div class="m-4 text-hoa-1500 text-sm">{{ $t('setup.selectStrategy') }}</div>
     <div class="flex mb-4 gap-4 text-gray-200">
       <button
         class="text-left flex-1 border-4 rounded p-3 transition"
@@ -10,7 +10,7 @@
         }"
         @click="chooseCreateLRC"
       >
-        <div class="font-bold text-hoa-1400 mb-3">Create separate LRC files</div>
+        <div class="font-bold text-hoa-1400 mb-3">{{ $t('downloadOptions.createLrc') }}</div>
         <div class="text-sm text-hoa-1300">
           LRC lyrics files will be created in the same location with the music files and have the
           same name.
@@ -25,7 +25,7 @@
         }"
         @click="chooseEmbed"
       >
-        <div class="font-bold text-hoa-1400 mb-3">Embed lyrics to music files</div>
+        <div class="font-bold text-hoa-1400 mb-3">{{ $t('downloadOptions.exportEmbedded') }}</div>
         <div class="text-sm text-hoa-1300">
           Lyrics will be embedded to music files through SYLT tag (mp3) or LYRICS tag (flac).
           Limited players support.
@@ -41,9 +41,9 @@
           type="checkbox"
           class="w-4 h-4 text-hoa-600 bg-hoa-1100 accent-hoa-1100 rounded border-hoa-300 focus:ring-hoa-500 focus:ring-2"
         />
-        <label for="skip-tracks" class="ml-2 text-sm font-medium text-hoa-1500"
-          >Skip tracks that already have lyrics</label
-        >
+        <label for="skip-tracks" class="ml-2 text-sm font-medium text-hoa-1500">{{
+          $t('downloadOptions.skipExisting')
+        }}</label>
       </div>
     </div>
 

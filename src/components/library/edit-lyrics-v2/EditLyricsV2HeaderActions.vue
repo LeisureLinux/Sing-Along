@@ -15,7 +15,9 @@
         <template #popper>
           <div class="text-xs font-bold">
             Save lyrics
-            <span class="text-[0.65rem] text-neutral-800 bg-neutral-50 px-1 rounded-full">Ctrl+S</span>
+            <span class="text-[0.65rem] text-neutral-800 bg-neutral-50 px-1 rounded-full"
+              >Ctrl+S</span
+            >
           </div>
         </template>
       </VTooltip>
@@ -30,19 +32,19 @@
 
         <template #popper>
           <div class="dropdown-container">
-            <div class="dropdown-section-label">Publish lyrics into your LRCLIB instance:</div>
+            <div class="dropdown-section-label">{{ $t('editor.publishHint') }}</div>
             <div class="px-2 py-2">
               <button
                 v-close-popper
                 class="button button-primary w-full text-sm h-8 rounded"
                 @click="emit('save-and-publish')"
               >
-                Save and Publish
+                {{ $t('editor.saveAndPublish') }}
               </button>
             </div>
 
             <div class="dropdown-divider" />
-            <div class="dropdown-section-label">Export to track's directory:</div>
+            <div class="dropdown-section-label">{{ $t('editor.exportHint') }}</div>
 
             <label class="dropdown-item">
               <CheckboxButton
@@ -50,7 +52,7 @@
                 v-model="exportPlainText"
                 name="export-plain-text"
               >
-                <span class="dropdown-label">Plain lyrics (.txt)</span>
+                <span class="dropdown-label">{{ $t('exportOptions.plainLyrics') }}</span>
               </CheckboxButton>
             </label>
             <label class="dropdown-item">
@@ -59,7 +61,7 @@
                 v-model="exportSyncedLrc"
                 name="export-synced-lrc"
               >
-                <span class="dropdown-label">Synced lyrics (.lrc)</span>
+                <span class="dropdown-label">{{ $t('exportOptions.syncedLyrics') }}</span>
               </CheckboxButton>
             </label>
 
@@ -73,7 +75,7 @@
                 name="embed-into-track"
                 :disabled="!tryEmbedLyrics"
               >
-                <span class="dropdown-label">Embed into track</span>
+                <span class="dropdown-label">{{ $t('exportOptions.embedIntoTrack') }}</span>
               </CheckboxButton>
             </label>
 
@@ -88,7 +90,7 @@
                 type="button"
                 @click="handleExportClick"
               >
-                {{ isExporting ? 'Saving and exporting...' : 'Save and export' }}
+                {{ isExporting ? $t('editor.savingAndExporting') : $t('editor.saveAndExport') }}
               </button>
             </div>
           </div>
@@ -105,7 +107,7 @@
       </button>
 
       <template #popper>
-        <div class="text-xs font-bold">View YAML debug</div>
+        <div class="text-xs font-bold">{{ $t('editor.viewYamlDebug') }}</div>
       </template>
     </VTooltip>
   </div>

@@ -64,7 +64,7 @@
       class="h-full text-center py-8 text-neutral-500 dark:text-neutral-400"
     >
       <Magnify class="text-3xl mx-auto mb-2 opacity-50" />
-      <div class="text-sm">No tracks found</div>
+      <div class="text-sm">{{ $t('search.noTracksFound') }}</div>
     </div>
 
     <div
@@ -72,7 +72,7 @@
       class="h-full text-center py-8 text-neutral-500 dark:text-neutral-400"
     >
       <Music class="text-3xl mx-auto mb-2 opacity-50" />
-      <div class="text-sm">Type to search your library</div>
+      <div class="text-sm">{{ $t('search.typeToSearch') }}</div>
     </div>
 
     <!-- Footer -->
@@ -85,7 +85,7 @@
         >
           <FolderOpen v-if="!isSelectingFile" />
           <Loading v-else class="animate-spin" />
-          <span>Choose file...</span>
+          <span>{{ $t('actions.chooseFile') }}</span>
         </button>
 
         <button

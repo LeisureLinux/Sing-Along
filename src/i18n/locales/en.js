@@ -12,6 +12,12 @@ export default {
     loadingLibrary: 'Loading library...',
   },
 
+  setup: {
+    selectStrategy: 'Select Strategy',
+
+    selectDirectories: 'Select directories',
+  },
+
   tabs: {
     tracks: 'Tracks',
     albums: 'Albums',
@@ -20,6 +26,8 @@ export default {
   },
 
   actions: {
+    chooseFile: 'Choose file...',
+
     download: 'Download',
     downloadAll: 'Download all lyrics',
     export: 'Export',
@@ -39,8 +47,17 @@ export default {
   },
 
   search: {
+    noTracksFound: 'No tracks found',
+    typeToSearch: 'Type to search your library',
+
     libraryPlaceholder: 'Search tracks in library...',
     lyricsPlaceholder: 'Type a song title, album, or artist to find lyrics...',
+    title: 'Title',
+    album: 'Album',
+    artist: 'Artist',
+    tracksPlaceholder: 'Search for tracks...',
+    albumsPlaceholder: 'Search for albums...',
+    artistsPlaceholder: 'Search for artists...',
     noResults: 'No results',
   },
 
@@ -76,6 +93,9 @@ export default {
   },
 
   config: {
+    scanIncremental: 'Scan for new and modified tracks...',
+    scanFull: 'Reset library and perform full scan...',
+
     title: 'Settings',
     theme: 'Theme',
     themeAuto: 'Auto',
@@ -109,6 +129,8 @@ export default {
   },
 
   downloadOptions: {
+    skipExisting: 'Skip tracks that already have lyrics',
+
     title: 'Download options',
     autoExport: 'Automatically export lyrics',
     createLrc: 'Create separate LRC files',
@@ -116,6 +138,20 @@ export default {
     exportTxt: 'Plain text (.txt)',
     exportEmbedded: 'Embed into files',
     start: 'Start download',
+  },
+
+  editor: {
+    syncWord: 'Sync word',
+    noPlainYet: 'No plain lyrics yet',
+    noSyncedYet: 'No synced lyric lines yet',
+    markedInstrumental: 'Track is marked as instrumental',
+
+    publishHint: 'Publish lyrics into your LRCLIB instance:',
+    exportHint: "Export to track's directory:",
+    savingAndExporting: 'Saving and exporting...',
+    saveAndExport: 'Save and export',
+    saveAndPublish: 'Save and Publish',
+    viewYamlDebug: 'View YAML debug',
   },
 
   about: {
@@ -130,6 +166,13 @@ export default {
     credits: 'Credits and license',
     creditsText:
       'Sing-Along is a fork of LRCGET, Copyright (c) 2023 tranxuanthang, used under the MIT License.',
+    releasePage: 'Sing-Along release page',
+    checking: 'Fetching newest version data from GitHub...',
+    forkOf: 'Sing-Along is a fork of',
+    copyrightSuffix: ', Copyright (c) 2023 tranxuanthang, used under the MIT License.',
+    contributors: 'Previously contributed code by',
+    contributorsSuffix: ', also under the MIT License.',
+    lyricsFrom: 'Lyrics are provided by',
     lyricsProvidedBy: 'Lyrics are provided by LRCLIB.',
   },
 
@@ -145,12 +188,18 @@ export default {
     noLyricsFound: 'No lyrics found',
   },
 
+  lrclib: {
+    previousDownload: 'Lyrics for this track were previously downloaded.',
+  },
+
   errors: {
     scanFailed: 'Scanning the library failed',
     loadTracksFailed: 'Failed to load tracks',
     searchFailed: 'Searching for lyrics failed. Please try again.',
     nothingToExport: 'No tracks with lyrics found to export',
     exportFormatRequired: 'Select at least one export format',
+    exportStartFailed: 'Failed to start export: {error}',
+    scanFailedDetail: 'Scanning the library failed: {error}',
     unsavedChanges: 'You have unsaved changes. Are you sure you want to close?',
   },
 }

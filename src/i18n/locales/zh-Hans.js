@@ -5,6 +5,12 @@ export default {
     loadingLibrary: '正在加载曲库…',
   },
 
+  setup: {
+    selectStrategy: '选择策略',
+
+    selectDirectories: '选择目录',
+  },
+
   tabs: {
     tracks: '歌曲',
     albums: '专辑',
@@ -13,6 +19,8 @@ export default {
   },
 
   actions: {
+    chooseFile: '选择文件…',
+
     download: '下载',
     downloadAll: '下载全部歌词',
     export: '导出',
@@ -32,8 +40,17 @@ export default {
   },
 
   search: {
+    noTracksFound: '没有找到歌曲',
+    typeToSearch: '输入以搜索曲库',
+
     libraryPlaceholder: '在曲库中搜索歌曲…',
     lyricsPlaceholder: '输入歌名、专辑或艺人以查找歌词…',
+    title: '标题',
+    album: '专辑',
+    artist: '艺人',
+    tracksPlaceholder: '搜索歌曲…',
+    albumsPlaceholder: '搜索专辑…',
+    artistsPlaceholder: '搜索艺人…',
     noResults: '没有结果',
   },
 
@@ -69,6 +86,9 @@ export default {
   },
 
   config: {
+    scanIncremental: '扫描新增和修改的歌曲…',
+    scanFull: '重置曲库并完整扫描…',
+
     title: '设置',
     theme: '主题',
     themeAuto: '跟随系统',
@@ -102,6 +122,8 @@ export default {
   },
 
   downloadOptions: {
+    skipExisting: '跳过已有歌词的歌曲',
+
     title: '下载选项',
     autoExport: '下载后自动导出歌词',
     createLrc: '生成独立的 LRC 文件',
@@ -109,6 +131,20 @@ export default {
     exportTxt: '纯文本（.txt）',
     exportEmbedded: '嵌入到文件',
     start: '开始下载',
+  },
+
+  editor: {
+    syncWord: '同步此词',
+    noPlainYet: '还没有纯文本歌词',
+    noSyncedYet: '还没有同步歌词行',
+    markedInstrumental: '此歌曲已标记为纯音乐',
+
+    publishHint: '将歌词发布到你的 LRCLIB 实例：',
+    exportHint: '导出到歌曲所在目录：',
+    savingAndExporting: '正在保存并导出…',
+    saveAndExport: '保存并导出',
+    saveAndPublish: '保存并发布',
+    viewYamlDebug: '查看 YAML 调试信息',
   },
 
   about: {
@@ -123,6 +159,13 @@ export default {
     credits: '致谢与许可',
     creditsText:
       'Sing-Along 是 LRCGET 的分支项目，Copyright (c) 2023 tranxuanthang，依 MIT 许可使用。',
+    releasePage: 'Sing-Along 发布页',
+    checking: '正在从 GitHub 获取最新版本信息…',
+    forkOf: 'Sing-Along 是',
+    copyrightSuffix: ' 的分支项目，Copyright (c) 2023 tranxuanthang，依 MIT 许可使用。',
+    contributors: '此前贡献代码的有',
+    contributorsSuffix: '，同样依 MIT 许可。',
+    lyricsFrom: '歌词由',
     lyricsProvidedBy: '歌词由 LRCLIB 提供。',
   },
 
@@ -138,12 +181,18 @@ export default {
     noLyricsFound: '未找到歌词',
   },
 
+  lrclib: {
+    previousDownload: '此歌曲的歌词此前已下载过。',
+  },
+
   errors: {
     scanFailed: '扫描曲库失败',
     loadTracksFailed: '加载歌曲失败',
     searchFailed: '搜索歌词时出错，请重试。',
     nothingToExport: '没有找到带歌词的歌曲可导出',
     exportFormatRequired: '请至少选择一种导出格式',
+    exportStartFailed: '启动导出失败：{error}',
+    scanFailedDetail: '扫描曲库失败：{error}',
     unsavedChanges: '有未保存的修改，确定要关闭吗？',
   },
 }

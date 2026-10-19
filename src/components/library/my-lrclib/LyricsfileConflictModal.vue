@@ -5,7 +5,7 @@
     :close-button="true"
     @close="emit('close')"
   >
-    <div>Lyrics for this track were previously downloaded.</div>
+    <div>{{ $t('lrclib.previousDownload') }}</div>
 
     <template #footer>
       <div class="w-full flex justify-end gap-2">

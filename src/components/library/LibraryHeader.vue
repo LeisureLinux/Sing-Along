@@ -16,7 +16,7 @@
         }"
         @click.prevent="$emit('changeActiveTab', 'tracks')"
       >
-        Tracks
+        {{ $t('tabs.tracks') }}
       </button>
       <button
         class="tab"
@@ -26,7 +26,7 @@
         }"
         @click.prevent="$emit('changeActiveTab', 'albums')"
       >
-        Albums
+        {{ $t('tabs.albums') }}
       </button>
       <button
         class="tab"
@@ -36,7 +36,7 @@
         }"
         @click.prevent="$emit('changeActiveTab', 'artists')"
       >
-        Artists
+        {{ $t('tabs.artists') }}
       </button>
 
       <!-- Create a separator -->
@@ -50,7 +50,7 @@
         }"
         @click.prevent="$emit('changeActiveTab', 'my-lrclib')"
       >
-        LRCLIB
+        {{ $t('tabs.lrclib') }}
       </button>
     </div>
 
@@ -65,7 +65,7 @@
           <Loading />
         </div>
         <div class="flex gap-1">
-          <div>Preparing</div>
+          <div>{{ $t('status.preparing') }}</div>
         </div>
       </button>
 
@@ -78,7 +78,7 @@
           <Loading />
         </div>
         <div class="flex gap-1">
-          <div>Downloading</div>
+          <div>{{ $t('status.downloading') }}</div>
           <div>{{ downloadedCount }}/{{ downloadTotalCount }}</div>
         </div>
       </button>
@@ -100,7 +100,7 @@
         @click.stop.prevent="openDownloadOptions"
       >
         <DownloadMultiple />
-        <span>Download all lyrics</span>
+        <span>{{ $t('actions.downloadAll') }}</span>
       </button>
 
       <button
@@ -111,7 +111,7 @@
         <div class="animate-spin text-sm">
           <Loading />
         </div>
-        <span>Exporting</span>
+        <span>{{ $t('status.exporting') }}</span>
       </button>
 
       <button
@@ -122,7 +122,7 @@
         <div class="text-sm">
           <Check />
         </div>
-        <span>Exported</span>
+        <span>{{ $t('status.exported') }}</span>
       </button>
 
       <VDropdown
@@ -135,17 +135,17 @@
       >
         <button
           class="button button-normal h-full min-w-[6rem] px-2 text-xs rounded-full"
-          title="Export all lyrics"
+          :title="$t('actions.downloadAll')"
         >
           <Export />
-          <span>Export</span>
+          <span>{{ $t('actions.export') }}</span>
         </button>
         <template #popper>
           <div
             class="dropdown-container export-options min-w-[17rem]"
             @keydown.esc="exportDropdown?.hide()"
           >
-            <div class="dropdown-section-label">Export all lyrics to tracks' directory:</div>
+            <div class="dropdown-section-label">{{ $t('exportOptions.toTrackDirectory') }}</div>
 
             <fieldset :disabled="exportLoading || submittingExport">
               <label class="dropdown-item">
@@ -154,7 +154,7 @@
                   v-model="exportDraft.plainText"
                   name="export-plain-text"
                 >
-                  <span class="dropdown-label">Plain lyrics (.txt)</span>
+                  <span class="dropdown-label">{{ $t('exportOptions.plainLyrics') }}</span>
                 </CheckboxButton>
               </label>
               <label class="dropdown-item">
@@ -163,12 +163,12 @@
                   v-model="exportDraft.syncedLrc"
                   name="export-synced-lrc"
                 >
-                  <span class="dropdown-label">Synced lyrics (.lrc)</span>
+                  <span class="dropdown-label">{{ $t('exportOptions.syncedLyrics') }}</span>
                 </CheckboxButton>
               </label>
 
               <div class="dropdown-section-label mt-2">
-                Word-level lyrics — pick one format for the target player:
+                {{ $t('exportOptions.wordLevelHint') }}
               </div>
               <label class="dropdown-item">
                 <CheckboxButton
@@ -177,7 +177,7 @@
                   name="export-word-format"
                   @update:model-value="setWordFormat('none')"
                 >
-                  <span class="dropdown-label">Don't export word-level</span>
+                  <span class="dropdown-label">{{ $t('exportOptions.wordNone') }}</span>
                 </CheckboxButton>
               </label>
               <label class="dropdown-item">
@@ -187,7 +187,7 @@
                   name="export-word-format"
                   @update:model-value="setWordFormat('a2')"
                 >
-                  <span class="dropdown-label">Enhanced LRC / A2 (.alrc) — Android</span>
+                  <span class="dropdown-label">{{ $t('exportOptions.a2') }}</span>
                 </CheckboxButton>
               </label>
               <label class="dropdown-item">
@@ -197,7 +197,7 @@
                   name="export-word-format"
                   @update:model-value="setWordFormat('ttml')"
                 >
-                  <span class="dropdown-label">TTML (.ttml) — iOS</span>
+                  <span class="dropdown-label">{{ $t('exportOptions.ttml') }}</span>
                 </CheckboxButton>
               </label>
 
@@ -208,7 +208,7 @@
                   name="embed-into-track"
                   :disabled="!tryEmbedLyrics"
                 >
-                  <span class="dropdown-label">Embed into track</span>
+                  <span class="dropdown-label">{{ $t('exportOptions.embedIntoTrack') }}</span>
                 </CheckboxButton>
               </label>
             </fieldset>
@@ -223,7 +223,7 @@
                 type="button"
                 @click="handleExportClick"
               >
-                Export
+                {{ $t('actions.export') }}
               </button>
             </div>
           </div>
@@ -238,23 +238,27 @@
           <div class="dropdown-container">
             <button v-close-popper class="dropdown-item" @click="$emit('refreshLibrary')">
               <Refresh class="text-neutral-800 dark:text-neutral-300" />
-              <span class="text-neutral-800 dark:text-neutral-300 text-sm font-bold"
-                >Refresh library</span
-              >
+              <span class="text-neutral-800 dark:text-neutral-300 text-sm font-bold">{{
+                $t('actions.refresh')
+              }}</span>
             </button>
             <button v-close-popper class="dropdown-item" @click="$emit('manageDirectories')">
               <FolderMultiple class="text-neutral-800 dark:text-neutral-300" />
-              <span class="text-neutral-800 dark:text-neutral-300 text-sm font-bold"
-                >Manage directories</span
-              >
+              <span class="text-neutral-800 dark:text-neutral-300 text-sm font-bold">{{
+                $t('config.manageDirectories')
+              }}</span>
             </button>
             <button v-close-popper class="dropdown-item" @click="$emit('showConfig')">
               <Cog class="text-neutral-800 dark:text-neutral-300" />
-              <span class="text-neutral-800 dark:text-neutral-300 text-sm font-bold">Settings</span>
+              <span class="text-neutral-800 dark:text-neutral-300 text-sm font-bold">{{
+                $t('config.title')
+              }}</span>
             </button>
             <button v-close-popper class="dropdown-item" @click="$emit('showAbout')">
               <Information class="text-neutral-800 dark:text-neutral-300" />
-              <span class="text-neutral-800 dark:text-neutral-300 text-sm font-bold">About</span>
+              <span class="text-neutral-800 dark:text-neutral-300 text-sm font-bold">{{
+                $t('about.title')
+              }}</span>
             </button>
           </div>
         </template>

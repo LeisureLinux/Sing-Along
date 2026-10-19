@@ -68,7 +68,11 @@
     <div
       v-else
       class="grow min-h-7 flex items-center px-2 rounded-md cursor-text"
-      :class="isLinePlaying ? 'font-bold text-neutral-900 dark:text-white' : 'text-neutral-600 dark:text-neutral-400'"
+      :class="
+        isLinePlaying
+          ? 'font-bold text-neutral-900 dark:text-white'
+          : 'text-neutral-600 dark:text-neutral-400'
+      "
       @click="emit('select', index)"
       @dblclick="emit('start-edit', index)"
     >
@@ -273,7 +277,11 @@ const syncLineTitle = withShortcutTitle(
   'syncLineToPlayback'
 )
 
-const rewindLineTitle = withShortcutTitle('Rewind line by 100ms', syncedEditorShortcutBindings, 'rewindLine')
+const rewindLineTitle = withShortcutTitle(
+  'Rewind line by 100ms',
+  syncedEditorShortcutBindings,
+  'rewindLine'
+)
 
 const forwardLineTitle = withShortcutTitle(
   'Forward line by 100ms',

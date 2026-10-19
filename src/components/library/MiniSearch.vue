@@ -13,7 +13,7 @@
     <div class="absolute top-0 right-0 h-full flex items-center px-1 gap-1">
       <button
         v-if="searchInput !== ''"
-          class="w-[1.5rem] h-[1.5rem] flex justify-center items-center text-neutral-800 group-hover:text-neutral-800 dark:text-neutral-500 dark:hover:text-neutral-300 rounded-full"
+        class="w-[1.5rem] h-[1.5rem] flex justify-center items-center text-neutral-800 group-hover:text-neutral-800 dark:text-neutral-500 dark:hover:text-neutral-300 rounded-full"
         @click="searchInput = ''"
       >
         <Close />
@@ -24,7 +24,7 @@
         placement="top-start"
       >
         <button
-        class="w-[1.5rem] h-[1.5rem] flex justify-center items-center text-neutral-800 group-hover:text-neutral-800 dark:text-neutral-500 dark:hover:text-neutral-300 rounded-full"
+          class="w-[1.5rem] h-[1.5rem] flex justify-center items-center text-neutral-800 group-hover:text-neutral-800 dark:text-neutral-500 dark:hover:text-neutral-300 rounded-full"
           :class="{ 'bg-neutral-200 dark:bg-neutral-700': isFilters }"
         >
           <Filter />
@@ -37,7 +37,7 @@
                 v-model="filters.syncedLyricsTracks"
                 name="synced-lyrics"
               >
-                <span class="dropdown-label">Synced lyrics tracks</span>
+                <span class="dropdown-label">{{ $t('filters.syncedTracks') }}</span>
               </CheckboxButton>
             </label>
             <label class="dropdown-item">
@@ -46,7 +46,7 @@
                 v-model="filters.plainLyricsTracks"
                 name="plain-lyrics"
               >
-                <span class="dropdown-label">Plain lyrics tracks</span>
+                <span class="dropdown-label">{{ $t('filters.plainTracks') }}</span>
               </CheckboxButton>
             </label>
             <label class="dropdown-item">
@@ -55,12 +55,12 @@
                 v-model="filters.instrumentalTracks"
                 name="instrumental"
               >
-                <span class="dropdown-label">Instrumental tracks</span>
+                <span class="dropdown-label">{{ $t('filters.instrumentalTracks') }}</span>
               </CheckboxButton>
             </label>
             <label class="dropdown-item">
               <CheckboxButton id="no-lyrics" v-model="filters.noLyricsTracks" name="no-lyrics">
-                <span class="dropdown-label">No lyrics tracks</span>
+                <span class="dropdown-label">{{ $t('filters.noLyricsTracks') }}</span>
               </CheckboxButton>
             </label>
           </div>
@@ -72,6 +72,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useSearchLibrary } from '@/composables/search-library.js'
 import Magnify from '~icons/mdi/magnify'
 import Close from '~icons/mdi/close'
@@ -85,14 +86,16 @@ const { searchValue, setSearch, filters } = useSearchLibrary()
 
 const searchInput = ref('')
 
+const { t } = useI18n()
+
 const placeholder = computed(() => {
   switch (props.activeTab) {
     case 'albums':
-      return 'Search for albums...'
+      return t('search.albumsPlaceholder')
     case 'artists':
-      return 'Search for artists...'
+      return t('search.artistsPlaceholder')
     default:
-      return 'Search for tracks...'
+      return t('search.tracksPlaceholder')
   }
 })
 
@@ -111,7 +114,7 @@ onMounted(() => {
   searchInput.value = searchValue.value
 })
 
-watch(searchValue, (newVal) => {
+watch(searchValue, newVal => {
   searchInput.value = newVal
 })
 </script>

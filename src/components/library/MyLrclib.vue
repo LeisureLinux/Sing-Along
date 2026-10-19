@@ -5,7 +5,9 @@
   >
     <!--<img src="@/assets/lrclib.png" class="w-20 h-20" />-->
 
-    <div class="font-bold text-xs text-neutral-800 dark:text-neutral-400 select-none cursor-default">
+    <div
+      class="font-bold text-xs text-neutral-800 dark:text-neutral-400 select-none cursor-default"
+    >
       Search with LRCLIB instance:
       <span
         class="text-neutral-800 dark:text-neutral-300 rounded-full px-2 py-1 bg-neutral-50 dark:bg-neutral-900"

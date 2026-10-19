@@ -60,7 +60,9 @@
     </template>
 
     <div class="grow flex flex-col gap-2 h-full">
-      <div class="toolbar bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
+      <div
+        class="toolbar bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700"
+      >
         <EditLyricsV2PlayerBar
           :status="status"
           :duration="duration"
@@ -78,7 +80,9 @@
         <div
           class="w-full max-w-lg rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-5 shadow-lg"
         >
-          <h3 class="text-base font-semibold text-neutral-900 dark:text-neutral-200">Track is marked as instrumental</h3>
+          <h3 class="text-base font-semibold text-neutral-900 dark:text-neutral-200">
+            {{ $t('editor.markedInstrumental') }}
+          </h3>
           <div class="mt-4 flex flex-wrap gap-2">
             <button
               class="button button-normal px-2 py-1 text-xs rounded-full"
@@ -133,7 +137,6 @@
         @update-line-text="handleUpdateLineText"
         @mark-as-instrumental="setInstrumental(true)"
       />
-
     </div>
   </BaseModal>
 </template>

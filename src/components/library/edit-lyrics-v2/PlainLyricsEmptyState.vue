@@ -3,7 +3,9 @@
     <div
       class="w-full max-w-lg rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-5 shadow-lg"
     >
-      <h3 class="text-base font-semibold text-neutral-900 dark:text-neutral-200">No plain lyrics yet</h3>
+      <h3 class="text-base font-semibold text-neutral-900 dark:text-neutral-200">
+        {{ $t('editor.noPlainYet') }}
+      </h3>
       <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
         Import from synced lyrics or add plain lyrics manually.
       </p>

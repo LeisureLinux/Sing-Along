@@ -46,7 +46,7 @@
             class="button button-secondary p-1 m-1 rounded-full text-lg"
             :class="{ 'opacity-40 cursor-not-allowed': !hasPrevious }"
             :disabled="!hasPrevious"
-            title="Previous track"
+            :title="$t('player.previousTrack')"
             @click.prevent="playPrevious"
           >
             <SkipPrevious />
@@ -89,7 +89,7 @@
             class="button button-secondary p-1 m-1 rounded-full text-lg"
             :class="{ 'opacity-40 cursor-not-allowed': !hasNext }"
             :disabled="!hasNext"
-            title="Next track"
+            :title="$t('player.nextTrack')"
             @click.prevent="playNext"
           >
             <SkipNext />
@@ -101,7 +101,7 @@
             v-if="queueLength > 1"
             class="button button-secondary p-1 m-1 rounded-full text-lg"
             :class="{ 'text-hoa-1100': shuffle }"
-            :title="shuffle ? 'Shuffle on' : 'Shuffle off'"
+            :title="shuffle ? $t('player.shuffleOn') : $t('player.shuffleOff')"
             @click.prevent="setShuffle(!shuffle)"
           >
             <Shuffle />
@@ -129,6 +129,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ref, onMounted, onUnmounted } from 'vue'
 import Seek from './now-playing/Seek.vue'
 import PlaybackSpeedControl from '@/components/common/PlaybackSpeedControl.vue'
@@ -190,12 +191,14 @@ const {
   setPlaybackSpeed,
 } = usePlayer()
 
+const { t } = useI18n()
+
 const keydownEvent = ref(null)
 
 const repeatTitle = computed(() => {
-  if (repeat.value === 'one') return 'Repeat one'
-  if (repeat.value === 'all') return 'Repeat all'
-  return 'Repeat off'
+  if (repeat.value === 'one') return t('player.repeatOne')
+  if (repeat.value === 'all') return t('player.repeatAll')
+  return t('player.repeatOff')
 })
 
 const instrumental = computed(() => {

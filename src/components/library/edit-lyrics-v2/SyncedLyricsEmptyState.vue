@@ -3,7 +3,9 @@
     <div
       class="w-full max-w-lg rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-5 shadow-lg"
     >
-      <h3 class="text-base font-semibold text-neutral-900 dark:text-neutral-200">No synced lyric lines yet</h3>
+      <h3 class="text-base font-semibold text-neutral-900 dark:text-neutral-200">
+        {{ $t('editor.noSyncedYet') }}
+      </h3>
       <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
         Import from plain lyrics or add a new synced line manually.
       </p>
@@ -54,5 +56,11 @@ defineProps({
   },
 })
 
-const emit = defineEmits(['import-lines-from-plain', 'import-lrc-file', 'paste-lrc', 'add-line-at', 'mark-as-instrumental'])
+const emit = defineEmits([
+  'import-lines-from-plain',
+  'import-lrc-file',
+  'paste-lrc',
+  'add-line-at',
+  'mark-as-instrumental',
+])
 </script>

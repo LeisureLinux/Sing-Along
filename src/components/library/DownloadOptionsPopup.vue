@@ -23,7 +23,7 @@
           {{ session.target.type === 'album' ? 'Album' : 'Artist' }} · {{ session.target.name }}
         </div>
         <fieldset :disabled="downloadLoading || submittingDownload">
-          <legend class="dropdown-section-label">Download lyrics for</legend>
+          <legend class="dropdown-section-label">{{ $t('config.downloadLyricsFor') }}</legend>
           <div class="flex flex-col gap-2 px-2 py-1 text-sm">
             <RadioButton
               id="popup-download-all"
@@ -31,7 +31,7 @@
               name="popup-download-lyrics-for"
               value="all"
             >
-              <span class="dropdown-label">All tracks (overwrite existing lyrics)</span>
+              <span class="dropdown-label">{{ $t('filters.allTracks') }}</span>
             </RadioButton>
             <RadioButton
               id="popup-download-skip-synced"
@@ -39,7 +39,7 @@
               name="popup-download-lyrics-for"
               value="skipSynced"
             >
-              <span class="dropdown-label">Only tracks without synced lyrics</span>
+              <span class="dropdown-label">{{ $t('filters.syncedTracks') }}</span>
             </RadioButton>
             <RadioButton
               id="popup-download-skip-plain"
@@ -47,20 +47,20 @@
               name="popup-download-lyrics-for"
               value="skipPlain"
             >
-              <span class="dropdown-label">Only tracks without any lyrics</span>
+              <span class="dropdown-label">{{ $t('filters.noLyricsTracks') }}</span>
             </RadioButton>
           </div>
         </fieldset>
         <hr class="my-2 border-neutral-200 dark:border-neutral-700" />
         <fieldset :disabled="downloadLoading || submittingDownload">
-          <legend class="dropdown-section-label">Export options</legend>
+          <legend class="dropdown-section-label">{{ $t('exportOptions.title') }}</legend>
           <label class="dropdown-item">
             <CheckboxButton
               id="auto-export"
               v-model="downloadDraft.autoExportEnabled"
               name="auto-export"
             >
-              <span class="dropdown-label">Automatically export lyrics</span>
+              <span class="dropdown-label">{{ $t('downloadOptions.autoExport') }}</span>
             </CheckboxButton>
           </label>
           <template v-if="downloadDraft.autoExportEnabled">
@@ -70,7 +70,7 @@
                 v-model="downloadDraft.plainText"
                 name="download-txt"
               >
-                <span class="dropdown-label">Plain lyrics (.txt)</span>
+                <span class="dropdown-label">{{ $t('exportOptions.plainLyrics') }}</span>
               </CheckboxButton>
             </label>
             <label class="dropdown-item">
@@ -79,7 +79,7 @@
                 v-model="downloadDraft.syncedLrc"
                 name="download-lrc"
               >
-                <span class="dropdown-label">Synced lyrics (.lrc)</span>
+                <span class="dropdown-label">{{ $t('exportOptions.syncedLyrics') }}</span>
               </CheckboxButton>
             </label>
             <label class="dropdown-item">
@@ -89,7 +89,7 @@
                 name="download-embedded"
                 :disabled="!tryEmbedLyrics"
               >
-                <span class="dropdown-label">Embed into track</span>
+                <span class="dropdown-label">{{ $t('exportOptions.embedIntoTrack') }}</span>
               </CheckboxButton>
             </label>
           </template>
@@ -104,7 +104,7 @@
             :disabled="!canDownload"
             @click="downloadAllLyrics"
           >
-            Download
+            {{ $t('actions.download') }}
           </button>
         </div>
       </div>

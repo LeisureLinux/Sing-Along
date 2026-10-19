@@ -17,11 +17,14 @@
           :config="{ height: 'auto' }"
         />
 
-        <div v-else class="flex flex-col h-full items-center justify-center text-sm text-neutral-500">
+        <div
+          v-else
+          class="flex flex-col h-full items-center justify-center text-sm text-neutral-500"
+        >
           <div class="animate-spin text-xl text-neutral-800">
             <Loading />
           </div>
-          <div>Loading editor...</div>
+          <div>{{ $t('status.loadingEditor') }}</div>
         </div>
       </div>
     </div>
@@ -111,7 +114,11 @@ const lyricsProxy = computed({
 })
 
 const zoomOutTitle = withShortcutTitle('Zoom out', plainEditorShortcutBindings, 'zoomOut')
-const zoomResetTitle = withShortcutTitle('Reset zoom level', plainEditorShortcutBindings, 'zoomReset')
+const zoomResetTitle = withShortcutTitle(
+  'Reset zoom level',
+  plainEditorShortcutBindings,
+  'zoomReset'
+)
 const zoomInTitle = withShortcutTitle('Zoom in', plainEditorShortcutBindings, 'zoomIn')
 
 const handleResize = () => {

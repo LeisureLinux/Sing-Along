@@ -58,17 +58,17 @@
         <span
           v-if="lyricsStatus === 'instrumental'"
           class="text-gray-200 font-bold text-[0.67rem] bg-gray-500 rounded px-1 py-0.5"
-          >Instrumental</span
+          >{{ $t('track.instrumental') }}</span
         >
         <span
           v-else-if="lyricsStatus === 'synced'"
           class="text-green-200 font-bold text-[0.67rem] bg-green-800 rounded px-1 py-0.5"
-          >Synced</span
+          >{{ $t('track.synced') }}</span
         >
         <span
           v-else-if="lyricsStatus === 'plain'"
           class="text-gray-200 font-bold text-[0.67rem] bg-gray-800 rounded px-1 py-0.5"
-          >Plain</span
+          >{{ $t('track.plain') }}</span
         >
       </div>
     </div>

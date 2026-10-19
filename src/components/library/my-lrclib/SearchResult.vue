@@ -38,9 +38,10 @@
                 {{ result.track.name }}
               </div>
               <div class="text-[0.65rem] font-bold flex gap-1">
-                <span class="bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200 px-1 py-0.5 rounded">{{
-                  humanDuration(result.track.duration)
-                }}</span>
+                <span
+                  class="bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200 px-1 py-0.5 rounded"
+                  >{{ humanDuration(result.track.duration) }}</span
+                >
                 <template v-if="showLineCount === true">
                   <span
                     v-if="!!result.lyrics.syncedLyrics"
@@ -56,17 +57,17 @@
                 <span
                   v-if="!!result.lyrics.syncedLyrics"
                   class="bg-green-800 text-green-200 px-1 py-0.5 rounded"
-                  >Synced</span
+                  >{{ $t('track.synced') }}</span
                 >
                 <span
                   v-else-if="!!result.lyrics.plainLyrics"
                   class="bg-gray-800 text-gray-200 px-1 py-0.5 rounded"
-                  >Plain</span
+                  >{{ $t('track.plain') }}</span
                 >
                 <span
                   v-else-if="!!result.lyrics.instrumental"
                   class="bg-gray-300 text-gray-600 dark:bg-neutral-700 dark:text-neutral-300 px-1 py-0.5 rounded"
-                  >Instrumental</span
+                  >{{ $t('track.instrumental') }}</span
                 >
               </div>
             </div>

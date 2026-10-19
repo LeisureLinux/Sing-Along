@@ -5,6 +5,12 @@ export default {
     loadingLibrary: '正在載入曲庫…',
   },
 
+  setup: {
+    selectStrategy: '選擇策略',
+
+    selectDirectories: '選擇目錄',
+  },
+
   tabs: {
     tracks: '歌曲',
     albums: '專輯',
@@ -13,6 +19,8 @@ export default {
   },
 
   actions: {
+    chooseFile: '選擇檔案…',
+
     download: '下載',
     downloadAll: '下載全部歌詞',
     export: '匯出',
@@ -32,8 +40,17 @@ export default {
   },
 
   search: {
+    noTracksFound: '沒有找到歌曲',
+    typeToSearch: '輸入以搜尋曲庫',
+
     libraryPlaceholder: '在曲庫中搜尋歌曲…',
     lyricsPlaceholder: '輸入歌名、專輯或藝人以尋找歌詞…',
+    title: '標題',
+    album: '專輯',
+    artist: '藝人',
+    tracksPlaceholder: '搜尋歌曲…',
+    albumsPlaceholder: '搜尋專輯…',
+    artistsPlaceholder: '搜尋藝人…',
     noResults: '沒有結果',
   },
 
@@ -69,6 +86,9 @@ export default {
   },
 
   config: {
+    scanIncremental: '掃描新增與修改的歌曲…',
+    scanFull: '重設曲庫並完整掃描…',
+
     title: '設定',
     theme: '主題',
     themeAuto: '跟隨系統',
@@ -102,6 +122,8 @@ export default {
   },
 
   downloadOptions: {
+    skipExisting: '跳過已有歌詞的歌曲',
+
     title: '下載選項',
     autoExport: '下載後自動匯出歌詞',
     createLrc: '產生獨立的 LRC 檔案',
@@ -109,6 +131,20 @@ export default {
     exportTxt: '純文字（.txt）',
     exportEmbedded: '嵌入到檔案',
     start: '開始下載',
+  },
+
+  editor: {
+    syncWord: '同步此詞',
+    noPlainYet: '還沒有純文字歌詞',
+    noSyncedYet: '還沒有同步歌詞行',
+    markedInstrumental: '此歌曲已標記為純音樂',
+
+    publishHint: '將歌詞發佈到你的 LRCLIB 實例：',
+    exportHint: '匯出到歌曲所在目錄：',
+    savingAndExporting: '正在儲存並匯出…',
+    saveAndExport: '儲存並匯出',
+    saveAndPublish: '儲存並發佈',
+    viewYamlDebug: '檢視 YAML 偵錯資訊',
   },
 
   about: {
@@ -123,6 +159,13 @@ export default {
     credits: '致謝與授權',
     creditsText:
       'Sing-Along 是 LRCGET 的分支專案，Copyright (c) 2023 tranxuanthang，依 MIT 授權使用。',
+    releasePage: 'Sing-Along 發佈頁',
+    checking: '正在從 GitHub 取得最新版本資訊…',
+    forkOf: 'Sing-Along 是',
+    copyrightSuffix: ' 的分支專案，Copyright (c) 2023 tranxuanthang，依 MIT 授權使用。',
+    contributors: '先前貢獻程式碼的有',
+    contributorsSuffix: '，同樣依 MIT 授權。',
+    lyricsFrom: '歌詞由',
     lyricsProvidedBy: '歌詞由 LRCLIB 提供。',
   },
 
@@ -138,12 +181,18 @@ export default {
     noLyricsFound: '未找到歌詞',
   },
 
+  lrclib: {
+    previousDownload: '此歌曲的歌詞先前已下載過。',
+  },
+
   errors: {
     scanFailed: '掃描曲庫失敗',
     loadTracksFailed: '載入歌曲失敗',
     searchFailed: '搜尋歌詞時發生錯誤，請重試。',
     nothingToExport: '沒有找到帶歌詞的歌曲可匯出',
     exportFormatRequired: '請至少選擇一種匯出格式',
+    exportStartFailed: '啟動匯出失敗：{error}',
+    scanFailedDetail: '掃描曲庫失敗：{error}',
     unsavedChanges: '有未儲存的變更，確定要關閉嗎？',
   },
 }

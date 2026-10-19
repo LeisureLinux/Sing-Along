@@ -334,7 +334,11 @@ const scrollLineIntoView = index => {
 }
 
 const rowClass = index => {
-  if (isLineRowSelected(index) || props.selectedLineIndex === index || editingLineIndex.value === index) {
+  if (
+    isLineRowSelected(index) ||
+    props.selectedLineIndex === index ||
+    editingLineIndex.value === index
+  ) {
     return 'bg-neutral-100 dark:bg-neutral-800'
   }
 
@@ -360,7 +364,11 @@ const getEndTimestampDiffDirection = index => {
   const lineEndMs = props.modelValue[index]?.end_ms
   const nextLineStartMs = props.modelValue[index + 1]?.start_ms
 
-  if (!Number.isFinite(lineEndMs) || !Number.isFinite(nextLineStartMs) || lineEndMs === nextLineStartMs) {
+  if (
+    !Number.isFinite(lineEndMs) ||
+    !Number.isFinite(nextLineStartMs) ||
+    lineEndMs === nextLineStartMs
+  ) {
     return null
   }
 

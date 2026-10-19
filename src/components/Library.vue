@@ -83,9 +83,11 @@ import { useModal } from 'vue-final-modal'
 import { useExporter } from '@/composables/export.js'
 import { useLibraryNavigation } from '@/composables/library-navigation.js'
 import { usePlayer } from '@/composables/player.js'
+import { useI18n } from 'vue-i18n'
 
 const { request: downloadRequest } = useDownloadOptions()
 const { playTrack, restoreSelection } = usePlayer()
+const { t } = useI18n()
 
 // Play from a list: the list supplies its full id order so the backend can build
 // a real queue instead of a single-track one.
@@ -191,7 +193,7 @@ const handleExportAllLyrics = async formats => {
     const trackIds = await invoke('get_track_ids_with_lyrics')
 
     if (trackIds.length === 0) {
-      toast.info('No tracks with lyrics found to export')
+      toast.info(t('errors.nothingToExport'))
       closeExportViewer()
       return
     }
@@ -199,7 +201,7 @@ const handleExportAllLyrics = async formats => {
     addToExportQueue(trackIds, formats)
   } catch (error) {
     console.error(error)
-    toast.error(`Failed to start export: ${error}`)
+    toast.error(t('errors.exportStartFailed', { error }))
     closeExportViewer()
   }
 }
@@ -250,7 +252,7 @@ const scanLibrary = async (isRefresh = false) => {
     await invoke('scan_library', { useHashDetection: false })
   } catch (error) {
     console.error(error)
-    toast.error(`Unknown error happened when scanning the library. Error: ${error}`)
+    toast.error(t('errors.scanFailedDetail', { error }))
     isScanning.value = false
     isLoading.value = false
     emit('scanComplete')
@@ -273,7 +275,7 @@ const fullScanLibrary = async () => {
     await invoke('full_scan_library', { useHashDetection: true })
   } catch (error) {
     console.error(error)
-    toast.error(`Unknown error happened when performing full library scan. Error: ${error}`)
+    toast.error(t('errors.scanFailedDetail', { error }))
     isScanning.value = false
     isLoading.value = false
     emit('scanComplete')

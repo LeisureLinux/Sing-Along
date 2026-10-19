@@ -4,7 +4,7 @@
       <div class="w-full">
         <div class="w-full flex">
           <div class="text-xs text-neutral-500 font-bold flex w-full dark:text-neutral-500">
-            <div class="text-left flex-none w-[65%] p-1">Album</div>
+            <div class="text-left flex-none w-[65%] p-1">{{ $t('search.album') }}</div>
             <div class="text-right flex-none w-[15%] p-1" />
           </div>
         </div>

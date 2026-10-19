@@ -40,15 +40,12 @@
         class="rounded-md border border-amber-300/70 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3 py-2"
       >
         <p class="text-xs font-medium text-amber-800 dark:text-amber-200">
-          Duplicate shortcuts detected ({{ duplicateGroups.length }}). Conflicting shortcuts are highlighted below.
+          Duplicate shortcuts detected ({{ duplicateGroups.length }}). Conflicting shortcuts are
+          highlighted below.
         </p>
       </div>
 
-      <div
-        v-for="category in shortcutCategories"
-        :key="category.id"
-        class="flex flex-col gap-2"
-      >
+      <div v-for="category in shortcutCategories" :key="category.id" class="flex flex-col gap-2">
         <h3
           class="text-xs font-bold uppercase tracking-wider"
           :class="
@@ -71,7 +68,9 @@
             class="flex items-start justify-between gap-4"
           >
             <div class="flex flex-col gap-0.5">
-              <span class="text-sm text-neutral-700 dark:text-neutral-300">{{ shortcut.description }}</span>
+              <span class="text-sm text-neutral-700 dark:text-neutral-300">{{
+                shortcut.description
+              }}</span>
               <span
                 v-if="isConfigMode && shortcut.id && hasDuplicateShortcut(shortcut.id)"
                 class="text-xs text-amber-700 dark:text-amber-300"
@@ -90,7 +89,7 @@
                       ? 'bg-amber-100 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200'
                       : shortcut.id && isShortcutModified(shortcut)
                         ? 'bg-hoa-100 dark:bg-hoa-1200/40 border-hoa-300 dark:border-hoa-800 text-hoa-900 dark:text-hoa-200'
-                      : 'bg-neutral-100 dark:bg-neutral-700 border-neutral-200 dark:border-neutral-600'
+                        : 'bg-neutral-100 dark:bg-neutral-700 border-neutral-200 dark:border-neutral-600'
                   "
                 >
                   {{ key }}

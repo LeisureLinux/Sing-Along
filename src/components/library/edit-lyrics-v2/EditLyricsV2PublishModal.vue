@@ -21,21 +21,21 @@
       <table v-if="isPublishing" class="text-xs table-auto font-mono uppercase">
         <tbody>
           <tr>
-            <td class="px-2 py-1">Request challenge...</td>
+            <td class="px-2 py-1">{{ $t('publish.requestChallenge') }}</td>
             <td class="text-right px-2 py-1">
               {{ progress.requestChallenge }}
             </td>
           </tr>
 
           <tr>
-            <td class="px-2 py-1">Solve challenge...</td>
+            <td class="px-2 py-1">{{ $t('publish.solveChallenge') }}</td>
             <td class="text-right px-2 py-1">
               {{ progress.solveChallenge }}
             </td>
           </tr>
 
           <tr>
-            <td class="px-2 py-1">Publish lyrics...</td>
+            <td class="px-2 py-1">{{ $t('publish.publishLyrics') }}</td>
             <td class="text-right px-2 py-1">
               {{ progress.publishLyrics }}
             </td>
@@ -57,7 +57,7 @@
       <div v-else class="flex gap-2 justify-center w-full">
         <button class="button button-disabled px-8 py-2 rounded-full flex gap-3" disabled>
           <Loading class="animate-spin" />
-          <span>Publishing</span>
+          <span>{{ $t('publish.publishing') }}</span>
         </button>
       </div>
     </template>

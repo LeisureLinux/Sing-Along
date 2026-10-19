@@ -1,7 +1,9 @@
 <template>
   <div class="flex flex-col w-full h-full justify-center items-center">
     <div class="px-4 py-2 flex flex-col gap-4 flex-none">
-      <div class="text-thin text-xl text-neutral-900 dark:text-neutral-200">Select directories</div>
+      <div class="text-thin text-xl text-neutral-900 dark:text-neutral-200">
+        {{ $t('setup.selectDirectories') }}
+      </div>
     </div>
 
     <div class="grow flex flex-col items-center justify-center gap-8 w-full max-w-screen-sm">
@@ -27,7 +29,7 @@
           @click.prevent="chooseDirectory"
         >
           <Plus />
-          <div>Add new directory</div>
+          <div>{{ $t('config.addDirectory') }}</div>
         </button>
       </div>
 
