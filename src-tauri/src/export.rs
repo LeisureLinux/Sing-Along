@@ -498,12 +498,30 @@ mod tests {
 
     #[test]
     fn test_build_sidecar_path() {
-        let track_path = "/music/artist/album/song.mp3";
-        let txt_path = build_sidecar_path(track_path, "txt").unwrap();
-        assert_eq!(txt_path.to_str().unwrap(), "/music/artist/album/song.txt");
+        // Compare against paths built with `Path` rather than against string
+        // literals: Windows joins with a backslash, so a hardcoded
+        // "/music/.../song.txt" only holds on Unix.
+        let track_path = Path::new("/music/artist/album/song.mp3");
+        let parent = track_path.parent().unwrap();
 
-        let lrc_path = build_sidecar_path(track_path, "lrc").unwrap();
-        assert_eq!(lrc_path.to_str().unwrap(), "/music/artist/album/song.lrc");
+        let txt_path = build_sidecar_path(track_path.to_str().unwrap(), "txt").unwrap();
+        assert_eq!(txt_path, parent.join("song.txt"));
+
+        let lrc_path = build_sidecar_path(track_path.to_str().unwrap(), "lrc").unwrap();
+        assert_eq!(lrc_path, parent.join("song.lrc"));
+
+        // The extension must replace the audio one, not append to the stem.
+        assert!(!txt_path.to_string_lossy().contains("song.mp3"));
+    }
+
+    #[test]
+    fn sidecar_path_handles_a_stem_containing_dots() {
+        // "01. Song.mp3" must become "01. Song.lrc", not "01.lrc".
+        let txt = build_sidecar_path("/music/01. Song.mp3", "txt").unwrap();
+        assert_eq!(
+            txt.file_name().unwrap().to_str().unwrap(),
+            "01. Song.txt"
+        );
     }
 
     #[test]
