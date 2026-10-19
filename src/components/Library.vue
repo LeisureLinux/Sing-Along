@@ -43,7 +43,10 @@
     <div class="animate-spin text-xl text-neutral-800">
       <Loading />
     </div>
-    <div v-if="isScanning" class="flex flex-col items-center justify-center text-sm text-neutral-500">
+    <div
+      v-if="isScanning"
+      class="flex flex-col items-center justify-center text-sm text-neutral-500"
+    >
       <div>Scanning library...</div>
       <div v-if="scanProgress" class="mt-1 font-medium">
         {{ scanProgress.message }}
@@ -156,9 +159,7 @@ const { open: openExportViewer, close: closeExportViewer } = useModal({
   },
 })
 
-const {
-  addToQueue: addToExportQueue,
-} = useExporter()
+const { addToQueue: addToExportQueue } = useExporter()
 
 const { pendingNavigation, clearNavigation } = useLibraryNavigation()
 
