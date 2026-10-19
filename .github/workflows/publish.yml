@@ -18,13 +18,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # macOS is asked for `dmg` only. `bundle.targets` says "all", which also
-          # emits `Sing-Along.app.tar.gz` — Tauri's auto-updater payload. This
-          # project has no updater (no plugin, no signing key, and
-          # `createUpdaterArtifacts` at its default of false), and that default
-          # does not suppress the archive, so the target list is what controls it.
-          # Naming the bundle explicitly means the archive is never produced
-          # rather than being produced and thrown away.
+          # Each platform names exactly the installers it should ship. This keeps
+          # the release page's contents explicit rather than depending on what
+          # `"all"` happens to include on a given runner image.
+          #
+          # Note this alone does not control the macOS `.app.tar.gz`: the updater
+          # archives are requested by `tauri-action` via `uploadUpdaterJson`, not
+          # by the target list. See the action's `with:` block below.
           - platform: 'macos-latest'
             args: '--target aarch64-apple-darwin --bundles dmg'
           - platform: 'macos-latest'
@@ -106,4 +106,14 @@ jobs:
             Full changelog: https://github.com/LeisureLinux/Sing-Along/commits/main
           releaseDraft: true
           prerelease: false
+          # The action defaults this to true, which makes it ask the bundler for
+          # updater artifacts and write a `latest.json` for Tauri's auto-updater.
+          # That is what produced the `Sing-Along.app.tar.gz` / `.sig` pairs even
+          # though `bundle.targets` did not name `app` and `createUpdaterArtifacts`
+          # is false: the request comes from the action, not from the config.
+          #
+          # This project has no updater, so the JSON would describe an update
+          # path no client can follow. Turning it off stops the archives from
+          # being built at all, rather than filtering them out afterwards.
+          uploadUpdaterJson: false
           args: ${{ matrix.args }}
