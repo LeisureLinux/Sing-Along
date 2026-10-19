@@ -144,7 +144,6 @@ export default {
     savingAndExporting: '正在保存并导出…',
     saveAndExport: '保存并导出',
     saveAndPublish: '保存并发布',
-    viewYamlDebug: '查看 YAML 调试信息',
   },
 
   about: {
@@ -183,6 +182,45 @@ export default {
 
   lrclib: {
     previousDownload: '此歌曲的歌词此前已下载过。',
+  },
+
+  scriptConversion: {
+    legend: '下载歌词的中文用字',
+    off: '保持原始用字',
+    toSimplified: '转换为简体中文',
+    toTraditional: '转换为繁体中文',
+    hint: '只需确认一次，之后沿用。转换是自动的，多数情况下正确，但一字多义无法全部判断准确。',
+  },
+
+  shortcuts: {
+    changeFor: '修改「{action}」的快捷键',
+    resetFor: '重置「{action}」的快捷键',
+    deleteSelectedLine: '删除选中行',
+    deleteSelectedSeparatorsToMergeAdjacentWords: '删除选中分隔符以合并相邻词',
+    forward100MsPlay: '前进 100 毫秒并播放',
+    forwardLineEndBy100Ms: '行末延后 100 毫秒',
+    openKeyboardShortcuts: '打开快捷键列表',
+    replayPreviousLine: '重播上一行',
+    replaySelectedLine: '重播选中行',
+    resetSeparatorCursorToSecondDivider: '分隔符游标复位到第二个分界',
+    resetZoom: '重置缩放',
+    rewind100MsPlay: '后退 100 毫秒并播放',
+    rewindLineEndBy100Ms: '行末提前 100 毫秒',
+    saveLyrics: '保存歌词',
+    selectNextLine: '选择下一行',
+    selectNextSeparator: '选择下一个分隔符',
+    selectPreviousLine: '选择上一行',
+    selectPreviousSeparator: '选择上一个分隔符',
+    syncLineMoveToNextSkipLineEndSync: '同步此行为当前播放位置并跳到下一行（不调整行末）',
+    syncLineSyncPreviousLineEndMoveToNext: '同步此行为当前播放位置、调整上一行行末并跳到下一行',
+    syncLineToCurrentPlayback: '将此行同步到当前播放位置',
+    syncSelectedLineEndMoveToNext: '将行末同步到当前播放位置并跳到下一行',
+    syncSelectedLineEndToCurrentPlayback: '将行末同步到当前播放位置',
+    syncSelectedSeparatorMoveToNext: '同步选中分隔符并跳到下一个',
+    syncSelectedSeparatorStaySelected: '同步选中分隔符（保持选中）',
+    zoomIn: '放大',
+    zoomInOut: '放大/缩小',
+    zoomOut: '缩小',
   },
 
   errors: {

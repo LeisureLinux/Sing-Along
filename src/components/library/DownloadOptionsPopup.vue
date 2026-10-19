@@ -53,6 +53,47 @@
         </fieldset>
         <hr class="my-2 border-neutral-200 dark:border-neutral-700" />
         <fieldset :disabled="downloadLoading || submittingDownload">
+          <!-- Asked once, then remembered. Converting is lossy, so it is a
+               choice rather than a silent transform. -->
+          <template v-if="showScriptChoice">
+            <legend class="dropdown-section-label">
+              {{ $t('scriptConversion.legend') }}
+            </legend>
+            <label class="dropdown-item">
+              <RadioButton
+                id="script-off"
+                v-model="downloadDraft.lyricScript"
+                name="lyric-script"
+                value="off"
+              >
+                <span class="dropdown-label">{{ $t('scriptConversion.off') }}</span>
+              </RadioButton>
+            </label>
+            <label class="dropdown-item">
+              <RadioButton
+                id="script-simplified"
+                v-model="downloadDraft.lyricScript"
+                name="lyric-script"
+                value="simplified"
+              >
+                <span class="dropdown-label">{{ $t('scriptConversion.toSimplified') }}</span>
+              </RadioButton>
+            </label>
+            <label class="dropdown-item">
+              <RadioButton
+                id="script-traditional"
+                v-model="downloadDraft.lyricScript"
+                name="lyric-script"
+                value="traditional"
+              >
+                <span class="dropdown-label">{{ $t('scriptConversion.toTraditional') }}</span>
+              </RadioButton>
+            </label>
+            <p class="px-2 pb-2 text-xs text-neutral-500 dark:text-neutral-400">
+              {{ $t('scriptConversion.hint') }}
+            </p>
+          </template>
+
           <legend class="dropdown-section-label">{{ $t('exportOptions.title') }}</legend>
           <label class="dropdown-item">
             <CheckboxButton
@@ -113,12 +154,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
 import CheckboxButton from '@/components/common/CheckboxButton.vue'
 import RadioButton from '@/components/common/RadioButton.vue'
 import { useDownloadOptions } from '@/composables/download-options.js'
 
 const props = defineProps({ session: { type: Object, required: true } })
+
+// The prompt only appears for Chinese UI: an English-only user has no
+// expectation about which script their lyrics should be in, and asking would be
+// noise. It hides once an answer has been stored.
+const { locale } = useI18n()
+const showScriptChoice = computed(
+  () =>
+    locale.value.startsWith('zh') &&
+    (downloadDraft.value.lyricScript === 'ask' ||
+      downloadDraft.value.lyricScript === 'simplified' ||
+      downloadDraft.value.lyricScript === 'traditional')
+)
 const content = ref(null)
 const {
   downloadDraft,

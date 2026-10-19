@@ -18,9 +18,9 @@ const addLog = logObj => {
   }
 }
 
-const downloadLyrics = async (track, autoExport) => {
+const downloadLyrics = async (track, autoExport, lyricScript) => {
   try {
-    const result = await invoke('download_lyrics', { trackId: track.id, autoExport })
+    const result = await invoke('download_lyrics', { trackId: track.id, autoExport, lyricScript })
 
     if (!isDownloading.value) {
       return
@@ -52,9 +52,9 @@ const downloadNext = async () => {
       continue
     }
 
-    const { trackId, autoExport } = downloadQueue.value.shift()
+    const { trackId, autoExport, lyricScript } = downloadQueue.value.shift()
     const track = await invoke('get_track', { trackId: trackId })
-    await downloadLyrics(track, autoExport)
+    await downloadLyrics(track, autoExport, lyricScript)
 
     await delay(1)
   }
@@ -76,12 +76,12 @@ const downloadProgress = computed(() => {
   return downloadedCount.value / totalCount.value
 })
 
-const addToQueue = (trackIds, autoExport = null) => {
+const addToQueue = (trackIds, autoExport = null, lyricScript = 'off') => {
   const snapshot = autoExport ? Object.freeze({ ...autoExport }) : null
   isDownloading.value = true
 
   for (let i = 0; i < trackIds.length; i++) {
-    downloadQueue.value.push({ trackId: trackIds[i], autoExport: snapshot })
+    downloadQueue.value.push({ trackId: trackIds[i], autoExport: snapshot, lyricScript })
   }
 
   totalCount.value += trackIds.length

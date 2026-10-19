@@ -69,7 +69,7 @@
           >
             <div class="flex flex-col gap-0.5">
               <span class="text-sm text-neutral-700 dark:text-neutral-300">{{
-                shortcut.description
+                $t(shortcut.descriptionKey)
               }}</span>
               <span
                 v-if="isConfigMode && shortcut.id && hasDuplicateShortcut(shortcut.id)"
@@ -104,12 +104,12 @@
                     :title="
                       captureShortcutId === shortcut.id
                         ? 'Press keys for new shortcut'
-                        : `Change shortcut for ${shortcut.description}`
+                        : t('shortcuts.changeFor', { action: t(shortcut.descriptionKey) })
                     "
                     :aria-label="
                       captureShortcutId === shortcut.id
                         ? 'Press keys for new shortcut'
-                        : `Change shortcut for ${shortcut.description}`
+                        : t('shortcuts.changeFor', { action: t(shortcut.descriptionKey) })
                     "
                     @click="startCapture(shortcut.id)"
                   >
@@ -119,8 +119,8 @@
                   <button
                     class="button button-normal p-1 rounded h-6 w-6 inline-flex items-center justify-center"
                     :class="resetButtonClass(shortcut.id, shortcut)"
-                    :title="`Reset shortcut for ${shortcut.description}`"
-                    :aria-label="`Reset shortcut for ${shortcut.description}`"
+                    :title="t('shortcuts.resetFor', { action: t(shortcut.descriptionKey) })"
+                    :aria-label="t('shortcuts.resetFor', { action: t(shortcut.descriptionKey) })"
                     @click="handleResetShortcut(shortcut.id)"
                   >
                     <Restore class="w-4 h-4" />
@@ -141,8 +141,11 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import BaseModal from '@/components/common/BaseModal.vue'
 import Tune from '~icons/mdi/tune-variant'
+
+const { t } = useI18n()
 import Check from '~icons/mdi/check'
 import Restore from '~icons/mdi/restore'
 import Keyboard from '~icons/mdi/keyboard-settings-outline'
@@ -182,7 +185,7 @@ const configurableShortcuts = computed(() => {
       .filter(shortcut => typeof shortcut.id === 'string' && shortcut.id.length > 0)
       .map(shortcut => ({
         id: shortcut.id,
-        description: shortcut.description,
+        descriptionKey: shortcut.descriptionKey,
         keys: shortcut.keys,
       }))
   )
@@ -215,7 +218,7 @@ const duplicateConflictMap = computed(() => {
     for (const shortcut of group.shortcuts) {
       conflictMap[shortcut.id] = group.shortcuts
         .filter(other => other.id !== shortcut.id)
-        .map(other => other.description)
+        .map(other => other.descriptionKey)
     }
   }
 

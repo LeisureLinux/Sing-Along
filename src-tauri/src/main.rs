@@ -13,6 +13,7 @@ pub mod persistent_entities;
 pub mod playlist;
 pub mod player;
 pub mod scanner;
+pub mod script_convert;
 pub mod state;
 pub mod utils;
 pub mod word_segmentation;
@@ -256,6 +257,19 @@ async fn set_config(
     .map_err(|err| err.to_string())?;
 
     Ok(())
+}
+
+/// Store whether downloaded lyrics should be converted between Chinese scripts.
+#[tauri::command]
+fn set_lyric_script(script: String, app_state: State<'_, AppState>) -> Result<(), String> {
+    let allowed = ["ask", "off", "simplified", "traditional"];
+    if !allowed.contains(&script.as_str()) {
+        return Err(format!("unsupported lyric script setting: {script}"));
+    }
+
+    let conn_guard = app_state.db.lock().map_err(|e| e.to_string())?;
+    let conn = conn_guard.as_ref().ok_or("database not initialised")?;
+    db::set_lyric_script(&script, conn).map_err(|err| err.to_string())
 }
 
 #[tauri::command]
@@ -663,6 +677,7 @@ async fn get_artist_track_ids(
 async fn download_lyrics(
     track_id: i64,
     auto_export: Option<AutoExportOptions>,
+    lyric_script: Option<String>,
     app_handle: AppHandle,
 ) -> Result<String, String> {
     let export_formats = auto_export.map(AutoExportOptions::formats).transpose()?;
@@ -709,6 +724,19 @@ async fn download_lyrics(
             Some(&resolved.synced_lyrics),
         )
         .ok_or_else(|| "Failed to build lyricsfile")?
+    };
+
+    // The caller may ask for the lyrics in a particular Chinese script. This is
+    // applied here, immediately before the write, so that what reaches the
+    // database and any auto-exported sidecar is already converted — converting
+    // afterwards would leave the two out of step.
+    let lyricsfile_content = match lyric_script.as_deref() {
+        Some(target) if target != "off" && crate::script_convert::has_cjk(&lyricsfile_content) => {
+            let script = crate::script_convert::ScriptTarget::parse(target)
+                .ok_or_else(|| format!("unsupported lyric script: {target}"))?;
+            crate::script_convert::convert(&lyricsfile_content, script)
+        }
+        _ => lyricsfile_content,
     };
 
     // Upsert the lyricsfile record (handles presence fields automatically)
@@ -1822,6 +1850,7 @@ async fn main() {
             get_config,
             set_config,
             set_export_preferences,
+            set_lyric_script,
             uninitialize_library,
             full_scan_library,
             scan_library,

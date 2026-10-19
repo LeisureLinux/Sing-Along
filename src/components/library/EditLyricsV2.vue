@@ -14,7 +14,6 @@
         @save="saveLyrics"
         @save-and-publish="saveAndPublish"
         @export="exportLyrics"
-        @debug="openDebugModal"
       />
     </template>
 
@@ -147,7 +146,6 @@ import { useToast } from 'vue-toastification'
 import { useModal } from 'vue-final-modal'
 import BaseModal from '@/components/common/BaseModal.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
-import EditLyricsV2DebugModal from '@/components/library/edit-lyrics-v2/EditLyricsV2DebugModal.vue'
 import EditLyricsV2HeaderActions from '@/components/library/edit-lyrics-v2/EditLyricsV2HeaderActions.vue'
 import EditLyricsV2PlayerBar from '@/components/library/edit-lyrics-v2/EditLyricsV2PlayerBar.vue'
 import PlainLyricsCodeEditor from '@/components/library/edit-lyrics-v2/PlainLyricsCodeEditor.vue'
@@ -455,20 +453,6 @@ const changeCodemirrorFontSizeBy = offset => {
 const resetCodemirrorFontSize = () => {
   codemirrorStyle.value.fontSize = 1.0
 }
-
-const debugModalContent = computed(() => {
-  return serializedLyricsfile.value || ''
-})
-
-const { open: openDebugModal, close: closeDebugModal } = useModal({
-  component: EditLyricsV2DebugModal,
-  attrs: {
-    content: debugModalContent,
-    onClose() {
-      closeDebugModal()
-    },
-  },
-})
 
 const { open: openShortcutsModal, close: closeShortcutsModal } = useModal({
   component: KeyboardShortcutsModal,

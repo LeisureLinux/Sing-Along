@@ -93,4 +93,6 @@ pub struct PersistentConfig {
     pub theme_mode: String,
     pub lrclib_instance: String,
     pub volume: f64,
+    /// 'ask' | 'off' | 'simplified' | 'traditional'
+    pub lyric_script: String,
 }

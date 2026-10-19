@@ -37,17 +37,44 @@ function isCJKBaseChar(char) {
 // Opening punctuation that merges with the following CJK token
 const CJK_OPEN_PUNCT = new Set([
   '\u0028',
-  '\u3008', '\u300a', '\u300c', '\u300e', '\u3010', '\u3014', '\u3016',
-  '\uff08', '\uff3b', '\uff5b', '\uff5f', '\uff62',
+  '\u3008',
+  '\u300a',
+  '\u300c',
+  '\u300e',
+  '\u3010',
+  '\u3014',
+  '\u3016',
+  '\uff08',
+  '\uff3b',
+  '\uff5b',
+  '\uff5f',
+  '\uff62',
 ])
 
 // Closing punctuation that merges with the preceding CJK token
 const CJK_CLOSE_PUNCT = new Set([
   '\u0029',
-  '\u3001', '\u3002', '\u3009', '\u300b', '\u300d', '\u300f', '\u3011',
-  '\u3015', '\u3017',
-  '\uff09', '\uff0c', '\uff0e', '\uff1a', '\uff1b', '\uff1f', '\uff01',
-  '\uff3d', '\uff5d', '\uff60', '\uff63', '\uff64',
+  '\u3001',
+  '\u3002',
+  '\u3009',
+  '\u300b',
+  '\u300d',
+  '\u300f',
+  '\u3011',
+  '\u3015',
+  '\u3017',
+  '\uff09',
+  '\uff0c',
+  '\uff0e',
+  '\uff1a',
+  '\uff1b',
+  '\uff1f',
+  '\uff01',
+  '\uff3d',
+  '\uff5d',
+  '\uff60',
+  '\uff63',
+  '\uff64',
 ])
 
 /**
@@ -75,14 +102,32 @@ function isCJKClosePunct(char) {
 // Yōon (small kana) — merge backward with preceding character
 const YOON_CHARS = new Set([
   // Hiragana small kana
-  '\u3083', '\u3085', '\u3087', // ゃ ゅ ょ
-  '\u3041', '\u3043', '\u3045', '\u3047', '\u3049', // ぁ ぃ ぅ ぇ ぉ
+  '\u3083',
+  '\u3085',
+  '\u3087', // ゃ ゅ ょ
+  '\u3041',
+  '\u3043',
+  '\u3045',
+  '\u3047',
+  '\u3049', // ぁ ぃ ぅ ぇ ぉ
   // Katakana small kana
-  '\u30e3', '\u30e5', '\u30e7', // ャ ュ ョ
-  '\u30a1', '\u30a3', '\u30a5', '\u30a7', '\u30a9', // ァ ィ ゥ ェ ォ
+  '\u30e3',
+  '\u30e5',
+  '\u30e7', // ャ ュ ョ
+  '\u30a1',
+  '\u30a3',
+  '\u30a5',
+  '\u30a7',
+  '\u30a9', // ァ ィ ゥ ェ ォ
   // Halfwidth Katakana small kana
-  '\uff6c', '\uff6d', '\uff6e', // ｬ ｭ ｮ
-  '\uff67', '\uff68', '\uff69', '\uff6a', '\uff6b', // ｧ ｨ ｩ ｪ ｫ
+  '\uff6c',
+  '\uff6d',
+  '\uff6e', // ｬ ｭ ｮ
+  '\uff67',
+  '\uff68',
+  '\uff69',
+  '\uff6a',
+  '\uff6b', // ｧ ｨ ｩ ｪ ｫ
 ])
 
 // Sokuon (small tsu) — merge forward with following character

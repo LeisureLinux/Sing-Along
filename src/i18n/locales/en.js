@@ -151,7 +151,6 @@ export default {
     savingAndExporting: 'Saving and exporting...',
     saveAndExport: 'Save and export',
     saveAndPublish: 'Save and Publish',
-    viewYamlDebug: 'View YAML debug',
   },
 
   about: {
@@ -190,6 +189,46 @@ export default {
 
   lrclib: {
     previousDownload: 'Lyrics for this track were previously downloaded.',
+  },
+
+  scriptConversion: {
+    legend: 'Chinese script of downloaded lyrics',
+    off: 'Leave as published',
+    toSimplified: 'Convert to Simplified Chinese',
+    toTraditional: 'Convert to Traditional Chinese',
+    hint: 'Asked once; remembered for future downloads. Conversion is automatic and usually right, but it cannot resolve every one-to-many character.',
+  },
+
+  shortcuts: {
+    changeFor: 'Change shortcut for {action}',
+    resetFor: 'Reset shortcut for {action}',
+    deleteSelectedLine: 'Delete selected line',
+    deleteSelectedSeparatorsToMergeAdjacentWords:
+      'Delete selected separators to merge adjacent words',
+    forward100MsPlay: 'Forward 100 ms & play',
+    forwardLineEndBy100Ms: 'Forward line end by 100 ms',
+    openKeyboardShortcuts: 'Open keyboard shortcuts',
+    replayPreviousLine: 'Replay previous line',
+    replaySelectedLine: 'Replay selected line',
+    resetSeparatorCursorToSecondDivider: 'Reset separator cursor to second divider',
+    resetZoom: 'Reset zoom',
+    rewind100MsPlay: 'Rewind 100 ms & play',
+    rewindLineEndBy100Ms: 'Rewind line end by 100 ms',
+    saveLyrics: 'Save lyrics',
+    selectNextLine: 'Select next line',
+    selectNextSeparator: 'Select next separator',
+    selectPreviousLine: 'Select previous line',
+    selectPreviousSeparator: 'Select previous separator',
+    syncLineMoveToNextSkipLineEndSync: 'Sync line & move to next (skip line end sync)',
+    syncLineSyncPreviousLineEndMoveToNext: 'Sync line, sync previous line end & move to next',
+    syncLineToCurrentPlayback: 'Sync line to current playback',
+    syncSelectedLineEndMoveToNext: 'Sync selected line end & move to next',
+    syncSelectedLineEndToCurrentPlayback: 'Sync selected line end to current playback',
+    syncSelectedSeparatorMoveToNext: 'Sync selected separator & move to next',
+    syncSelectedSeparatorStaySelected: 'Sync selected separator (stay selected)',
+    zoomIn: 'Zoom in',
+    zoomInOut: 'Zoom in/out',
+    zoomOut: 'Zoom out',
   },
 
   errors: {

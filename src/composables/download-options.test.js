@@ -128,6 +128,9 @@ describe('shared Download targets', () => {
             syncedLrc: true,
             embedIntoTrack: true,
           },
+          // Unanswered in the fixture ('ask'), which the queue sends as 'off' so a
+          // batch that starts before the user answers never converts anything.
+          lyricScript: 'off',
         },
       ])
     }

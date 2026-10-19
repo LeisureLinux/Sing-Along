@@ -237,7 +237,12 @@ export function useEditLyricsV2Document({ audioSource, lyricsfile, trackId, prog
   }
 
   const shiftWordBoundariesByOffset = (words, offsetMs) => {
-    if (!Array.isArray(words) || words.length === 0 || !Number.isFinite(offsetMs) || offsetMs === 0) {
+    if (
+      !Array.isArray(words) ||
+      words.length === 0 ||
+      !Number.isFinite(offsetMs) ||
+      offsetMs === 0
+    ) {
       return words
     }
 

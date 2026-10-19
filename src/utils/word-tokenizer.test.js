@@ -123,10 +123,7 @@ describe('tokenizeText', () => {
     })
 
     it('handles real-world Chinese lyric line', () => {
-      expectTokens('那起舞的光 破碎的浪', [
-        '那', '起', '舞', '的', '光 ',
-        '破', '碎', '的', '浪',
-      ])
+      expectTokens('那起舞的光 破碎的浪', ['那', '起', '舞', '的', '光 ', '破', '碎', '的', '浪'])
     })
   })
 
@@ -141,15 +138,27 @@ describe('tokenizeText', () => {
 
     it('handles multiple bracket groups', () => {
       expectTokens('风起了（啊）雨又下（啊）', [
-        '风', '起', '了', '（啊）',
-        '雨', '又', '下', '（啊）',
+        '风',
+        '起',
+        '了',
+        '（啊）',
+        '雨',
+        '又',
+        '下',
+        '（啊）',
       ])
     })
 
     it('handles nested bracket text', () => {
       expectTokens('天之涯（啊）心上花（啊）', [
-        '天', '之', '涯', '（啊）',
-        '心', '上', '花', '（啊）',
+        '天',
+        '之',
+        '涯',
+        '（啊）',
+        '心',
+        '上',
+        '花',
+        '（啊）',
       ])
     })
 
@@ -171,10 +180,19 @@ describe('tokenizeText', () => {
   })
 
   describe('CJK punctuation — ASCII parentheses', () => {
-    it("attaches ( to following CJK and ) to preceding CJK", () => {
+    it('attaches ( to following CJK and ) to preceding CJK', () => {
       expectTokens('天地空響一夢長 (響一夢長)', [
-        '天', '地', '空', '響', '一', '夢', '長 ',
-        '(響', '一', '夢', '長)',
+        '天',
+        '地',
+        '空',
+        '響',
+        '一',
+        '夢',
+        '長 ',
+        '(響',
+        '一',
+        '夢',
+        '長)',
       ])
     })
 
@@ -285,9 +303,7 @@ describe('tokenizeText', () => {
     })
 
     it('reconstructs complex real-world line', () => {
-      expectReconstruction(
-        '风起了（啊）雨又下（啊）你看着我不说话'
-      )
+      expectReconstruction('风起了（啊）雨又下（啊）你看着我不说话')
     })
 
     it('reconstructs multiple spaces', () => {
@@ -426,13 +442,36 @@ describe('tokenizeText', () => {
 
       it('handles full line from user issue', () => {
         expectTokens('あのー、人間ってどう思いますか？', [
-          'あ', 'のー、', '人', '間', 'って', 'ど', 'う', '思', 'い', 'ま', 'す', 'か？',
+          'あ',
+          'のー、',
+          '人',
+          '間',
+          'って',
+          'ど',
+          'う',
+          '思',
+          'い',
+          'ま',
+          'す',
+          'か？',
         ])
       })
 
       it('handles another full line from user issue', () => {
         expectTokens('東京特許きょきゃきょきゃ共感性羞恥', [
-          '東', '京', '特', '許', 'きょ', 'きゃ', 'きょ', 'きゃ', '共', '感', '性', '羞', '恥',
+          '東',
+          '京',
+          '特',
+          '許',
+          'きょ',
+          'きゃ',
+          'きょ',
+          'きゃ',
+          '共',
+          '感',
+          '性',
+          '羞',
+          '恥',
         ])
       })
 
@@ -565,9 +604,7 @@ describe('hasValidWords', () => {
   })
 
   it('returns false when words do not reconstruct text', () => {
-    expect(
-      hasValidWords({ text: 'hello', words: [{ text: 'hi' }] })
-    ).toBe(false)
+    expect(hasValidWords({ text: 'hello', words: [{ text: 'hi' }] })).toBe(false)
   })
 
   it('returns true when words reconstruct text exactly', () => {
@@ -594,10 +631,7 @@ describe('hasValidWords', () => {
 // ---------------------------------------------------------------------------
 
 describe('getLineEndTime', () => {
-  const lines = [
-    { start_ms: 1000, end_ms: 3000 },
-    { start_ms: 3000 },
-  ]
+  const lines = [{ start_ms: 1000, end_ms: 3000 }, { start_ms: 3000 }]
 
   it('returns line end_ms when available', () => {
     expect(getLineEndTime(lines, 0)).toBe(3000)

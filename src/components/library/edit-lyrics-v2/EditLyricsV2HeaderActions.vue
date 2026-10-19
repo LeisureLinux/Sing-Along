@@ -97,19 +97,6 @@
         </template>
       </VDropdown>
     </div>
-
-    <VTooltip theme="singalong-tooltip">
-      <button
-        class="button text-sm px-3 py-1.5 h-8 rounded-full button-normal inline-flex items-center justify-center"
-        @click="emit('debug')"
-      >
-        <Bug class="text-base" />
-      </button>
-
-      <template #popper>
-        <div class="text-xs font-bold">{{ $t('editor.viewYamlDebug') }}</div>
-      </template>
-    </VTooltip>
   </div>
 </template>
 
@@ -117,11 +104,10 @@
 import { computed, ref, onMounted } from 'vue'
 import ChevronDown from '~icons/mdi/chevron-down'
 import ContentSave from '~icons/mdi/content-save'
-import Bug from '~icons/mdi/bug'
 import CheckboxButton from '@/components/common/CheckboxButton.vue'
 import { invoke } from '@tauri-apps/api/core'
 
-const emit = defineEmits(['save', 'save-and-publish', 'export', 'debug'])
+const emit = defineEmits(['save', 'save-and-publish', 'export'])
 
 const exportPlainText = ref(false)
 const exportSyncedLrc = ref(false)

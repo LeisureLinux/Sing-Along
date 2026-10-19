@@ -21,7 +21,11 @@ const hasExactModifiers = (event, { ctrl = false, alt = false, shift = false }) 
 }
 
 const isShortcutKeys = keys => {
-  return Array.isArray(keys) && keys.length > 0 && keys.every(key => typeof key === 'string' && key.trim())
+  return (
+    Array.isArray(keys) &&
+    keys.length > 0 &&
+    keys.every(key => typeof key === 'string' && key.trim())
+  )
 }
 
 const normalizeShortcutKeys = keys => {
@@ -141,15 +145,21 @@ const shortcutTokenToEventKey = {
 
 const matchesMainShortcutKey = (event, keyToken) => {
   if (keyToken === '/') {
-    return normalizeKey(event.key) === '/' || normalizeKey(event.key) === '?' || event.code === 'Slash'
+    return (
+      normalizeKey(event.key) === '/' || normalizeKey(event.key) === '?' || event.code === 'Slash'
+    )
   }
 
   if (keyToken === '+') {
-    return normalizeKey(event.key) === '+' || normalizeKey(event.key) === '=' || event.code === 'Equal'
+    return (
+      normalizeKey(event.key) === '+' || normalizeKey(event.key) === '=' || event.code === 'Equal'
+    )
   }
 
   if (keyToken === '-') {
-    return normalizeKey(event.key) === '-' || normalizeKey(event.key) === '_' || event.code === 'Minus'
+    return (
+      normalizeKey(event.key) === '-' || normalizeKey(event.key) === '_' || event.code === 'Minus'
+    )
   }
 
   const eventKey = shortcutTokenToEventKey[keyToken] || keyToken
@@ -219,9 +229,9 @@ export const shortcutKeysFromKeyboardEvent = event => {
   return hasNonModifierKey ? keys : []
 }
 
-const createShortcutBinding = ({ id, defaultKeys, description }) => ({
+const createShortcutBinding = ({ id, defaultKeys, descriptionKey }) => ({
   id,
-  description,
+  descriptionKey,
   get defaultKeys() {
     return normalizeShortcutKeys(defaultKeys) || []
   },
@@ -235,12 +245,12 @@ export const globalShortcutBindings = [
   createShortcutBinding({
     id: 'saveLyrics',
     defaultKeys: ['Ctrl', 'S'],
-    description: 'Save lyrics',
+    descriptionKey: 'shortcuts.saveLyrics',
   }),
   createShortcutBinding({
     id: 'openShortcutModal',
     defaultKeys: ['Ctrl', '/'],
-    description: 'Open keyboard shortcuts',
+    descriptionKey: 'shortcuts.openKeyboardShortcuts',
   }),
 ]
 
@@ -248,92 +258,94 @@ export const plainEditorShortcutBindings = [
   createShortcutBinding({
     id: 'zoomIn',
     defaultKeys: ['Ctrl', '+'],
-    description: 'Zoom in',
+    descriptionKey: 'shortcuts.zoomIn',
   }),
   createShortcutBinding({
     id: 'zoomOut',
     defaultKeys: ['Ctrl', '-'],
-    description: 'Zoom out',
+    descriptionKey: 'shortcuts.zoomOut',
   }),
   createShortcutBinding({
     id: 'zoomReset',
     defaultKeys: ['Ctrl', '0'],
-    description: 'Reset zoom',
+    descriptionKey: 'shortcuts.resetZoom',
   }),
 ]
 
-export const plainEditorDisplayOnlyShortcuts = [{ keys: ['Ctrl', 'Scroll'], description: 'Zoom in/out' }]
+export const plainEditorDisplayOnlyShortcuts = [
+  { keys: ['Ctrl', 'Scroll'], descriptionKey: 'shortcuts.zoomInOut' },
+]
 
 export const syncedEditorShortcutBindings = [
   createShortcutBinding({
     id: 'selectPreviousLine',
     defaultKeys: ['↑'],
-    description: 'Select previous line',
+    descriptionKey: 'shortcuts.selectPreviousLine',
   }),
   createShortcutBinding({
     id: 'selectNextLine',
     defaultKeys: ['↓'],
-    description: 'Select next line',
+    descriptionKey: 'shortcuts.selectNextLine',
   }),
   createShortcutBinding({
     id: 'syncLineToPlayback',
     defaultKeys: ['Space'],
-    description: 'Sync line to current playback',
+    descriptionKey: 'shortcuts.syncLineToCurrentPlayback',
   }),
   createShortcutBinding({
     id: 'syncLineEndToPlayback',
     defaultKeys: ['Shift', 'Space'],
-    description: 'Sync selected line end to current playback',
+    descriptionKey: 'shortcuts.syncSelectedLineEndToCurrentPlayback',
   }),
   createShortcutBinding({
     id: 'syncLineEndAndAdvance',
     defaultKeys: ['N'],
-    description: 'Sync selected line end & move to next',
+    descriptionKey: 'shortcuts.syncSelectedLineEndMoveToNext',
   }),
   createShortcutBinding({
     id: 'syncLineAndAdvance',
     defaultKeys: ['Enter'],
-    description: 'Sync line, sync previous line end & move to next',
+    descriptionKey: 'shortcuts.syncLineSyncPreviousLineEndMoveToNext',
   }),
   createShortcutBinding({
     id: 'syncLineAndAdvanceNoPreviousEndSync',
     defaultKeys: ['Shift', 'Enter'],
-    description: 'Sync line & move to next (skip line end sync)',
+    descriptionKey: 'shortcuts.syncLineMoveToNextSkipLineEndSync',
   }),
   createShortcutBinding({
     id: 'rewindLine',
     defaultKeys: ['←'],
-    description: 'Rewind 100 ms & play',
+    descriptionKey: 'shortcuts.rewind100MsPlay',
   }),
   createShortcutBinding({
     id: 'forwardLine',
     defaultKeys: ['→'],
-    description: 'Forward 100 ms & play',
+    descriptionKey: 'shortcuts.forward100MsPlay',
   }),
   createShortcutBinding({
     id: 'rewindLineEnd',
     defaultKeys: ['Shift', '←'],
-    description: 'Rewind line end by 100 ms',
+    descriptionKey: 'shortcuts.rewindLineEndBy100Ms',
   }),
   createShortcutBinding({
     id: 'forwardLineEnd',
     defaultKeys: ['Shift', '→'],
-    description: 'Forward line end by 100 ms',
+    descriptionKey: 'shortcuts.forwardLineEndBy100Ms',
   }),
   createShortcutBinding({
     id: 'replaySelectedLine',
     defaultKeys: ['P'],
-    description: 'Replay selected line',
+    descriptionKey: 'shortcuts.replaySelectedLine',
   }),
   createShortcutBinding({
     id: 'replayPreviousLine',
     defaultKeys: ['Shift', 'P'],
-    description: 'Replay previous line',
+    descriptionKey: 'shortcuts.replayPreviousLine',
   }),
   createShortcutBinding({
     id: 'deleteSelectedLine',
     defaultKeys: ['Backspace'],
-    description: 'Delete selected line',
+    descriptionKey: 'shortcuts.deleteSelectedLine',
   }),
 ]
 
@@ -341,32 +353,32 @@ export const wordTimingShortcutBindings = [
   createShortcutBinding({
     id: 'selectPreviousSeparator',
     defaultKeys: ['A'],
-    description: 'Select previous separator',
+    descriptionKey: 'shortcuts.selectPreviousSeparator',
   }),
   createShortcutBinding({
     id: 'selectNextSeparator',
     defaultKeys: ['D'],
-    description: 'Select next separator',
+    descriptionKey: 'shortcuts.selectNextSeparator',
   }),
   createShortcutBinding({
     id: 'syncSelectedSeparatorNoAdvance',
     defaultKeys: ['S'],
-    description: 'Sync selected separator (stay selected)',
+    descriptionKey: 'shortcuts.syncSelectedSeparatorStaySelected',
   }),
   createShortcutBinding({
     id: 'syncSelectedSeparatorAndAdvance',
     defaultKeys: ['Z'],
-    description: 'Sync selected separator & move to next',
+    descriptionKey: 'shortcuts.syncSelectedSeparatorMoveToNext',
   }),
   createShortcutBinding({
     id: 'resetSeparatorCursor',
     defaultKeys: ['X'],
-    description: 'Reset separator cursor to second divider',
+    descriptionKey: 'shortcuts.resetSeparatorCursorToSecondDivider',
   }),
   createShortcutBinding({
     id: 'deleteSelectedSeparators',
     defaultKeys: ['Delete'],
-    description: 'Delete selected separators to merge adjacent words',
+    descriptionKey: 'shortcuts.deleteSelectedSeparatorsToMergeAdjacentWords',
   }),
 ]
 
@@ -374,22 +386,22 @@ export const getShortcutCategories = () => [
   {
     id: 'global',
     label: 'Global',
-    shortcuts: globalShortcutBindings.map(({ id, keys, defaultKeys, description }) => ({
+    shortcuts: globalShortcutBindings.map(({ id, keys, defaultKeys, descriptionKey }) => ({
       id,
       keys,
       defaultKeys,
-      description,
+      descriptionKey,
     })),
   },
   {
     id: 'plain',
     label: 'Plain Editor',
     shortcuts: [
-      ...plainEditorShortcutBindings.map(({ id, keys, defaultKeys, description }) => ({
+      ...plainEditorShortcutBindings.map(({ id, keys, defaultKeys, descriptionKey }) => ({
         id,
         keys,
         defaultKeys,
-        description,
+        descriptionKey,
       })),
       ...plainEditorDisplayOnlyShortcuts,
     ],
@@ -397,21 +409,21 @@ export const getShortcutCategories = () => [
   {
     id: 'synced',
     label: 'Synced Editor',
-    shortcuts: syncedEditorShortcutBindings.map(({ id, keys, defaultKeys, description }) => ({
+    shortcuts: syncedEditorShortcutBindings.map(({ id, keys, defaultKeys, descriptionKey }) => ({
       id,
       keys,
       defaultKeys,
-      description,
+      descriptionKey,
     })),
   },
   {
     id: 'wordTiming',
     label: 'Word Timing',
-    shortcuts: wordTimingShortcutBindings.map(({ id, keys, defaultKeys, description }) => ({
+    shortcuts: wordTimingShortcutBindings.map(({ id, keys, defaultKeys, descriptionKey }) => ({
       id,
       keys,
       defaultKeys,
-      description,
+      descriptionKey,
     })),
   },
 ]

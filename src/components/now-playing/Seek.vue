@@ -5,7 +5,7 @@
     :max="1"
     :interval="0.001"
     :duration="0"
-      :rail-style="{ backgroundColor: 'var(--slider-rail)' }"
+    :rail-style="{ backgroundColor: 'var(--slider-rail)' }"
     :dot-style="{ transition: 'initial' }"
     :tooltip-style="{ zIndex: 200 }"
     tooltip="hover"

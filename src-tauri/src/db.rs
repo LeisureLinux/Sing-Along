@@ -166,7 +166,8 @@ pub fn get_config(db: &Connection) -> Result<PersistentConfig> {
         auto_export_enabled,
         export_lrc,
         export_txt,
-        export_embedded
+        export_embedded,
+        lyric_script
       FROM config_data
       LIMIT 1
     "})?;
@@ -176,6 +177,7 @@ pub fn get_config(db: &Connection) -> Result<PersistentConfig> {
             export_lrc: r.get("export_lrc")?,
             export_txt: r.get("export_txt")?,
             export_embedded: r.get("export_embedded")?,
+            lyric_script: r.get("lyric_script")?,
             skip_tracks_with_synced_lyrics: r.get("skip_tracks_with_synced_lyrics")?,
             skip_tracks_with_plain_lyrics: r.get("skip_tracks_with_plain_lyrics")?,
             show_line_count: r.get("show_line_count")?,
@@ -259,6 +261,18 @@ pub fn set_export_preferences(
             skip_tracks_with_synced_lyrics,
             skip_tracks_with_plain_lyrics,
         ),
+    )?;
+    Ok(())
+}
+
+/// Persist the downloaded-lyrics script preference.
+///
+/// Values: `ask` (prompt on the download popup), `off` (keep as published),
+/// `simplified`, `traditional`.
+pub fn set_lyric_script(script: &str, db: &Connection) -> Result<()> {
+    db.execute(
+        "UPDATE config_data SET lyric_script = ?1",
+        rusqlite::params![script],
     )?;
     Ok(())
 }
@@ -800,7 +814,15 @@ pub fn get_search_track_ids(
         format!(" AND ({})", included_categories.join(" OR "))
     };
 
-    let full_query = if use_fts {
+    // Trigram indexing cannot match a term shorter than one trigram, so very
+    // short queries fall back to a LIKE scan rather than returning nothing.
+    let fts_query = if use_fts {
+        crate::utils::build_fts_query(query_str)
+    } else {
+        None
+    };
+
+    let full_query = if fts_query.is_some() {
         format!("{}{} ORDER BY tracks_fts.rank", base_query, where_clause)
     } else {
         format!("{}{} ORDER BY tracks.title_lower ASC", base_query, where_clause)
@@ -808,8 +830,7 @@ pub fn get_search_track_ids(
 
     let mut statement = db.prepare(&full_query)?;
 
-    let mut rows = if use_fts {
-        let fts_query = crate::utils::build_fts_query(query_str);
+    let mut rows = if let Some(fts_query) = fts_query {
         statement.query(params![fts_query])?
     } else {
         let formatted_query_str = format!("%{}%", prepare_input(query_str));
@@ -901,7 +922,13 @@ pub fn get_album_ids(db: &Connection) -> Result<Vec<i64>> {
 pub fn get_search_album_ids(query_str: &String, db: &Connection) -> Result<Vec<i64>> {
     let use_fts = fts5_enabled(db);
 
-    let mut statement = if use_fts {
+    let fts_query = if use_fts {
+        crate::utils::build_fts_query(query_str)
+    } else {
+        None
+    };
+
+    let mut statement = if fts_query.is_some() {
         db.prepare(indoc! {"
           SELECT albums.id
           FROM albums_fts
@@ -913,8 +940,7 @@ pub fn get_search_album_ids(query_str: &String, db: &Connection) -> Result<Vec<i
         db.prepare("SELECT id FROM albums WHERE name_lower LIKE ? ORDER BY name_lower ASC")?
     };
 
-    let mut rows = if use_fts {
-        let fts_query = crate::utils::build_fts_query(query_str);
+    let mut rows = if let Some(fts_query) = fts_query {
         statement.query([fts_query])?
     } else {
         let formatted = format!("%{}%", prepare_input(query_str));
@@ -991,7 +1017,13 @@ pub fn get_artist_ids(db: &Connection) -> Result<Vec<i64>> {
 pub fn get_search_artist_ids(query_str: &String, db: &Connection) -> Result<Vec<i64>> {
     let use_fts = fts5_enabled(db);
 
-    let mut statement = if use_fts {
+    let fts_query = if use_fts {
+        crate::utils::build_fts_query(query_str)
+    } else {
+        None
+    };
+
+    let mut statement = if fts_query.is_some() {
         db.prepare(indoc! {"
           SELECT artists.id
           FROM artists_fts
@@ -1003,8 +1035,7 @@ pub fn get_search_artist_ids(query_str: &String, db: &Connection) -> Result<Vec<
         db.prepare("SELECT id FROM artists WHERE name_lower LIKE ? ORDER BY name_lower ASC")?
     };
 
-    let mut rows = if use_fts {
-        let fts_query = crate::utils::build_fts_query(query_str);
+    let mut rows = if let Some(fts_query) = fts_query {
         statement.query([fts_query])?
     } else {
         let formatted = format!("%{}%", prepare_input(query_str));

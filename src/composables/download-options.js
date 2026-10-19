@@ -12,6 +12,8 @@ const emptyDraft = () => ({
   plainText: false,
   syncedLrc: true,
   embedIntoTrack: false,
+  // 'ask' means the user has not answered yet, so the popup shows the prompt.
+  lyricScript: 'ask',
 })
 const downloadDraft = ref(emptyDraft())
 const tryEmbedLyrics = ref(false)
@@ -65,6 +67,7 @@ const open = async (target, anchor) => {
       plainText: config.export_txt,
       syncedLrc: config.export_lrc,
       embedIntoTrack: config.export_embedded,
+      lyricScript: config.lyric_script ?? 'ask',
     }
     tryEmbedLyrics.value = config.try_embed_lyrics
   } catch (error) {
@@ -82,6 +85,11 @@ const downloadAllLyrics = async () => {
   const filter = downloadFlagsForMode(draft.downloadLyricsFor)
   const embedEnabled = tryEmbedLyrics.value
   try {
+    // Persist the script answer once, so the prompt is not shown again.
+    if (draft.lyricScript !== 'ask') {
+      await invoke('set_lyric_script', { script: draft.lyricScript })
+    }
+
     await useExportPreferences().save({
       ...filter,
       autoExportEnabled: draft.autoExportEnabled,
@@ -119,7 +127,8 @@ const downloadAllLyrics = async () => {
             syncedLrc: draft.syncedLrc,
             embedIntoTrack: draft.embedIntoTrack && embedEnabled,
           }
-        : null
+        : null,
+      draft.lyricScript === 'ask' ? 'off' : draft.lyricScript
     )
     close(session)
   } catch (error) {

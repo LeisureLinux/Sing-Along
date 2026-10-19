@@ -35,13 +35,24 @@ pub fn prepare_search_input(title: &str) -> String {
 }
 
 /// Build an FTS5 MATCH query from raw user input.
-/// Normalizes the input and turns each token into a prefix query.
-/// Example: "Love Way" -> "love* way*"
-pub fn build_fts_query(input: &str) -> String {
+///
+/// The indexes use the `trigram` tokenizer, which matches substrings rather than
+/// whole words — that is what lets "小红花" find "送你一朵小红花", and "remember"
+/// find "Don't You Remember". Because tokens are already substring matches,
+/// no `*` suffix is appended; `*` is only meaningful for prefix tokenizers.
+///
+/// Example: "Love Way" -> `love way`
+///
+/// Returns `None` when any term is shorter than three characters: trigram
+/// cannot index or match less than a full trigram, so the caller must fall back
+/// to a `LIKE` scan for those queries.
+pub fn build_fts_query(input: &str) -> Option<String> {
     let normalized = prepare_input(input);
-    normalized
-        .split_whitespace()
-        .map(|word| format!("{}*", word))
-        .collect::<Vec<_>>()
-        .join(" ")
+    let words: Vec<&str> = normalized.split_whitespace().collect();
+
+    if words.is_empty() || words.iter().any(|word| word.chars().count() < 3) {
+        return None;
+    }
+
+    Some(words.join(" "))
 }

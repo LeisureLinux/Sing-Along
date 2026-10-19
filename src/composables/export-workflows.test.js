@@ -161,10 +161,22 @@ describe('submitted export choices', () => {
       .filter(([name]) => name === 'download_lyrics')
       .map(([, args]) => args)
     expect(calls).toEqual([
-      { trackId: 1, autoExport: { plainText: true, syncedLrc: false, embedIntoTrack: true } },
-      { trackId: 2, autoExport: { plainText: true, syncedLrc: false, embedIntoTrack: true } },
-      { trackId: 3, autoExport: { plainText: false, syncedLrc: true, embedIntoTrack: false } },
-      { trackId: 4, autoExport: null },
+      {
+        trackId: 1,
+        autoExport: { plainText: true, syncedLrc: false, embedIntoTrack: true },
+        lyricScript: 'off',
+      },
+      {
+        trackId: 2,
+        autoExport: { plainText: true, syncedLrc: false, embedIntoTrack: true },
+        lyricScript: 'off',
+      },
+      {
+        trackId: 3,
+        autoExport: { plainText: false, syncedLrc: true, embedIntoTrack: false },
+        lyricScript: 'off',
+      },
+      { trackId: 4, autoExport: null, lyricScript: 'off' },
     ])
     expect(downloader.successCount.value).toBe(3)
     expect(downloader.failureCount.value).toBe(1)

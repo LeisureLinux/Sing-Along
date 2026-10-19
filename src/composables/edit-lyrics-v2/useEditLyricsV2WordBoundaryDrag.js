@@ -339,7 +339,9 @@ export function useEditLyricsV2WordBoundaryDrag({
       nextStartValues[index] = Math.min(maxStartMs, Math.max(nextStartValues[index], minStartMs))
     }
 
-    const hasChanges = nextStartValues.some((startMs, index) => startMs !== currentWords[index].start_ms)
+    const hasChanges = nextStartValues.some(
+      (startMs, index) => startMs !== currentWords[index].start_ms
+    )
 
     if (hasChanges) {
       const updatedWords = currentWords.map((word, index) => ({

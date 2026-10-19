@@ -105,11 +105,13 @@
                 )"
                 :key="wordIndex"
                 class="karaoke"
-                :style="karaokeWordStyle(
-                  syncedLines[primaryPlayingLineIndex],
-                  primaryPlayingLineIndex,
-                  wordIndex
-                )"
+                :style="
+                  karaokeWordStyle(
+                    syncedLines[primaryPlayingLineIndex],
+                    primaryPlayingLineIndex,
+                    wordIndex
+                  )
+                "
               >
                 <span class="karaoke-base">{{ word.text }}</span>
                 <span class="karaoke-fill" aria-hidden="true">{{ word.text }}</span>
@@ -159,8 +161,7 @@ const progressMs = computed(() => (props.progress ?? 0) * 1000)
 
 // Binary-search lookup (see utils/lyrics-timeline.js): this used to be a full
 // linear scan per playback tick.
-const isLinePlaying = (line, index) =>
-  isLineActiveAt(syncedLines.value, index, progressMs.value)
+const isLinePlaying = (line, index) => isLineActiveAt(syncedLines.value, index, progressMs.value)
 
 const primaryPlayingLineIndex = computed(() =>
   findPrimaryLineIndex(syncedLines.value, progressMs.value)
