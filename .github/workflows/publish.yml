@@ -114,7 +114,12 @@ jobs:
               Intel Macs are not built.
 
             Full changelog: https://github.com/LeisureLinux/Sing-Along/commits/main
-          releaseDraft: true
+          # Published straight away rather than left as a draft. The tests run
+          # before bundling, so a release only exists if the build was green; the
+          # earlier "draft" setting meant a successful build still needed a manual
+          # publish step, which was easy to forget and left the project page
+          # showing the previous version.
+          releaseDraft: false
           prerelease: false
           # The action defaults this to true, which makes it write a `latest.json`
           # describing where to fetch an update. This project has no updater, so
