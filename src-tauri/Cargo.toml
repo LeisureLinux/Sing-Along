@@ -4,7 +4,7 @@ version = "2.2.2"
 description = "Sing-Along: download and edit synced lyrics for your offline music library."
 authors = ["Albert Xu"]
 license = "MIT"
-repository = "https://github.com/albertxu/sing-along"
+repository = "https://github.com/LeisureLinux/Sing-Along"
 edition = "2021"
 rust-version = "1.81"
 
@@ -36,7 +36,19 @@ data-encoding = "2.4.0"
 kira = "0.12.0"
 symphonia = { version = "0.5.4", features = ["all"] }
 regex = "1.10.4"
-charabia = "0.9.9"
+# Only the Chinese segmentation is enabled.
+#
+# Charabia's default feature set pulls in Japanese and Korean segmentation, both
+# of which are served by lindera and ship their own dictionaries (unidic ~44 MB,
+# ko-dic ~21 MB) that get compiled into the binary. This library is CJK-Chinese
+# and Latin only, so those dictionaries were dead weight: they added roughly
+# 65 MB to the executable and made builds depend on the lindera build scripts
+# downloading dictionaries at compile time.
+#
+# Chinese itself does not use lindera at all -- `chinese-segmentation` selects
+# jieba-rs -- so enabling just this keeps word-boundary quality while dropping
+# both dictionaries and the build-time download.
+charabia = { version = "0.9.9", default-features = false, features = ["chinese"] }
 xxhash-rust = { version = "0.8", features = ["xxh3"] }
 tauri-plugin-os = "2.3.2"
 tauri-plugin-shell = "2.3.5"

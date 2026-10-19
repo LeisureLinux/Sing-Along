@@ -201,3 +201,20 @@ mod tests {
         assert_eq!(merged, vec!["hello ", "(world) ", "[test] ", "{ok}"]);
     }
 }
+
+#[cfg(test)]
+mod verify_chinese_still_segments {
+    #[test]
+    fn chinese_word_boundaries_are_unchanged() {
+        // Guard against silently degrading segmentation when feature flags change.
+        let cases = [
+            ("是你的甜言蜜语改变季节", vec!["是", "你", "的", "甜言", "蜜语", "改变", "季节"]),
+            ("气氛不算融洽", vec!["气氛", "不算", "融洽"]),
+            ("雨一直下", vec!["雨", "一直", "下"]),
+        ];
+        for (text, expected) in cases {
+            let got = super::segment_words_for_timing(text);
+            assert_eq!(got, expected, "segmentation changed for {text}");
+        }
+    }
+}
