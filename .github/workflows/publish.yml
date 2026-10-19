@@ -56,10 +56,16 @@ jobs:
             libasound2-dev \
             patchelf
 
-      # charabia's segmentation dictionaries are no longer downloaded at build
-      # time, so no LINDERA_CACHE dance is needed here.
+      # `npm install`, not `npm ci`.
+      #
+      # The lockfile can only record optional platform binaries for the machine
+      # that generated it — here it holds `@tauri-apps/cli-linux-x64-*` but not
+      # the darwin or win32 equivalents — so `npm ci` correctly reports them as
+      # missing on the macOS and Windows runners. Upstream used `npm install`
+      # for the same reason. The lockfile still pins versions, just without the
+      # strict all-or-nothing check.
       - name: install frontend dependencies
-        run: npm ci
+        run: npm install
 
       - name: run frontend tests
         run: npm test
