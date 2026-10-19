@@ -165,18 +165,21 @@ describe('submitted export choices', () => {
         trackId: 1,
         autoExport: { plainText: true, syncedLrc: false, embedIntoTrack: true },
         lyricScript: 'off',
+        syncCover: false,
       },
       {
         trackId: 2,
         autoExport: { plainText: true, syncedLrc: false, embedIntoTrack: true },
         lyricScript: 'off',
+        syncCover: false,
       },
       {
         trackId: 3,
         autoExport: { plainText: false, syncedLrc: true, embedIntoTrack: false },
         lyricScript: 'off',
+        syncCover: false,
       },
-      { trackId: 4, autoExport: null, lyricScript: 'off' },
+      { trackId: 4, autoExport: null, lyricScript: 'off', syncCover: false },
     ])
     expect(downloader.successCount.value).toBe(3)
     expect(downloader.failureCount.value).toBe(1)

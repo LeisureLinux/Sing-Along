@@ -37,6 +37,7 @@ export default {
     copied: '已复制',
     apply: '应用',
     continueLabel: '继续',
+    syncLyrics: '同步歌词',
     retry: '重试',
   },
 
@@ -130,6 +131,7 @@ export default {
     createLrc: '生成独立的 LRC 文件',
     exportLrc: 'LRC（.lrc）',
     exportTxt: '纯文本（.txt）',
+    syncCover: '同时下载专辑封面',
     exportEmbedded: '嵌入到文件',
     start: '开始下载',
   },

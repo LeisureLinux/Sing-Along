@@ -71,6 +71,7 @@ const open = async (target, anchor) => {
       syncedLrc: config.export_lrc,
       embedIntoTrack: config.export_embedded,
       lyricScript: config.lyric_script ?? 'ask',
+      syncCover: config.sync_cover ?? false,
     }
     tryEmbedLyrics.value = config.try_embed_lyrics
   } catch (error) {
@@ -136,7 +137,8 @@ const downloadAllLyrics = async () => {
       // stored answer (once given) always wins.
       draft.lyricScript === 'ask'
         ? scriptForLocale(i18n.global.locale.value)
-        : draft.lyricScript
+        : draft.lyricScript,
+      draft.syncCover
     )
     close(session)
   } catch (error) {

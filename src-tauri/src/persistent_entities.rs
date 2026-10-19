@@ -97,4 +97,5 @@ pub struct PersistentConfig {
     pub lyric_script: String,
     /// Whether LRCLIB misses fall back to NetEase (unofficial API).
     pub netease_fallback_enabled: bool,
+    pub sync_cover: bool,
 }

@@ -104,6 +104,15 @@
               <span class="dropdown-label">{{ $t('downloadOptions.autoExport') }}</span>
             </CheckboxButton>
           </label>
+          <label class="dropdown-item">
+            <CheckboxButton
+              id="download-cover"
+              v-model="downloadDraft.syncCover"
+              name="download-cover"
+            >
+              <span class="dropdown-label">{{ $t('downloadOptions.syncCover') }}</span>
+            </CheckboxButton>
+          </label>
           <template v-if="downloadDraft.autoExportEnabled">
             <label class="dropdown-item">
               <CheckboxButton

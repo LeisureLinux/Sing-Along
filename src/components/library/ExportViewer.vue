@@ -53,10 +53,10 @@
           class="button button-primary px-8 py-2 rounded-full"
           @click="checkAndClose"
         >
-          {{ $t('actions.finish') }}
+          {{ $t('viewer.finish') }}
         </button>
         <button v-else class="button button-normal px-8 py-2 rounded-full" @click="handleStop">
-          {{ $t('actions.stop') }}
+          {{ $t('viewer.stop') }}
         </button>
       </div>
     </template>

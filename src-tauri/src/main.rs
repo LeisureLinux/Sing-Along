@@ -1338,6 +1338,27 @@ fn netease_client() -> reqwest::Client {
         .expect("failed to build HTTP client")
 }
 
+/// Search and embed album cover art for a track.
+///
+/// Called by the frontend when `syncCover` is enabled on a download batch.
+/// Runs after lyrics have been saved, so a cover failure does not prevent
+/// lyrics from being written.
+#[tauri::command]
+async fn sync_cover(
+    track_path: String,
+    artist: String,
+    album: String,
+) -> Result<(), String> {
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(15))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    crate::cover::embed_cover(&track_path, &client, &artist, &album)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 /// Select a track in the player without starting playback.
 ///
 /// The frontend calls this on startup so the player bar shows either the track
@@ -1933,6 +1954,7 @@ async fn main() {
             flag_lyrics,
             play_track,
             select_track,
+            sync_cover,
             replay_current,
             play_next,
             play_previous,

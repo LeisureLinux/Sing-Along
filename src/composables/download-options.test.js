@@ -131,6 +131,7 @@ describe('shared Download targets', () => {
           // Unanswered in the fixture ('ask'), which the queue sends as 'off' so a
           // batch that starts before the user answers never converts anything.
           lyricScript: 'off',
+          syncCover: false,
         },
       ])
     }

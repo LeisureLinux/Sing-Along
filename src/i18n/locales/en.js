@@ -44,6 +44,7 @@ export default {
     copied: 'Copied',
     apply: 'Apply',
     continueLabel: 'Continue',
+    syncLyrics: 'Sync lyrics',
     retry: 'Retry',
   },
 
@@ -137,6 +138,7 @@ export default {
     createLrc: 'Create separate LRC files',
     exportLrc: 'LRC (.lrc)',
     exportTxt: 'Plain text (.txt)',
+    syncCover: 'Also download album cover art',
     exportEmbedded: 'Embed into files',
     start: 'Start download',
   },

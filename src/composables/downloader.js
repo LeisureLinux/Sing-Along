@@ -45,9 +45,19 @@ const loadSummary = () => {
   }
 }
 
-const downloadLyrics = async (track, autoExport, lyricScript) => {
+const downloadLyrics = async (track, autoExport, lyricScript, syncCover) => {
   try {
-    const result = await invoke('download_lyrics', { trackId: track.id, autoExport, lyricScript })
+    const result = await invoke('download_lyrics', { trackId: track.id, autoExport, lyricScript, syncCover })
+
+    // Cover sync: if enabled, search and embed cover art into the audio file.
+    // Runs after lyrics so a lyrics failure doesn't leave a coverless file.
+    if (syncCover && track.file_path) {
+      try {
+        await invoke('sync_cover', { trackPath: track.file_path, artist: track.artist_name, album: track.album_name })
+      } catch (coverError) {
+        console.warn('Cover sync failed for', track.title, ':', coverError)
+      }
+    }
 
     if (!isDownloading.value) {
       return
@@ -79,9 +89,9 @@ const downloadNext = async () => {
       continue
     }
 
-    const { trackId, autoExport, lyricScript } = downloadQueue.value.shift()
+    const { trackId, autoExport, lyricScript, syncCover } = downloadQueue.value.shift()
     const track = await invoke('get_track', { trackId: trackId })
-    await downloadLyrics(track, autoExport, lyricScript)
+    await downloadLyrics(track, autoExport, lyricScript, syncCover)
 
     await delay(1)
   }
@@ -103,12 +113,12 @@ const downloadProgress = computed(() => {
   return downloadedCount.value / totalCount.value
 })
 
-const addToQueue = (trackIds, autoExport = null, lyricScript = 'off') => {
+const addToQueue = (trackIds, autoExport = null, lyricScript = 'off', syncCover = false) => {
   const snapshot = autoExport ? Object.freeze({ ...autoExport }) : null
   isDownloading.value = true
 
   for (let i = 0; i < trackIds.length; i++) {
-    downloadQueue.value.push({ trackId: trackIds[i], autoExport: snapshot, lyricScript })
+    downloadQueue.value.push({ trackId: trackIds[i], autoExport: snapshot, lyricScript, syncCover })
   }
 
   totalCount.value += trackIds.length
