@@ -1,6 +1,9 @@
 import { computed, ref, shallowRef, watch, onBeforeUnmount } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { useExportPreferences } from './export-preferences.js'
+import { useI18n } from 'vue-i18n'
+import { scriptForLocale } from '@/utils/script-conversion.js'
+import i18n from '@/i18n/index.js'
 import { useDownloader } from './downloader.js'
 import { downloadModeFromConfig, downloadFlagsForMode } from '@/utils/download-filter.js'
 
@@ -128,7 +131,12 @@ const downloadAllLyrics = async () => {
             embedIntoTrack: draft.embedIntoTrack && embedEnabled,
           }
         : null,
-      draft.lyricScript === 'ask' ? 'off' : draft.lyricScript
+      // An unanswered prompt defaults to the UI's script: a Traditional-Chinese
+      // reader downloading Simplified lyrics wants them in Traditional. The
+      // stored answer (once given) always wins.
+      draft.lyricScript === 'ask'
+        ? scriptForLocale(i18n.global.locale.value)
+        : draft.lyricScript
     )
     close(session)
   } catch (error) {

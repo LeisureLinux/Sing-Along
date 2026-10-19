@@ -58,10 +58,13 @@ export function storeLocalePreference(preference) {
   }
 }
 
+// No locale is read at import time: `readLocalePreference` touches
+// localStorage, which does not exist in Node test environments, and any module
+// that imports this one would break. Instead the module starts in English and
+// `initLocale()` is called from the app entry point, after the DOM is available.
 const i18n = createI18n({
   legacy: false,
   globalInjection: true,
-  locale: resolveLocale(readLocalePreference()),
   fallbackLocale: 'en',
   messages: {
     en,
@@ -70,9 +73,19 @@ const i18n = createI18n({
   },
 })
 
+/** Read the stored preference and set the locale. Called once from the entry point. */
+export function initLocale() {
+  i18n.global.locale.value = resolveLocale(readLocalePreference())
+  document.documentElement.setAttribute('lang', i18n.global.locale.value)
+}
+
 /** Switch language and remember the choice. */
 export function setLocale(preference) {
   storeLocalePreference(preference)
+  setLocaleValue(preference)
+}
+
+function setLocaleValue(preference) {
   i18n.global.locale.value = resolveLocale(preference)
   document.documentElement.setAttribute('lang', i18n.global.locale.value)
 }
