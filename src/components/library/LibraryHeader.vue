@@ -167,6 +167,40 @@
                 </CheckboxButton>
               </label>
 
+              <div class="dropdown-section-label mt-2">
+                Word-level lyrics — pick one format for the target player:
+              </div>
+              <label class="dropdown-item">
+                <CheckboxButton
+                  id="export-word-none"
+                  :model-value="exportDraft.wordFormat === 'none'"
+                  name="export-word-format"
+                  @update:model-value="setWordFormat('none')"
+                >
+                  <span class="dropdown-label">Don't export word-level</span>
+                </CheckboxButton>
+              </label>
+              <label class="dropdown-item">
+                <CheckboxButton
+                  id="export-word-a2"
+                  :model-value="exportDraft.wordFormat === 'a2'"
+                  name="export-word-format"
+                  @update:model-value="setWordFormat('a2')"
+                >
+                  <span class="dropdown-label">Enhanced LRC / A2 (.alrc) — Android</span>
+                </CheckboxButton>
+              </label>
+              <label class="dropdown-item">
+                <CheckboxButton
+                  id="export-word-ttml"
+                  :model-value="exportDraft.wordFormat === 'ttml'"
+                  name="export-word-format"
+                  @update:model-value="setWordFormat('ttml')"
+                >
+                  <span class="dropdown-label">TTML (.ttml) — iOS</span>
+                </CheckboxButton>
+              </label>
+
               <label class="dropdown-item" :class="{ 'cursor-not-allowed': !tryEmbedLyrics }">
                 <CheckboxButton
                   id="embed-into-track"
@@ -261,7 +295,19 @@ const emit = defineEmits([
 
 const { refresh: refreshPreferences, save: savePreferences } = useExportPreferences()
 const exportDropdown = ref(null)
-const exportDraft = ref({ plainText: false, syncedLrc: true, embedIntoTrack: false })
+// wordFormat is a single choice, not a set: the two word-level formats target
+// different players, and writing both would leave a stray file next to every
+// track. 'none' keeps the previous behaviour of line-level export only.
+const exportDraft = ref({
+  plainText: false,
+  syncedLrc: true,
+  embedIntoTrack: false,
+  wordFormat: 'none',
+})
+
+const setWordFormat = value => {
+  exportDraft.value.wordFormat = value
+}
 const tryEmbedLyrics = ref(false)
 const exportLoading = ref(false)
 const submittingExport = ref(false)
@@ -279,6 +325,9 @@ const openExportOptions = async () => {
       plainText: config.export_txt,
       syncedLrc: config.export_lrc,
       embedIntoTrack: config.export_embedded,
+      // Format choice is per-batch, not persisted: which player you are
+      // preparing files for is a property of this export run.
+      wordFormat: exportDraft.value.wordFormat,
     }
     tryEmbedLyrics.value = config.try_embed_lyrics
   } catch (error) {
@@ -295,6 +344,7 @@ const canExport = computed(
     !exportError.value &&
     (exportDraft.value.plainText ||
       exportDraft.value.syncedLrc ||
+      exportDraft.value.wordFormat !== 'none' ||
       (exportDraft.value.embedIntoTrack && tryEmbedLyrics.value))
 )
 
@@ -310,7 +360,11 @@ const handleExportClick = async () => {
       ...(embedEnabled ? { exportEmbedded: draft.embedIntoTrack } : {}),
     })
     exportDropdown.value?.hide()
-    emit('exportAllLyrics', { ...draft, embedIntoTrack: draft.embedIntoTrack && embedEnabled })
+    emit('exportAllLyrics', {
+      ...draft,
+      embedIntoTrack: draft.embedIntoTrack && embedEnabled,
+      wordFormat: draft.wordFormat,
+    })
   } catch (error) {
     exportError.value = String(error)
   } finally {

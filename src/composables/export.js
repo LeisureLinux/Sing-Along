@@ -132,6 +132,10 @@ const addToQueue = (trackIds, formats) => {
   const snapshot = Object.freeze([
     ...(formats.plainText ? ['txt'] : []),
     ...(formats.syncedLrc ? ['lrc'] : []),
+    // Word-level export is a single choice: the two formats target different
+    // players and writing both would leave a stray file beside every track.
+    ...(formats.wordFormat === 'a2' ? ['lrcA2'] : []),
+    ...(formats.wordFormat === 'ttml' ? ['ttml'] : []),
     ...(formats.embedIntoTrack ? ['embedded'] : []),
   ])
 
