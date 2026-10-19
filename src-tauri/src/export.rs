@@ -39,8 +39,19 @@ pub enum ExportError {
 pub enum ExportFormat {
     /// Plain text format (.txt)
     Txt,
-    /// Standard LRC format (.lrc)
+    /// Standard LRC format (.lrc), line-level
     Lrc,
+    /// Enhanced LRC (A2) with inline `<mm:ss.xx>` word tags (.alrc)
+    ///
+    /// Read by Gramophone, Fluxio and other A2-aware Android players. Kept
+    /// distinct from `Lrc` because sending word tags to a player whose LRC
+    /// reader is line-level shows the timestamps as lyric text.
+    LrcA2,
+    /// TTML with one `<span>` per word (.ttml)
+    ///
+    /// The only word-level format iOS players read; Steve's LRC reader stops at
+    /// line level.
+    Ttml,
     /// Embedded in audio file metadata
     Embedded,
 }
@@ -110,6 +121,8 @@ pub fn export_track_format(
     match format {
         ExportFormat::Txt => export_txt(track, parsed),
         ExportFormat::Lrc => export_lrc(track, parsed),
+        ExportFormat::LrcA2 => export_word_synced(track, parsed, true),
+        ExportFormat::Ttml => export_word_synced(track, parsed, false),
         ExportFormat::Embedded => export_embedded(track, parsed),
     }
 }
@@ -178,6 +191,77 @@ fn export_lrc(
     Ok(ExportResult {
         format: ExportFormat::Lrc,
         path: Some(lrc_path),
+        status: ExportStatus::Success,
+    })
+}
+
+/// Export word-level lyrics as either enhanced LRC (A2) or TTML.
+///
+/// Both come from the same word-timing pass, so the two files agree with each
+/// other. Word timings are derived from the line-level synced lyrics that are
+/// already stored; a track with no synced lyrics is skipped rather than having
+/// timings invented for it.
+fn export_word_synced(
+    track: &PersistentTrack,
+    parsed: &ParsedLyricsfile,
+    enhanced_lrc: bool,
+) -> Result<ExportResult, ExportError> {
+    let format = if enhanced_lrc {
+        ExportFormat::LrcA2
+    } else {
+        ExportFormat::Ttml
+    };
+
+    if parsed.is_instrumental {
+        return Ok(ExportResult {
+            format,
+            path: None,
+            status: ExportStatus::Skipped("instrumental track".to_string()),
+        });
+    }
+
+    let synced = match parsed.synced_lyrics.clone().filter(|s| !s.trim().is_empty()) {
+        Some(synced) => synced,
+        None => {
+            return Ok(ExportResult {
+                format,
+                path: None,
+                status: ExportStatus::Skipped("no synced lyrics available".to_string()),
+            })
+        }
+    };
+
+    let lines = match crate::word_sync::build_word_sync(&synced) {
+        Some(lines) => lines,
+        None => {
+            return Ok(ExportResult {
+                format,
+                path: None,
+                status: ExportStatus::Skipped("no timed lines to convert".to_string()),
+            })
+        }
+    };
+
+    let (content, extension) = if enhanced_lrc {
+        (crate::word_sync::to_enhanced_lrc(&lines), "alrc")
+    } else {
+        (
+            crate::word_sync::to_ttml(
+                &lines,
+                &track.title,
+                &track.artist_name,
+                &track.album_name,
+            ),
+            "ttml",
+        )
+    };
+
+    let path = build_sidecar_path(&track.file_path, extension)?;
+    write(&path, content).map_err(|e| ExportError::WriteError(e.to_string()))?;
+
+    Ok(ExportResult {
+        format,
+        path: Some(path),
         status: ExportStatus::Success,
     })
 }

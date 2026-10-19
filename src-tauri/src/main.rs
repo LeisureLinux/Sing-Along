@@ -16,6 +16,7 @@ pub mod scanner;
 pub mod state;
 pub mod utils;
 pub mod word_segmentation;
+pub mod word_sync;
 
 use persistent_entities::{PersistentAlbum, PersistentArtist, PersistentConfig, PersistentTrack, PlayableTrack};
 use player::Player;
@@ -55,6 +56,9 @@ struct FlagLyricsProgress {
 enum ExportLyricsFormat {
     Txt,
     Lrc,
+    #[serde(rename = "lrcA2")]
+    LrcA2,
+    Ttml,
     Embedded,
 }
 
@@ -123,6 +127,8 @@ impl From<ExportLyricsFormat> for export::ExportFormat {
         match value {
             ExportLyricsFormat::Txt => export::ExportFormat::Txt,
             ExportLyricsFormat::Lrc => export::ExportFormat::Lrc,
+            ExportLyricsFormat::LrcA2 => export::ExportFormat::LrcA2,
+            ExportLyricsFormat::Ttml => export::ExportFormat::Ttml,
             ExportLyricsFormat::Embedded => export::ExportFormat::Embedded,
         }
     }
@@ -747,6 +753,8 @@ fn download_export_message(
         let format = match result.format {
             export::ExportFormat::Txt => "TXT",
             export::ExportFormat::Lrc => "LRC",
+            export::ExportFormat::LrcA2 => "A2",
+            export::ExportFormat::Ttml => "TTML",
             export::ExportFormat::Embedded => "Embedded",
         };
         let outcome = match result.status {
@@ -1247,6 +1255,36 @@ fn resolve_library_track(app_handle: &AppHandle, track_id: i64) -> Result<Playab
         .db(|db| db::get_track_by_id(track_id, db))
         .map(PlayableTrack::from)
         .map_err(|err| err.to_string())
+}
+
+/// Select a track in the player without starting playback.
+///
+/// The frontend calls this on startup so the player bar shows either the track
+/// that was playing last time or the first track of the library. Playback is
+/// deliberately not started: launching an app should not make noise.
+#[tauri::command]
+async fn select_track(
+    track_id: i64,
+    queue: Option<Vec<i64>>,
+    index: Option<usize>,
+    app_handle: AppHandle,
+) -> Result<(), String> {
+    let playable = resolve_library_track(&app_handle, track_id)?;
+
+    let app_state: State<AppState> = app_handle.state();
+    let mut player_guard = app_state.player.lock().map_err(|e| e.to_string())?;
+
+    if let Some(ref mut player) = *player_guard {
+        match (queue, index) {
+            (Some(ids), Some(start)) if !ids.is_empty() => {
+                player.playlist_mut().load(ids, start)
+            }
+            _ => player.playlist_mut().load_single(track_id),
+        }
+        player.select(playable).map_err(|err| err.to_string())?;
+    }
+
+    Ok(())
 }
 
 /// Start a track that came from the queue (end-of-track advance, next, previous,
@@ -1812,6 +1850,7 @@ async fn main() {
             get_track_ids_with_lyrics,
             flag_lyrics,
             play_track,
+            select_track,
             replay_current,
             play_next,
             play_previous,
