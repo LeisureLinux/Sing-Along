@@ -23,6 +23,36 @@ pub struct RawResponse {
     duration: Option<f64>,
 }
 
+
+impl RawResponse {
+    /// Build a response from lyrics fetched by another source (e.g. NetEase).
+    ///
+    /// The source-specific fields (`lang`, `isrc`, `spotify_id`) stay empty:
+    /// they describe LRCLIB's own record, which this is not.
+    pub fn from_synced_lyrics(
+        synced_lyrics: String,
+        title: &str,
+        album_name: &str,
+        artist_name: &str,
+        duration: f64,
+    ) -> Self {
+        Self {
+            plain_lyrics: None,
+            synced_lyrics: Some(synced_lyrics),
+            lyricsfile: None,
+            instrumental: false,
+            lang: None,
+            isrc: None,
+            spotify_id: None,
+            name: Some(title.to_string()),
+            album_name: Some(album_name.to_string()),
+            artist_name: Some(artist_name.to_string()),
+            release_date: None,
+            duration: Some(duration),
+        }
+    }
+}
+
 #[derive(Serialize)]
 #[serde(tag = "type", content = "lyrics")]
 pub enum Response {

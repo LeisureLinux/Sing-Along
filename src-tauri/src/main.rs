@@ -7,6 +7,7 @@ pub mod db;
 pub mod export;
 pub mod library;
 pub mod lrclib;
+pub mod netease;
 pub mod lyricsfile;
 pub mod parser;
 pub mod persistent_entities;
@@ -687,15 +688,56 @@ async fn download_lyrics(
     let config = app_handle
         .db(|db| db::get_config(db))
         .map_err(|err| err.to_string())?;
-    let lrclib_response = lrclib::get::request_raw(
+    // LRCLIB first. If it has no lyrics for this track and the NetEase fallback
+    // is enabled, try NetEase before giving up. A NetEase failure of any kind is
+    // logged and swallowed: a broken fallback must not turn an LRCLIB outage into
+    // an error the user cannot act on.
+    let lrclib_result = lrclib::get::request_raw(
         &track.title,
         &track.album_name,
         &track.artist_name,
         track.duration,
         &config.lrclib_instance,
     )
-    .await
-    .map_err(|err| err.to_string())?;
+    .await;
+
+    let (lrclib_response, netease_note) = match lrclib_result {
+        Ok(response) => (response, String::new()),
+        Err(lrclib_error) => {
+            if !config.netease_fallback_enabled {
+                return Err(lrclib_error.to_string());
+            }
+
+            match netease::fetch_lyrics(
+                &netease_client(),
+                &track.title,
+                &track.artist_name,
+                Some(track.duration),
+            )
+            .await
+            {
+                Ok(Some(netease)) => (
+                    lrclib::get::RawResponse::from_synced_lyrics(
+                        netease.synced_lyrics,
+                        &track.title,
+                        &track.album_name,
+                        &track.artist_name,
+                        track.duration,
+                    ),
+                    format!(" (via NetEase #{})", netease.song_id),
+                ),
+                Ok(None) => {
+                    // NetEase searched and found nothing: report the original
+                    // LRCLIB failure, which is the truthful one.
+                    return Err(lrclib_error.to_string());
+                }
+                Err(netease_error) => {
+                    eprintln!("NetEase fallback failed: {netease_error}");
+                    return Err(lrclib_error.to_string());
+                }
+            }
+        }
+    };
     let resolved = resolve_lrclib_lyrics_payload(lrclib_response)?;
 
     let message = if resolved.is_instrumental {
@@ -707,6 +749,7 @@ async fn download_lyrics(
     } else {
         return Err(LRCLIB_TRACK_NOT_FOUND.to_owned());
     };
+    let message = format!("{message}{netease_note}");
 
     // Build lyricsfile content from the resolved response
     let lyricsfile_content = if let Some(ref provided) = resolved.provided_lyricsfile {
@@ -758,7 +801,7 @@ async fn download_lyrics(
 
     // Internal save has succeeded: export errors remain part of the success log string.
     Ok(match export_formats {
-        Some(formats) => download_export_message(message, &track, &lyricsfile_content, &formats, || {
+        Some(formats) => download_export_message(&message, &track, &lyricsfile_content, &formats, || {
             embedding_allowed(&app_handle)
         }),
         None => message.to_owned(),
@@ -1283,6 +1326,15 @@ fn resolve_library_track(app_handle: &AppHandle, track_id: i64) -> Result<Playab
         .db(|db| db::get_track_by_id(track_id, db))
         .map(PlayableTrack::from)
         .map_err(|err| err.to_string())
+}
+
+/// Shared HTTP client for NetEase requests. A single client keeps connections
+/// pooled across the download queue.
+fn netease_client() -> reqwest::Client {
+    reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(15))
+        .build()
+        .expect("failed to build HTTP client")
 }
 
 /// Select a track in the player without starting playback.

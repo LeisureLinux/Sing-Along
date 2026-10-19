@@ -167,7 +167,8 @@ pub fn get_config(db: &Connection) -> Result<PersistentConfig> {
         export_lrc,
         export_txt,
         export_embedded,
-        lyric_script
+        lyric_script,
+        netease_fallback_enabled
       FROM config_data
       LIMIT 1
     "})?;
@@ -178,6 +179,7 @@ pub fn get_config(db: &Connection) -> Result<PersistentConfig> {
             export_txt: r.get("export_txt")?,
             export_embedded: r.get("export_embedded")?,
             lyric_script: r.get("lyric_script")?,
+            netease_fallback_enabled: r.get("netease_fallback_enabled")?,
             skip_tracks_with_synced_lyrics: r.get("skip_tracks_with_synced_lyrics")?,
             skip_tracks_with_plain_lyrics: r.get("skip_tracks_with_plain_lyrics")?,
             show_line_count: r.get("show_line_count")?,

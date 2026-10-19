@@ -95,4 +95,6 @@ pub struct PersistentConfig {
     pub volume: f64,
     /// 'ask' | 'off' | 'simplified' | 'traditional'
     pub lyric_script: String,
+    /// Whether LRCLIB misses fall back to NetEase (unofficial API).
+    pub netease_fallback_enabled: bool,
 }
