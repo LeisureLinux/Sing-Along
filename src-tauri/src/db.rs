@@ -761,7 +761,19 @@ pub fn get_search_track_ids(
 ) -> Result<Vec<i64>> {
     let use_fts = fts5_enabled(db);
 
-    let base_query = if use_fts {
+    // A short query cannot use trigram, so it falls back to LIKE even when the
+    // index exists. The base query has to follow the *effective* path, not just
+    // `fts5_enabled`: the FTS form takes one bound parameter and the LIKE form
+    // three, so picking the wrong one fails at query time with a parameter-count
+    // error.
+    let fts_query = if use_fts {
+        crate::utils::build_fts_query(query_str)
+    } else {
+        None
+    };
+    let use_fts_path = fts_query.is_some();
+
+    let base_query = if use_fts_path {
         indoc::indoc! {"
           SELECT tracks.id
           FROM tracks_fts
@@ -814,15 +826,7 @@ pub fn get_search_track_ids(
         format!(" AND ({})", included_categories.join(" OR "))
     };
 
-    // Trigram indexing cannot match a term shorter than one trigram, so very
-    // short queries fall back to a LIKE scan rather than returning nothing.
-    let fts_query = if use_fts {
-        crate::utils::build_fts_query(query_str)
-    } else {
-        None
-    };
-
-    let full_query = if fts_query.is_some() {
+    let full_query = if use_fts_path {
         format!("{}{} ORDER BY tracks_fts.rank", base_query, where_clause)
     } else {
         format!("{}{} ORDER BY tracks.title_lower ASC", base_query, where_clause)
