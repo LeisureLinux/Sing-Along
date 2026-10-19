@@ -36,6 +36,7 @@ export default {
     copy: '複製',
     copied: '已複製',
     apply: '套用',
+    continueLabel: '繼續',
     retry: '重試',
   },
 

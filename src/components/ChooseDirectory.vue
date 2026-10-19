@@ -33,9 +33,23 @@
         </button>
       </div>
 
-      <button class="button button-primary w-full p-4 rounded-lg" @click.prevent="progressStep">
-        Continue
-      </button>
+      <div class="flex gap-3 w-full">
+        <!-- Only in manage mode: on first setup there is nothing to go back to. -->
+        <button
+          v-if="isManaging"
+          class="button button-normal flex-1 p-4 rounded-lg"
+          @click.prevent="cancel"
+        >
+          {{ $t('actions.cancel') }}
+        </button>
+        <button
+          class="button button-primary p-4 rounded-lg"
+          :class="isManaging ? 'flex-1' : 'w-full'"
+          @click.prevent="progressStep"
+        >
+          {{ $t('actions.continueLabel') }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -47,7 +61,15 @@ import { invoke } from '@tauri-apps/api/core'
 import { ref, onMounted } from 'vue'
 import Close from '~icons/mdi/close'
 import Plus from '~icons/mdi/plus'
-const emit = defineEmits(['progressStep', 'directoriesChanged'])
+// True when opened from "Manage directories" rather than first-run setup.
+// Read from the template only, so no `props` binding is needed here.
+defineProps({
+  isManaging: { type: Boolean, default: false },
+})
+const emit = defineEmits(['progressStep', 'directoriesChanged', 'cancel'])
+
+// Leave without writing: the directories the user was editing are discarded.
+const cancel = () => emit('cancel')
 
 const directories = ref([])
 const originalDirectories = ref([])

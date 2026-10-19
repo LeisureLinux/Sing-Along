@@ -14,8 +14,10 @@
     <div v-if="!loading" class="grow overflow-hidden bg-white dark:bg-neutral-950">
       <ChooseDirectory
         v-if="!init"
+        :is-managing="isManagingDirectories"
         @progress-step="onProgressStep"
         @directories-changed="onDirectoriesChanged"
+        @cancel="onDirectoryCancel"
       />
       <Library
         v-else
@@ -67,13 +69,25 @@ const uninitializeLibrary = async () => {
   loading.value = false
 }
 
+// Remember whether the chooser was opened from "Manage directories" (which can
+// be cancelled) or is the first-run setup (which cannot).
+const isManagingDirectories = ref(false)
+
 const manageDirectories = () => {
-  // Just show the directory chooser without clearing the database
-  // The incremental scan will handle any directory changes
+  // Show the directory chooser without clearing the database; the incremental
+  // scan handles added or removed directories.
+  isManagingDirectories.value = true
   init.value = false
 }
 
+const onDirectoryCancel = () => {
+  // Nothing was written, so just go back to the library view.
+  isManagingDirectories.value = false
+  init.value = true
+}
+
 const onProgressStep = () => {
+  isManagingDirectories.value = false
   init.value = true
 }
 

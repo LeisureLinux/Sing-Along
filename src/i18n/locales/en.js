@@ -43,6 +43,7 @@ export default {
     copy: 'Copy',
     copied: 'Copied',
     apply: 'Apply',
+    continueLabel: 'Continue',
     retry: 'Retry',
   },
 
