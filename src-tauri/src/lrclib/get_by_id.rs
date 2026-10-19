@@ -68,7 +68,7 @@ pub struct ResponseError {
 async fn make_request(id: i64, lrclib_instance: &str) -> Result<reqwest::Response> {
     let version = env!("CARGO_PKG_VERSION");
     let user_agent = format!(
-        "Sing-Along v{} (https://github.com/albertxu/sing-along)",
+        "Sing-Along v{} (https://github.com/LeisureLinux/Sing-Along)",
         version
     );
     let client = reqwest::Client::builder()

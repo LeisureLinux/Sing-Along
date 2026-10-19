@@ -1,15 +1,48 @@
 # Sing-Along
 
-Find and edit synced lyrics for your offline music library.
+**A small desktop tool for finding, editing and converting synced lyrics for
+your own music files.** Built for people who keep a local library and want
+their lyrics to work everywhere — including on phones, in cars.
 
-Sing-Along scans the music files in the folders you choose, looks up matching
-lyrics, and saves them alongside your audio files or embeds them in the tags.
-It is a desktop player-adjacent tool: you can play a track, watch the lyrics
-highlight line by line (or word by word), and correct the timings while you
-listen.
+Sing-Along scans the music folders you choose, looks up matching lyrics, saves
+them next to your audio files or embeds them in the tags, and lets you correct
+the timings while you listen. It is a desktop companion, not a full music
+player: pick a track, watch the lyrics follow along, fix what is off.
 
-Lyrics are retrieved from [LRCLIB](https://lrclib.net). Sing-Along is an
-independent project and is **not** an official client of LRCLIB.
+Lyrics are retrieved from [LRCLIB](https://lrclib.net).
+
+## Independent project
+
+**Sing-Along is not tracking upstream.** It began as a fork of
+[LRCGET](https://github.com/tranxuanthang/lrcget) and has since gone its own
+way — there is no upstream remote, no pull from the original repository, and no
+intent to push changes back. Bug reports and features are decided here.
+
+That also means a few things you should not expect:
+
+- **No parity with LRCGET.** Upstream may add features this fork never gets, and
+  the other way round.
+- **A different scope.** LRCGET is a mass-downloading utility. Sing-Along is a
+  small personal tool that also edits and converts — see below.
+- **Upstream issues do not apply here.** If you hit something, report it in this
+  repository.
+
+The MIT license and the original copyright notice are preserved regardless; see
+[License and attribution](#license-and-attribution).
+
+## What it is good at
+
+- **Mass-fetching lyrics** for a large local library from LRCLIB, with
+  configurable skip rules so it does not overwrite what you already fixed.
+- **Editing timings by ear.** Play a track and correct line-by-line, or
+  word-by-word, instead of hand-editing text files.
+- **Multilingual text, including CJK.** Word-level segmentation uses
+  [Charabia](https://github.com/meilisearch/charabia), so Chinese and Japanese
+  lines break at real word boundaries rather than at a fixed character count.
+  Chinese titles, artist names and file paths are handled throughout.
+- **Exporting to what phones actually read.** One library can be written out as
+  enhanced LRC (A2) or TTML, so the same lyrics work on Android players and on
+  iOS players that only understand TTML.
 
 ## Why word-level lyrics need converting
 
@@ -47,16 +80,16 @@ what this fork changed. The About dialog in the app carries the same credit.
 
 ## Screenshots
 
-![01.png](https://raw.githubusercontent.com/tranxuanthang/lrcget/9e0578bd9411fcc024a56d2f1108701751c5ec3a/screenshots/01.png)
+![01.png](screenshots/01.png)
 
 <details>
 <summary>Click to expand more screenshots</summary>
 
-![02.png](https://raw.githubusercontent.com/tranxuanthang/lrcget/9e0578bd9411fcc024a56d2f1108701751c5ec3a/screenshots/02.png)
+![02.png](screenshots/02.png)
 
-![03.png](https://raw.githubusercontent.com/tranxuanthang/lrcget/9e0578bd9411fcc024a56d2f1108701751c5ec3a/screenshots/03.png)
+![03.png](screenshots/03.png)
 
-![04.png](https://raw.githubusercontent.com/tranxuanthang/lrcget/9e0578bd9411fcc024a56d2f1108701751c5ec3a/screenshots/04.png)
+![04.png](screenshots/04.png)
 
 </details>
 
@@ -72,11 +105,11 @@ sudo apt install pipewire-alsa
 
 **App won't open in Windows 10/11**
 
-If you are using Windows 10 LTSC, or have tried running some scripts to debloat Windows 10 (which will uninstall Microsoft Edge and its webview component), you might have issues as Sing-Along depends on WebView2. Reinstalling Microsoft Edge might fix the problem (see issue https://github.com/tranxuanthang/lrcget/issues/45).
+If you are using Windows 10 LTSC, or have tried running some scripts to debloat Windows 10 (which will uninstall Microsoft Edge and its webview component), you might have issues as Sing-Along depends on WebView2. Reinstalling Microsoft Edge usually fixes it — WebView2 is a Windows component this app cannot ship itself.
 
 **Scrollbar is invisible in Linux (KDE Plasma 5/6)**
 
-The exact cause is still unknown, but it can be fixed by going to System Settings > Appearance > Global Theme > Application Style > Configure GNOME/GTK Application Style... > Change to something other than breeze (Awaita or Default) > Apply (see comment https://github.com/tranxuanthang/lrcget/issues/44#issuecomment-1962998268)
+The exact cause is still unknown, but it can be fixed by going to System Settings > Appearance > Global Theme > Application Style > Configure GNOME/GTK Application Style... > Change to something other than breeze (Adwaita or Default) > Apply.
 
 ## Contact
 
@@ -84,33 +117,49 @@ Email: [albertxu@freelamp.com](mailto:albertxu@freelamp.com)
 
 ## Development
 
-Sing-Along is made with [Tauri](https://tauri.app).
+Sing-Along is made with [Tauri](https://tauri.app) v2 (Rust backend, Vue 3
+frontend).
 
-To start developing the application, you need to do the [prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites) steps according to your operating system.
+Install the [Tauri prerequisites](https://tauri.app/start/prerequisites/) for
+your OS. In short you need:
 
-For example, you need the following components to start the development in Windows:
+- Rust 1.81.0 or newer
+- Node.js 18 or newer
+- The platform build tools (on Windows: Visual Studio C++ Build Tools and
+  WebView2; on Linux: `libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `libasound2-dev`
+  and `build-essential`)
 
-- Microsoft Visual Studio C++ Build Tools
-- Rust 1.81.0 or higher
-- NodeJS v16.18.0 or higher
+Two architecture notes are worth reading before changing code:
+[`src/ARCHITECTURE.md`](src/ARCHITECTURE.md) for the frontend and
+[`src-tauri/ARCHITECTURE.md`](src-tauri/ARCHITECTURE.md) for the backend.
 
-Start the development window with the following command:
+Start the development window with:
 
 ```shell
-cd lrcget
 npm install
-npm run tauri dev
+npm run tauri:dev
 ```
+
+`npm run tauri:dev` passes `--features dev,devtools`. Plain `tauri dev` only
+passes `--no-default-features`, so a debug build started that way has neither
+the devtools panel nor the WebDriver bridge — this trips people up.
+
+**Build note:** Charabia's Japanese and Korean dictionaries are downloaded at
+build time by its build scripts. If that fails (network, TLS), point
+`LINDERA_CACHE` at a populated cache directory and the scripts take a fast path
+instead of downloading.
 
 ## Building
 
-Start the build process with the following command:
-
 ```shell
-cd lrcget
 npm install
 npm run tauri build
 ```
+
+Release builds carry no devtools and no WebDriver server: both are behind
+opt-in cargo features that `tauri build` does not enable. Verify with
+`cargo tree -i tauri-plugin-webdriver`, which cannot resolve the package at all
+in the default feature set.
 
 Your built binaries are located at:
 

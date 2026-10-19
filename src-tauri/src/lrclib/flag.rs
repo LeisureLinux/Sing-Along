@@ -34,7 +34,7 @@ pub async fn request(
 
     let version = env!("CARGO_PKG_VERSION");
     let user_agent = format!(
-        "Sing-Along v{} (https://github.com/albertxu/sing-along)",
+        "Sing-Along v{} (https://github.com/LeisureLinux/Sing-Along)",
         version
     );
     let client = reqwest::Client::builder()

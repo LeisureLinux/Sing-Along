@@ -42,8 +42,8 @@
         <div class="text-sm">
           <div class="mb-1">
             Github URL:
-            <a href="https://github.com/albertxu/sing-along" class="link" target="_blank"
-              >github.com/albertxu/sing-along</a
+            <a href="https://github.com/LeisureLinux/Sing-Along" class="link" target="_blank"
+              >github.com/LeisureLinux/Sing-Along</a
             >
           </div>
 
@@ -101,7 +101,7 @@ const isUpdateAvailable = computed(() => {
 const isCheckingForUpdate = ref(true)
 
 async function getLatestReleaseInfo() {
-  const repo = 'albertxu/sing-along'
+  const repo = 'LeisureLinux/Sing-Along'
   const apiUrl = `https://api.github.com/repos/${repo}/releases/latest`
 
   const response = await fetch(apiUrl)
