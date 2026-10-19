@@ -18,14 +18,21 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # macOS is asked for `dmg` only. `bundle.targets` says "all", which also
+          # emits `Sing-Along.app.tar.gz` — Tauri's auto-updater payload. This
+          # project has no updater (no plugin, no signing key, and
+          # `createUpdaterArtifacts` at its default of false), and that default
+          # does not suppress the archive, so the target list is what controls it.
+          # Naming the bundle explicitly means the archive is never produced
+          # rather than being produced and thrown away.
           - platform: 'macos-latest'
-            args: '--target aarch64-apple-darwin'
+            args: '--target aarch64-apple-darwin --bundles dmg'
           - platform: 'macos-latest'
-            args: '--target x86_64-apple-darwin'
+            args: '--target x86_64-apple-darwin --bundles dmg'
           - platform: 'ubuntu-22.04'
-            args: ''
+            args: '--bundles deb,rpm,appimage'
           - platform: 'windows-latest'
-            args: ''
+            args: '--bundles nsis,msi'
 
     runs-on: ${{ matrix.platform }}
     steps:
