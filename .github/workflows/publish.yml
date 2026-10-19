@@ -49,7 +49,10 @@ jobs:
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          # Only the target actually being built: installing an extra Rust
+          # target costs a download and gains nothing when the matrix no longer
+          # builds for it.
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
 
       # The upstream workflow pinned libwebkit2gtk to a specific version that
       # only existed on one runner image; that breaks as soon as the image moves.
