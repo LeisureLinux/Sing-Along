@@ -82,7 +82,7 @@ import { useLibraryNavigation } from '@/composables/library-navigation.js'
 import { usePlayer } from '@/composables/player.js'
 
 const { request: downloadRequest } = useDownloadOptions()
-const { playTrack } = usePlayer()
+const { playTrack, restoreSelection } = usePlayer()
 
 // Play from a list: the list supplies its full id order so the backend can build
 // a real queue instead of a single-track one.
@@ -287,6 +287,11 @@ onMounted(async () => {
   } else {
     isLoading.value = false
   }
+
+  // Put a track in the player bar without playing it: last session's track if it
+  // still exists, otherwise the first one. Done after the library is ready so the
+  // queue it establishes matches the current library.
+  await restoreSelection()
 })
 
 // Watch for changes to shouldScan prop

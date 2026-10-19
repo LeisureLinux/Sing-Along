@@ -59,6 +59,9 @@ listen('reload-track-id', async event => {
   }
 })
 
+// Remembered across restarts so the player bar can show what you were on.
+const LAST_TRACK_KEY = 'sing-along.lastTrackId'
+
 export function usePlayer() {
   // `queue` + `index` come from the list the user clicked in. Without them the
   // backend falls back to a one-track queue, which is what a bare call (or a
@@ -66,6 +69,9 @@ export function usePlayer() {
   const playTrack = (track, queue, index) => {
     playingTrack.value = track
     lastTrackId = track.id ?? null
+    if (track.id !== undefined && track.id !== null) {
+      localStorage.setItem(LAST_TRACK_KEY, String(track.id))
+    }
 
     // Determine if this is a database track or a file-based track
     if (track.id !== undefined && track.id !== null) {
@@ -133,6 +139,49 @@ export function usePlayer() {
     invoke('replay_current')
   }
 
+  // Load a track into the player without starting audio.
+  const selectTrack = (track, queue, index) => {
+    if (!track || track.id === undefined || track.id === null) {
+      return
+    }
+
+    playingTrack.value = track
+    lastTrackId = track.id
+    localStorage.setItem(LAST_TRACK_KEY, String(track.id))
+
+    invoke('select_track', {
+      trackId: track.id,
+      queue: queue ?? null,
+      index: index ?? null,
+    })
+  }
+
+  // Restore what was playing last session, else fall back to the first track.
+  // Nothing is played: the app should open quietly.
+  const restoreSelection = async () => {
+    try {
+      const stored = localStorage.getItem(LAST_TRACK_KEY)
+      const trackIds = await invoke('get_track_ids', {})
+
+      if (!trackIds || trackIds.length === 0) {
+        return
+      }
+
+      let index = 0
+      if (stored !== null) {
+        const found = trackIds.indexOf(Number(stored))
+        if (found >= 0) {
+          index = found
+        }
+      }
+
+      const track = await invoke('get_track', { trackId: trackIds[index] })
+      selectTrack(track, trackIds, index)
+    } catch (error) {
+      console.error('Failed to restore the last track:', error)
+    }
+  }
+
   const pause = () => {
     if (!playingTrack.value) {
       return
@@ -191,6 +240,8 @@ export function usePlayer() {
     hasNext,
     hasPrevious,
     playTrack,
+    selectTrack,
+    restoreSelection,
     replay,
     playNext,
     playPrevious,

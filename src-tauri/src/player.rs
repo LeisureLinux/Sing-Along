@@ -197,6 +197,26 @@ impl Player {
         Ok(())
     }
 
+    /// Load a track without starting playback.
+    ///
+    /// Used when the window opens: the app should remember what you were
+    /// listening to (or fall back to the first track) and show it in the player
+    /// bar, but starting audio unprompted on launch is not wanted.
+    ///
+    /// The track metadata is set and `duration` is read from the file header so
+    /// the seek bar is meaningful; no sound handle is created, which also means
+    /// no audio device is opened. `status` stays `Stopped`, so pressing play
+    /// goes through the normal `play()` path.
+    pub fn select(&mut self, track: PlayableTrack) -> Result<()> {
+        self.stop();
+        self.duration = StreamingSoundData::from_file(&track.file_path)
+            .map(|data| data.duration().as_secs_f64())
+            .unwrap_or(track.duration);
+        self.track = Some(track);
+        self.status = PlayerStatus::Stopped;
+        Ok(())
+    }
+
     pub fn resume(&mut self) {
         if let Some(ref mut sound_handle) = self.sound_handle {
             sound_handle.resume(Tween::default());
