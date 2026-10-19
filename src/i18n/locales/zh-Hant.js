@@ -224,6 +224,21 @@ export default {
     zoomOut: '縮小',
   },
 
+  viewer: {
+    downloadDone: '下載完成',
+    exportDone: '匯出完成',
+    finish: '完成',
+    stop: '停止',
+    found: '找到',
+    notFound: '未找到',
+    total: '總計',
+    exported: '已匯出',
+    skipped: '已跳過',
+    errors: '出錯',
+    exportOk: '匯出成功',
+    unknown: '未知',
+  },
+
   errors: {
     scanFailed: '掃描曲庫失敗',
     loadTracksFailed: '載入歌曲失敗',

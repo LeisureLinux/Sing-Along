@@ -11,10 +11,37 @@ const downloadedCount = ref(0)
 const isDownloading = ref(false)
 const totalCount = ref(0)
 
+const SUMMARY_KEY = 'sing-along.lastDownloadSummary'
+
 const addLog = logObj => {
   log.value.unshift(markRaw(logObj))
   if (log.value.length > 100) {
     log.value.pop()
+  }
+}
+
+// Persist a compact summary when a batch finishes, so the user can still see
+// what happened after closing the app. Full logs stay in memory only — they are
+// diagnostic, not archival data.
+const saveSummary = (success, failure, total) => {
+  try {
+    localStorage.setItem(SUMMARY_KEY, JSON.stringify({
+      success,
+      failure,
+      total,
+      finishedAt: new Date().toISOString(),
+    }))
+  } catch {
+    // localStorage full or unavailable; the summary is a nice-to-have
+  }
+}
+
+const loadSummary = () => {
+  try {
+    const raw = localStorage.getItem(SUMMARY_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
   }
 }
 
@@ -115,6 +142,7 @@ export function useDownloader() {
     log,
     addToQueue,
     startOver,
+    loadSummary,
     stopDownloading,
     downloadNext,
   }

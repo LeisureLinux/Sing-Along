@@ -232,6 +232,21 @@ export default {
     zoomOut: 'Zoom out',
   },
 
+  viewer: {
+    downloadDone: 'Downloaded',
+    exportDone: 'Export Complete',
+    finish: 'Finish',
+    stop: 'Stop',
+    found: 'found',
+    notFound: 'not found',
+    total: 'total',
+    exported: 'exported',
+    skipped: 'skipped',
+    errors: 'errors',
+    exportOk: 'exported successfully',
+    unknown: 'unknown',
+  },
+
   errors: {
     scanFailed: 'Scanning the library failed',
     loadTracksFailed: 'Failed to load tracks',

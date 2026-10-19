@@ -2,7 +2,7 @@
   <BaseModal
     content-class="w-full h-[80vh] max-w-screen-md"
     body-class="flex flex-col h-full min-h-0 justify-between gap-6"
-    :title="isFinished ? 'Export Complete' : 'Exporting Lyrics'"
+    :title="isFinished ? $t('status.exportDone') : $t('status.exporting')"
     @close="checkAndClose"
   >
     <div class="flex flex-col items-center justify-center gap-1">
@@ -10,10 +10,10 @@
         <div class="bg-hoa-1100 h-1" :style="{ width: progressWidth }" />
       </div>
       <div class="text-[0.7rem] text-neutral-500 dark:text-neutral-500 flex gap-3">
-        <span>{{ exportedCount }} EXPORTED</span>
-        <span>{{ skippedCount }} SKIPPED</span>
-        <span>{{ errorCount }} ERRORS</span>
-        <span>{{ totalCount }} TOTAL</span>
+        <span>{{ exportedCount }} {{ $t("viewer.exported") }}</span>
+        <span>{{ skippedCount }} {{ $t("viewer.skipped") }}</span>
+        <span>{{ errorCount }} {{ $t("viewer.errors") }}</span>
+        <span>{{ totalCount }} {{ $t("viewer.total") }}</span>
       </div>
     </div>
 
@@ -53,10 +53,10 @@
           class="button button-primary px-8 py-2 rounded-full"
           @click="checkAndClose"
         >
-          Finish
+          {{ $t('actions.finish') }}
         </button>
         <button v-else class="button button-normal px-8 py-2 rounded-full" @click="handleStop">
-          Stop
+          {{ $t('actions.stop') }}
         </button>
       </div>
     </template>
@@ -66,6 +66,7 @@
 <script setup>
 import { onUnmounted, computed } from 'vue'
 import { useExporter } from '@/composables/export.js'
+import { useI18n } from 'vue-i18n'
 
 const {
   isExporting,
@@ -78,6 +79,8 @@ const {
   startOver,
   stopExporting,
 } = useExporter()
+
+const { t } = useI18n()
 
 const getDetailStatusClass = detail => {
   const statusType = detail.status?.type
@@ -94,9 +97,9 @@ const getDetailStatusClass = detail => {
 const getDetailMessage = detail => {
   const statusType = detail.status?.type
   if (statusType === 'success') {
-    return 'exported successfully'
+    return t('viewer.exportOk')
   } else if (statusType === 'skipped' || statusType === 'error') {
-    return detail.status?.message || 'unknown'
+    return detail.status?.message || t('viewer.unknown')
   }
   return 'unknown status'
 }

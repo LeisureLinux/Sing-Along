@@ -80,6 +80,9 @@
         <div class="flex gap-1">
           <div>{{ $t('status.downloading') }}</div>
           <div>{{ downloadedCount }}/{{ downloadTotalCount }}</div>
+          <div v-if="downloadFailureCount > 0">
+            ({{ downloadFailureCount }} {{ $t('viewer.notFound') }})
+          </div>
         </div>
       </button>
 
@@ -91,7 +94,10 @@
         <div class="text-sm">
           <Check />
         </div>
-        <span> Downloaded {{ downloadedCount }}/{{ downloadTotalCount }} </span>
+        <span> {{ $t('status.downloadDone') }} {{ downloadedCount }}/{{ downloadTotalCount }} </span>
+        <span v-if="downloadFailureCount > 0" class="text-yellow-600">
+          ({{ downloadFailureCount }} {{ $t('viewer.notFound') }})
+        </span>
       </button>
 
       <button
@@ -376,7 +382,12 @@ const handleExportClick = async () => {
   }
 }
 
-const { isDownloading, totalCount: downloadTotalCount, downloadedCount } = useDownloader()
+const {
+  isDownloading,
+  totalCount: downloadTotalCount,
+  downloadedCount,
+  failureCount: downloadFailureCount,
+} = useDownloader()
 
 const {
   isExporting,

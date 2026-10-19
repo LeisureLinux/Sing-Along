@@ -2,7 +2,7 @@
   <BaseModal
     content-class="w-full h-[80vh] max-w-screen-md"
     body-class="flex flex-col h-full min-h-0 justify-between gap-6"
-    :title="isFinished ? 'Downloaded' : 'Downloading'"
+    :title="isFinished ? $t('status.downloadDone') : $t('status.downloading')"
     @close="checkAndClose"
   >
     <div class="flex flex-col items-center justify-center gap-1">
@@ -10,9 +10,9 @@
         <div class="bg-hoa-1100 h-1" :style="{ width: progressWidth }" />
       </div>
       <div class="text-[0.7rem] text-neutral-500 dark:text-neutral-500 flex gap-3">
-        <span>{{ successCount }} FOUND</span>
-        <span>{{ failureCount }} NOT FOUND</span>
-        <span>{{ totalCount }} TOTAL</span>
+        <span>{{ successCount }} {{ $t("viewer.found") }}</span>
+        <span>{{ failureCount }} {{ $t("viewer.notFound") }}</span>
+        <span>{{ totalCount }} {{ $t("viewer.total") }}</span>
       </div>
     </div>
 
@@ -38,10 +38,10 @@
           class="button button-primary px-8 py-2 rounded-full"
           @click="checkAndClose"
         >
-          Finish
+          {{ $t('actions.finish') }}
         </button>
         <button v-else class="button button-normal px-8 py-2 rounded-full" @click="handleStop">
-          Stop
+          {{ $t('actions.stop') }}
         </button>
       </div>
     </template>

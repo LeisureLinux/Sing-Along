@@ -92,6 +92,20 @@
         <button class="track-button" @click="searchLyrics(track)">
           <TextSearch />
         </button>
+        <VTooltip theme="singalong-tooltip">
+          <button
+            class="track-button"
+            :class="{ 'animate-spin': isSyncing }"
+            :disabled="isSyncing"
+            @click="syncLyrics"
+          >
+            <Sync v-if="!isSyncing" />
+            <Loading v-else class="animate-spin text-sm" />
+          </button>
+          <template #popper>
+            <div class="text-xs font-bold">{{ $t('actions.syncLyrics') }}</div>
+          </template>
+        </VTooltip>
         <button class="track-button" @click="openEditLyricsV2(track)">
           <PlaylistEdit />
         </button>
@@ -104,6 +118,11 @@
 import Play from '~icons/mdi/play'
 import Pause from '~icons/mdi/pause'
 import TextSearch from '~icons/mdi/text-search'
+import Sync from '~icons/mdi/sync'
+import Loading from '~icons/mdi/loading'
+import { VTooltip } from 'floating-vue'
+import { useToast } from 'vue-toastification'
+import { useI18n } from 'vue-i18n'
 import PlaylistEdit from '~icons/mdi/playlist-edit'
 import Replay from '~icons/mdi/replay'
 import { humanDuration } from '../../../utils/human-duration.js'
@@ -133,6 +152,37 @@ const goToArtist = () => {
 }
 
 const { searchLyrics } = useSearchLyrics()
+const { t } = useI18n()
+const toast = useToast()
+const isSyncing = ref(false)
+
+// Full sync for a single track: LRCLIB -> NetEase fallback -> script conversion,
+// same pipeline as the batch download but for one song, with a toast result.
+const syncLyrics = async () => {
+  if (!track.value || isSyncing.value) return
+  isSyncing.value = true
+  try {
+    const config = await invoke('get_config')
+    const lyricScript = config.lyric_script === 'ask' ? 'off' : config.lyric_script
+
+    const result = await invoke('download_lyrics', {
+      trackId: track.value.id,
+      autoExport: null,
+      lyricScript,
+    })
+
+    toast.success(`${track.value.title}: ${result}`, {
+      timeout: 2000,
+    })
+  } catch (error) {
+    toast.error(`${track.value.title}: ${error}`, {
+      timeout: 0,
+      closeOnClick: true,
+    })
+  } finally {
+    isSyncing.value = false
+  }
+}
 const { editLyricsV2, editingAudioSource } = useEditLyricsV2()
 const props = defineProps(['trackId', 'isShowTrackNumber', 'queue', 'queueIndex'])
 const emit = defineEmits(['playWithQueue'])
