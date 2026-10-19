@@ -80,6 +80,28 @@ jobs:
         working-directory: src-tauri
         run: cargo test
 
+      # `tauri-action` locates the bundle artifacts and uploads them itself, so the
+      # unwanted files are removed from the bundle directory before it runs. The
+      # `.app.tar.gz` a macOS build emits is the payload for Tauri's auto-updater,
+      # which this project does not use: there is no updater plugin, no signing
+      # key, and `createUpdaterArtifacts` is false. It is produced unconditionally
+      # regardless of that setting, after the `.dmg` is already complete, so
+      # deleting it here cannot affect the `.dmg`.
+      #
+      # If auto-update is ever wired up, delete this step — those archives become
+      # the update payload, together with their `.sig` files.
+      - name: drop macOS updater archives (unused)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          find src-tauri/target -name "*.app.tar.gz" -delete
+          find src-tauri/target -name "*.app.tar.gz.sig" -delete
+
+          # Assert the .dmg survived: if this step ever starts eating the real
+          # bundle, the build should fail loudly rather than publish nothing.
+          dmg_count=$(find src-tauri/target -name "*.dmg" | wc -l)
+          echo "remaining .dmg files: $dmg_count"
+          test "$dmg_count" -ge 1 || { echo "::error::no .dmg left after cleanup"; exit 1; }
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
