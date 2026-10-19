@@ -15,6 +15,7 @@ pub mod playlist;
 pub mod player;
 pub mod scanner;
 pub mod script_convert;
+pub mod cover;
 pub mod state;
 pub mod utils;
 pub mod word_segmentation;
