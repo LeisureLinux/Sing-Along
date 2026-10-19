@@ -56,7 +56,7 @@ impl TrackMetadata {
             source: e,
         })?;
 
-        let tag = tagged_file
+        let mut tag = tagged_file
             .primary_tag()
             .ok_or_else(|| MetadataError::NoPrimaryTag {
                 path: file_path.clone(),
@@ -65,30 +65,87 @@ impl TrackMetadata {
 
         let properties = tagged_file.properties();
 
-        // Extract required fields
+        // Derive missing fields from the filesystem, write them back into the
+        // audio file, and use them for the library entry. The file itself is
+        // corrected, not just the library row: the next scan reads the repaired
+        // tags, and any other tool that inspects the file sees the same values.
+        let file_stem = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or(&file_name)
+            .to_string();
+
+        let dir_name = path
+            .parent()
+            .and_then(|p| p.file_name())
+            .and_then(|s| s.to_str())
+            .unwrap_or("Unknown Album")
+            .to_string();
+
+        let parent_dir_name = path
+            .parent()
+            .and_then(|p| p.parent())
+            .and_then(|p| p.file_name())
+            .and_then(|s| s.to_str())
+            .unwrap_or("Unknown Artist")
+            .to_string();
+
         let title = tag
             .title()
-            .ok_or_else(|| MetadataError::MissingField {
-                field: "title".to_string(),
-                path: file_path.clone(),
-            })?
-            .to_string();
+            .filter(|s| !s.trim().is_empty())
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| file_stem.clone());
 
         let album = tag
             .album()
-            .ok_or_else(|| MetadataError::MissingField {
-                field: "album".to_string(),
-                path: file_path.clone(),
-            })?
-            .to_string();
+            .filter(|s| !s.trim().is_empty())
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| dir_name.clone());
 
         let artist = tag
             .artist()
-            .ok_or_else(|| MetadataError::MissingField {
-                field: "artist".to_string(),
-                path: file_path.clone(),
-            })?
-            .to_string();
+            .filter(|s| !s.trim().is_empty())
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| parent_dir_name.clone());
+
+        // Write back only the fields that were actually missing, so a file with
+        // a real album but no title is not overwritten with a directory name.
+        let needs_write = tag.title().map_or(true, |t| t.trim().is_empty())
+            || tag.album().map_or(true, |a| a.trim().is_empty())
+            || tag.artist().map_or(true, |a| a.trim().is_empty());
+
+        if needs_write {
+            if tag.title().map_or(true, |t| t.trim().is_empty()) {
+                tag.set_title(title.clone());
+            }
+            if tag.album().map_or(true, |a| a.trim().is_empty()) {
+                tag.set_album(album.clone());
+            }
+            if tag.artist().map_or(true, |a| a.trim().is_empty()) {
+                tag.set_artist(artist.clone());
+            }
+
+            // `save_to` lives on `TagExt`, which requires a `FileLike` — so the
+            // file is re-probed and the (possibly existing) tag replaced with the
+            // patched one. A read-only file should still make it into the
+            // library; the tags just stay unwritten.
+            use lofty::config::WriteOptions;
+            let write_result = (|| -> Result<(), lofty::error::LoftyError> {
+                let mut tagged = lofty::probe::Probe::open(path)?.read()?;
+                tagged.insert_tag(tag.clone());
+                tagged.save_to_path(path, WriteOptions::default())
+            })();
+
+            match write_result {
+                Ok(()) => {}
+                Err(e) => {
+                    eprintln!(
+                        "Warning: could not write derived tags to {}: {}",
+                        file_path, e
+                    );
+                }
+            }
+        }
 
         // Album artist is optional, fallback to artist
         let album_artist = tag
