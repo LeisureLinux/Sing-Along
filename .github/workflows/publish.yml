@@ -92,7 +92,11 @@ jobs:
         working-directory: src-tauri
         run: cargo test
 
-      - uses: tauri-apps/tauri-action@v0
+      # Pinned to v1 rather than the v0 floating tag: `releaseAssetNamePattern`
+      # does not exist in v0's action.yml, and an unknown input is ignored with
+      # only a warning — the release then ships Tauri's default filename and
+      # looks like the pattern was wrong.
+      - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -120,10 +124,10 @@ jobs:
           # describing where to fetch an update. This project has no updater, so
           # that JSON would point at an update path no client can follow.
           #
-          # Note the parameter is `includeUpdaterJson`, not `uploadUpdaterJson` —
-          # the action only warns about unknown inputs and silently keeps the
-          # default, which is how the first attempt at this quietly did nothing.
-          includeUpdaterJson: false
+          # The input was renamed `includeUpdaterJson` -> `uploadUpdaterJson` in
+          # v1; getting it wrong is silent (unknown inputs only warn and the
+          # default is kept), so it is worth re-checking after any action bump.
+          uploadUpdaterJson: false
           args: ${{ matrix.args }}
           # One asset, one predictable name. Tauri's default is
           # `Sing-Along_2.5.4_amd64.deb` — a capital and an underscore in a URL
