@@ -31,7 +31,7 @@ src/
 │   ├── library/            # Library views + lyric edit/search
 │   └── now-playing/        # Playback controls
 ├── composables/            # Shared state (player, downloader, search, edit)
-├── i18n/                   # vue-i18n setup + locales/ (11 languages)
+├── i18n/                   # vue-i18n setup + locales/ (17 languages)
 └── utils/                  # Helpers (lyrics, durations, linting)
 ```
 
@@ -79,10 +79,13 @@ by Node test runs where `localStorage` does not exist; `initLocale()` is called
 from `main.js` after the DOM is ready for exactly that reason. A module-level
 `readLocalePreference()` here breaks every test that transitively imports it.
 
-**Locale resolution** walks `navigator.languages` and takes the first tag whose
-primary subtag matches a shipped locale, so `['fr-CA', 'en']` yields French rather
-than falling to English. Chinese is special-cased on the script/region subtag:
-`Hant`/`TW`/`HK`/`MO` give `zh-Hant`, everything else under `zh` gives `zh-Hans`.
+**Locale resolution** walks `navigator.languages` and takes the first tag that
+matches a shipped locale, so `['fr-CA', 'en']` yields French rather than falling
+to English. Matching is tried in order: the full tag (`pt-BR`), then the primary
+subtag (`fr-CA` → `fr`), then a shipped locale sharing the primary subtag
+(`pt-PT` → `pt-BR`, the only Portuguese that ships). Chinese is special-cased on
+the script/region subtag first: `Hant`/`TW`/`HK`/`MO` give `zh-Hant`, everything
+else under `zh` gives `zh-Hans`.
 
 **Adding a language** is three steps: copy `locales/en.js` to
 `locales/<tag>.js`, translate the values (never the keys), then add the module to

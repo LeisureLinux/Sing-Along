@@ -1,0 +1,296 @@
+/**
+ * Turkish strings.
+ *
+ * Keys mirror en.js exactly — see that file for the reference.
+ *
+ * Turkish uses the informal "sen" form throughout, which is what consumer
+ * desktop software normally uses; the formal "siz" would read as addressing a
+ * stranger.
+ */
+export default {
+  app: {
+    name: 'Sing-Along',
+    windowTitle: 'Sing-Along: çevrimdışı şarkı sözü indirme, düzenleme ve dışa aktarma oynatıcısı',
+    loadingLibrary: 'Kitaplık yükleniyor…',
+  },
+
+  setup: {
+    selectStrategy: 'Yöntem seç',
+
+    selectDirectories: 'Klasör seç',
+  },
+
+  tabs: {
+    tracks: 'Parçalar',
+    albums: 'Albümler',
+    artists: 'Sanatçılar',
+    lrclib: 'Şarkı sözü ara',
+  },
+
+  actions: {
+    chooseFile: 'Dosya seç…',
+
+    download: 'İndir',
+    downloadAll: 'Tüm şarkı sözlerini indir',
+    export: 'Dışa aktar',
+    cancel: 'İptal',
+    close: 'Kapat',
+    save: 'Kaydet',
+    delete: 'Sil',
+    confirm: 'Onayla',
+    back: 'Geri',
+    search: 'Ara',
+    refresh: 'Yenile',
+    open: 'Aç',
+    copy: 'Kopyala',
+    copied: 'Kopyalandı',
+    apply: 'Uygula',
+    continueLabel: 'Devam',
+    syncLyrics: 'Şarkı sözünü eşitle',
+    retry: 'Tekrar dene',
+  },
+
+  search: {
+    noTracksFound: 'Parça bulunamadı',
+    typeToSearch: 'Kitaplıkta aramak için yaz',
+
+    libraryPlaceholder: 'Kitaplıkta parça ara…',
+    lyricsPlaceholder: 'Şarkı sözü bulmak için parça adı, albüm veya sanatçı yaz…',
+    title: 'Başlık',
+    album: 'Albüm',
+    artist: 'Sanatçı',
+    tracksPlaceholder: 'Parça ara…',
+    albumsPlaceholder: 'Albüm ara…',
+    artistsPlaceholder: 'Sanatçı ara…',
+    noResults: 'Sonuç yok',
+  },
+
+  track: {
+    duration: 'Süre',
+    lyrics: 'Şarkı sözü',
+    instrumental: 'Enstrümantal',
+    synced: 'Eşitlenmiş',
+    plain: 'Düz',
+    track: 'Parça',
+    unknownAlbum: 'Bilinmeyen albüm',
+    unknownArtist: 'Bilinmeyen sanatçı',
+  },
+
+  player: {
+    previousTrack: 'Önceki parça',
+    nextTrack: 'Sonraki parça',
+    playbackSpeed: 'Oynatma hızı',
+    shuffleOn: 'Karıştırma açık',
+    shuffleOff: 'Karıştırma kapalı',
+    repeatOne: 'Birini tekrarla',
+    repeatAll: 'Tümünü tekrarla',
+    repeatOff: 'Tekrar kapalı',
+    volume: 'Ses düzeyi',
+  },
+
+  filters: {
+    allTracks: 'Tüm parçalar (var olan şarkı sözlerinin üzerine yaz)',
+    syncedTracks: 'Yalnızca eşitlenmiş sözü olmayanlar',
+    plainTracks: 'Yalnızca düz sözü olmayanlar',
+    instrumentalTracks: 'Enstrümantal parçalar',
+    noLyricsTracks: 'Hiç şarkı sözü olmayan parçalar',
+  },
+
+  config: {
+    appearance: 'Görünüm',
+    fileWriteWarning:
+      'Bu seçenek ses dosyalarına zarar verebilir. Etkinleştirmeden önce kitaplığını yedekle.',
+    scanIncremental: 'Yeni ve değişen parçaları tara…',
+    scanFull: 'Kitaplığı sıfırla ve tümünü tara…',
+
+    title: 'Ayarlar',
+    theme: 'Tema',
+    themeAuto: 'Otomatik',
+    themeLight: 'Açık',
+    themeDark: 'Koyu',
+    language: 'Dil',
+    languageAuto: 'Sistemi izle',
+    directories: 'Müzik klasörleri',
+    addDirectory: 'Klasör ekle',
+    manageDirectories: 'Klasörleri yönet',
+    directoriesHint: 'Taranacak klasörleri ekle ve kaldır…',
+    lrclibInstance: 'LRCLIB sunucusu',
+    embed: 'Şarkı sözlerini müzik dosyalarına göm',
+    coverSync: 'Albüm kapağı',
+    syncCoverLabel: 'Albüm kapağını indir',
+    syncCoverHint:
+      'Sözler eşitlenirken kapak görselini iTunes veya Deezer’dan indirip ses dosyasına gömer. İkisi de herkese açık API’lerdir, anahtar gerekmez.',
+    embedExperimental: 'Deneysel',
+    downloadLyricsFor: 'Şarkı sözlerini indir',
+    showLineCount: 'Satır sayısını göster',
+    save: 'Ayarları kaydet',
+    saved: 'Ayarlar kaydedildi',
+  },
+
+  exportOptions: {
+    title: 'Dışa aktarma seçenekleri',
+    toTrackDirectory: 'Tüm sözleri her parçanın kendi klasörüne aktar',
+    plainLyrics: 'Düz şarkı sözü (.txt)',
+    syncedLyrics: 'Eşitlenmiş şarkı sözü (.lrc)',
+    embedIntoTrack: 'Parçaya göm',
+    wordLevelHint: 'Kelime kelime sözler — hedef oynatıcıya göre bir biçim seç:',
+    wordNone: 'Kelime kelime aktarma',
+    a2: 'Enhanced LRC / A2 (.alrc) — Android',
+    ttml: 'TTML (.ttml) — iOS',
+  },
+
+  downloadOptions: {
+    skipExisting: 'Sözü olan parçaları atla',
+
+    title: 'İndirme seçenekleri',
+    autoExport: 'Sözleri otomatik dışa aktar',
+    createLrc: 'Ayrı LRC dosyaları oluştur',
+    exportLrc: 'LRC (.lrc)',
+    exportTxt: 'Düz metin (.txt)',
+    syncCover: 'Albüm kapağını da indir',
+    exportEmbedded: 'Dosyalara göm',
+    start: 'İndirmeyi başlat',
+  },
+
+  editor: {
+    syncWord: 'Kelimeyi eşitle',
+    noPlainYet: 'Henüz düz şarkı sözü yok',
+    noSyncedYet: 'Henüz eşitlenmiş satır yok',
+    markedInstrumental: 'Parça enstrümantal olarak işaretli',
+
+    publishHint: 'Sözleri LRCLIB sunucunda yayınla:',
+    exportHint: 'Parçanın klasörüne aktar:',
+    savingAndExporting: 'Kaydediliyor ve aktarılıyor…',
+    saveAndExport: 'Kaydet ve dışa aktar',
+    saveHint: 'Şarkı sözünü kaydet',
+    saveAndPublish: 'Kaydet ve yayınla',
+  },
+
+  about: {
+    title: 'Hakkında',
+    update: 'Güncelleme',
+    currentVersion: 'Geçerli sürüm',
+    newestVersion: 'En yeni sürüm',
+    updateAvailable: 'Yeni bir sürüm var.',
+    upToDate: 'En yeni sürümü kullanıyorsun.',
+    updateFailed: 'Güncellemeler denetlenemedi.',
+    homePage: 'Ana sayfa, iletişim ve destek',
+    credits: 'Katkılar ve lisans',
+    creditsText:
+      'Sing-Along, LRCGET’in bir çatalıdır, Copyright (c) 2023 tranxuanthang, MIT lisansı ile kullanılır.',
+    donate: 'Destek ol',
+    donateAlt: 'WeChat ödeme QR kodu',
+    donateHint: 'Sing-Along’u desteklediğin için teşekkürler.',
+    releasePage: 'Sing-Along sürüm sayfası',
+    checking: 'GitHub’dan en yeni sürüm bilgisi alınıyor…',
+    forkOf: 'Sing-Along şunun bir çatalıdır:',
+    copyrightSuffix: ', Copyright (c) 2023 tranxuanthang, MIT lisansı ile kullanılır.',
+    contributors: 'Daha önce kod katkısında bulunanlar',
+    contributorsSuffix: ', onlar da MIT lisansı ile.',
+    lyricsFrom: 'Şarkı sözleri şunun tarafından sağlanır:',
+    lyricsProvidedBy: 'Şarkı sözleri LRCLIB tarafından sağlanır.',
+  },
+
+  status: {
+    scanning: 'Taranıyor…',
+    discovering: 'Dosyalar bulunuyor…',
+    preparing: 'Hazırlanıyor',
+    downloading: 'İndiriliyor',
+    exporting: 'Dışa aktarılıyor',
+    exported: 'Aktarıldı',
+    processing: 'İşleniyor',
+    loadingEditor: 'Düzenleyici yükleniyor…',
+    noLyricsFound: 'Şarkı sözü bulunamadı',
+  },
+
+  lyricsSearch: {
+    title: 'Şarkı sözü ara',
+    placeholder: 'Şarkı sözü bulmak için parça adı, albüm veya sanatçı yaz…',
+    searchingFor: 'Aranıyor',
+    foundTracks: '{count} parça bulundu',
+    lines: '{count} satır',
+    preview: 'Bu sözleri önizle',
+    edit: 'Bu sözleri düzenle',
+    errorSearch: 'Şarkı sözü aranırken hata oluştu. Lütfen tekrar dene.',
+    errorOpen: 'Sözler açılırken hata oluştu. Lütfen tekrar dene.',
+    chooseReferenceTrack: 'Referans parça seç',
+    searchTracksPlaceholder: 'Kitaplıkta parça ara…',
+    editWithAudio: 'Sesle birlikte düzenle',
+    existingLyricsFound: 'Bu sözler zaten var',
+    redownload: 'Yeniden indir',
+    errorLoadTracks: 'Parçalar yüklenemedi',
+    errorReadAudio: 'Ses dosyası okunamadı',
+    errorRedownload: 'Sözler yeniden indirilemedi',
+    noLyricsSubmitted: 'Bu parça için henüz söz gönderilmedi',
+    continueEditing: 'Düzenlemeye devam et',
+  },
+
+  lrclib: {
+    previousDownload: 'Bu parçanın sözleri daha önce indirilmişti.',
+  },
+
+  scriptConversion: {
+    legend: 'İndirilen sözlerin Çince yazımı',
+    off: 'Yayınlandığı gibi bırak',
+    toSimplified: 'Basitleştirilmiş Çinceye çevir',
+    toTraditional: 'Geleneksel Çinceye çevir',
+    hint: 'Bir kez sorulur, sonra hatırlanır. Dönüştürme otomatiktir ve genelde doğrudur, ancak birden çok karşılığı olan tüm karakterleri çözemez.',
+  },
+
+  shortcuts: {
+    changeFor: '{action} kısayolunu değiştir',
+    resetFor: '{action} kısayolunu sıfırla',
+    deleteSelectedLine: 'Seçili satırı sil',
+    deleteSelectedSeparatorsToMergeAdjacentWords: 'Komşu kelimeleri birleştirmek için seçili ayırıcıları sil',
+    forward100MsPlay: '100 ms ileri sar ve oynat',
+    forwardLineEndBy100Ms: 'Satır sonunu 100 ms ileri al',
+    openKeyboardShortcuts: 'Klavye kısayollarını aç',
+    replayPreviousLine: 'Önceki satırı yeniden oynat',
+    replaySelectedLine: 'Seçili satırı yeniden oynat',
+    resetSeparatorCursorToSecondDivider: 'İmleci ikinci ayırıcıya döndür',
+    resetZoom: 'Yakınlaştırmayı sıfırla',
+    rewind100MsPlay: '100 ms geri sar ve oynat',
+    rewindLineEndBy100Ms: 'Satır sonunu 100 ms geri al',
+    saveLyrics: 'Şarkı sözünü kaydet',
+    selectNextLine: 'Sonraki satırı seç',
+    selectNextSeparator: 'Sonraki ayırıcıyı seç',
+    selectPreviousLine: 'Önceki satırı seç',
+    selectPreviousSeparator: 'Önceki ayırıcıyı seç',
+    syncLineMoveToNextSkipLineEndSync: 'Satırı eşitle ve sonrakine geç (satır sonu hariç)',
+    syncLineSyncPreviousLineEndMoveToNext: 'Satırı ve önceki satır sonunu eşitle, sonra ilerle',
+    syncLineToCurrentPlayback: 'Satırı geçerli oynatma konumuna eşitle',
+    syncSelectedLineEndMoveToNext: 'Seçili satır sonunu eşitle ve ilerle',
+    syncSelectedLineEndToCurrentPlayback: 'Seçili satır sonunu geçerli oynatma konumuna eşitle',
+    syncSelectedSeparatorMoveToNext: 'Seçili ayırıcıyı eşitle ve sonrakine geç',
+    syncSelectedSeparatorStaySelected: 'Seçili ayırıcıyı eşitle (seçim kalsın)',
+    zoomIn: 'Yakınlaştır',
+    zoomInOut: 'Yakınlaştır/uzaklaştır',
+    zoomOut: 'Uzaklaştır',
+  },
+
+  viewer: {
+    downloadDone: 'İndirildi',
+    exportDone: 'Dışa aktarma tamamlandı',
+    finish: 'Bitir',
+    stop: 'Durdur',
+    found: 'bulundu',
+    notFound: 'bulunamadı',
+    total: 'toplam',
+    exported: 'aktarıldı',
+    skipped: 'atlandı',
+    errors: 'hata',
+    exportOk: 'başarıyla aktarıldı',
+    unknown: 'bilinmiyor',
+  },
+
+  errors: {
+    scanFailed: 'Kitaplık taranamadı',
+    loadTracksFailed: 'Parçalar yüklenemedi',
+    searchFailed: 'Şarkı sözü araması başarısız. Lütfen tekrar dene.',
+    nothingToExport: 'Dışa aktarılacak sözü olan parça bulunamadı',
+    exportFormatRequired: 'En az bir dışa aktarma biçimi seç',
+    exportStartFailed: 'Dışa aktarma başlatılamadı: {error}',
+    scanFailedDetail: 'Kitaplık taranamadı: {error}',
+    unsavedChanges: 'Kaydedilmemiş değişiklikler var. Kapatmak istediğine emin misin?',
+  },
+}

@@ -54,8 +54,9 @@ the audio tags.
 no key — and writes the front cover into the audio file's tags. Off by default,
 because it rewrites your files.
 
-**Eleven UI languages.** English, 简体中文, 繁體中文, 日本語, 한국어, Español,
-Français, Deutsch, Tiếng Việt, ไทย, Русский — following the system language by
+**Seventeen UI languages.** English, 简体中文, 繁體中文, 日本語, 한국어, Español,
+Français, Deutsch, Italiano, Português (Brasil), Polski, Türkçe, Русский,
+Українська, Tiếng Việt, ไทย, Bahasa Indonesia — following the system language by
 default, switching live without a restart.
 
 ## Two lyric sources

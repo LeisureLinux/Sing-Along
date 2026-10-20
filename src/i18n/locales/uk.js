@@ -1,0 +1,296 @@
+/**
+ * Ukrainian strings.
+ *
+ * Keys mirror en.js exactly — see that file for the reference.
+ *
+ * Terminology deliberately follows Ukrainian usage rather than transliterating
+ * the Russian file: "тека" not "папка", "файл" not "файл", "обкладинка" for
+ * album art, "відтворення" for playback.
+ */
+export default {
+  app: {
+    name: 'Sing-Along',
+    windowTitle: 'Sing-Along: плеєр із завантаженням, редагуванням і експортом текстів офлайн',
+    loadingLibrary: 'Завантаження бібліотеки…',
+  },
+
+  setup: {
+    selectStrategy: 'Вибрати спосіб',
+
+    selectDirectories: 'Вибрати теки',
+  },
+
+  tabs: {
+    tracks: 'Композиції',
+    albums: 'Альбоми',
+    artists: 'Виконавці',
+    lrclib: 'Пошук тексту',
+  },
+
+  actions: {
+    chooseFile: 'Вибрати файл…',
+
+    download: 'Завантажити',
+    downloadAll: 'Завантажити всі тексти',
+    export: 'Експорт',
+    cancel: 'Скасувати',
+    close: 'Закрити',
+    save: 'Зберегти',
+    delete: 'Видалити',
+    confirm: 'Підтвердити',
+    back: 'Назад',
+    search: 'Пошук',
+    refresh: 'Оновити',
+    open: 'Відкрити',
+    copy: 'Копіювати',
+    copied: 'Скопійовано',
+    apply: 'Застосувати',
+    continueLabel: 'Продовжити',
+    syncLyrics: 'Синхронізувати текст',
+    retry: 'Повторити',
+  },
+
+  search: {
+    noTracksFound: 'Композицій не знайдено',
+    typeToSearch: 'Введіть запит для пошуку в бібліотеці',
+
+    libraryPlaceholder: 'Пошук композицій у бібліотеці…',
+    lyricsPlaceholder: 'Введіть назву, альбом або виконавця, щоб знайти текст…',
+    title: 'Назва',
+    album: 'Альбом',
+    artist: 'Виконавець',
+    tracksPlaceholder: 'Пошук композицій…',
+    albumsPlaceholder: 'Пошук альбомів…',
+    artistsPlaceholder: 'Пошук виконавців…',
+    noResults: 'Нічого не знайдено',
+  },
+
+  track: {
+    duration: 'Тривалість',
+    lyrics: 'Текст',
+    instrumental: 'Інструментал',
+    synced: 'Синхронізовано',
+    plain: 'Без синхронізації',
+    track: 'Композиція',
+    unknownAlbum: 'Невідомий альбом',
+    unknownArtist: 'Невідомий виконавець',
+  },
+
+  player: {
+    previousTrack: 'Попередня композиція',
+    nextTrack: 'Наступна композиція',
+    playbackSpeed: 'Швидкість відтворення',
+    shuffleOn: 'Перемішування увімкнено',
+    shuffleOff: 'Перемішування вимкнено',
+    repeatOne: 'Повтор однієї',
+    repeatAll: 'Повтор усіх',
+    repeatOff: 'Повтор вимкнено',
+    volume: 'Гучність',
+  },
+
+  filters: {
+    allTracks: 'Усі композиції (перезаписати наявні тексти)',
+    syncedTracks: 'Лише без синхронізованого тексту',
+    plainTracks: 'Лише без звичайного тексту',
+    instrumentalTracks: 'Інструментальні композиції',
+    noLyricsTracks: 'Композиції зовсім без тексту',
+  },
+
+  config: {
+    appearance: 'Вигляд',
+    fileWriteWarning:
+      'Ця опція може пошкодити ваші аудіофайли. Зробіть резервну копію бібліотеки перед увімкненням.',
+    scanIncremental: 'Шукати нові та змінені композиції…',
+    scanFull: 'Скинути бібліотеку та просканувати все…',
+
+    title: 'Налаштування',
+    theme: 'Тема',
+    themeAuto: 'Автоматично',
+    themeLight: 'Світла',
+    themeDark: 'Темна',
+    language: 'Мова',
+    languageAuto: 'Як у системі',
+    directories: 'Теки з музикою',
+    addDirectory: 'Додати теку',
+    manageDirectories: 'Керування теками',
+    directoriesHint: 'Додавати й вилучати теки для сканування…',
+    lrclibInstance: 'Примірник LRCLIB',
+    embed: 'Вбудовувати текст у музичні файли',
+    coverSync: 'Обкладинка альбому',
+    syncCoverLabel: 'Завантажувати обкладинку альбому',
+    syncCoverHint:
+      'Під час синхронізації тексту обкладинка завантажується з iTunes або Deezer і вбудовується в аудіофайл. Обидва джерела публічні й не потребують ключа.',
+    embedExperimental: 'Експериментально',
+    downloadLyricsFor: 'Завантажувати текст для',
+    showLineCount: 'Показувати кількість рядків',
+    save: 'Зберегти налаштування',
+    saved: 'Налаштування збережено',
+  },
+
+  exportOptions: {
+    title: 'Параметри експорту',
+    toTrackDirectory: 'Експортувати всі тексти в теку відповідної композиції',
+    plainLyrics: 'Звичайний текст (.txt)',
+    syncedLyrics: 'Синхронізований текст (.lrc)',
+    embedIntoTrack: 'Вбудувати у файл композиції',
+    wordLevelHint: 'Послівний текст — виберіть формат під цільовий плеєр:',
+    wordNone: 'Не експортувати послівно',
+    a2: 'Enhanced LRC / A2 (.alrc) — Android',
+    ttml: 'TTML (.ttml) — iOS',
+  },
+
+  downloadOptions: {
+    skipExisting: 'Пропускати композиції, де текст уже є',
+
+    title: 'Параметри завантаження',
+    autoExport: 'Автоматично експортувати тексти',
+    createLrc: 'Створювати окремі файли LRC',
+    exportLrc: 'LRC (.lrc)',
+    exportTxt: 'Звичайний текст (.txt)',
+    syncCover: 'Також завантажувати обкладинку альбому',
+    exportEmbedded: 'Вбудувати у файли',
+    start: 'Почати завантаження',
+  },
+
+  editor: {
+    syncWord: 'Синхронізувати слово',
+    noPlainYet: 'Звичайного тексту ще немає',
+    noSyncedYet: 'Синхронізованих рядків ще немає',
+    markedInstrumental: 'Композицію позначено як інструментальну',
+
+    publishHint: 'Опублікувати текст у вашому примірнику LRCLIB:',
+    exportHint: 'Експортувати в теку композиції:',
+    savingAndExporting: 'Збереження та експорт…',
+    saveAndExport: 'Зберегти та експортувати',
+    saveHint: 'Зберегти текст',
+    saveAndPublish: 'Зберегти та опублікувати',
+  },
+
+  about: {
+    title: 'Про програму',
+    update: 'Оновлення',
+    currentVersion: 'Поточна версія',
+    newestVersion: 'Найновіша версія',
+    updateAvailable: 'Доступна нова версія.',
+    upToDate: 'У вас найновіша версія.',
+    updateFailed: 'Не вдалося перевірити оновлення.',
+    homePage: 'Домашня сторінка, контакти та підтримка',
+    credits: 'Подяки та ліцензія',
+    creditsText:
+      'Sing-Along — це форк LRCGET, Copyright (c) 2023 tranxuanthang, використовується за ліцензією MIT.',
+    donate: 'Підтримати',
+    donateAlt: 'QR-код оплати WeChat',
+    donateHint: 'Дякуємо за підтримку Sing-Along.',
+    releasePage: 'Сторінка випусків Sing-Along',
+    checking: 'Отримання даних про найновішу версію з GitHub…',
+    forkOf: 'Sing-Along — це форк',
+    copyrightSuffix: ', Copyright (c) 2023 tranxuanthang, використовується за ліцензією MIT.',
+    contributors: 'Раніше код надавали',
+    contributorsSuffix: ', також за ліцензією MIT.',
+    lyricsFrom: 'Тексти надає',
+    lyricsProvidedBy: 'Тексти надає LRCLIB.',
+  },
+
+  status: {
+    scanning: 'Сканування…',
+    discovering: 'Пошук файлів…',
+    preparing: 'Підготовка',
+    downloading: 'Завантаження',
+    exporting: 'Експорт',
+    exported: 'Експортовано',
+    processing: 'Обробка',
+    loadingEditor: 'Завантаження редактора…',
+    noLyricsFound: 'Текст не знайдено',
+  },
+
+  lyricsSearch: {
+    title: 'Пошук тексту пісні',
+    placeholder: 'Введіть назву, альбом або виконавця, щоб знайти текст…',
+    searchingFor: 'Пошук',
+    foundTracks: 'Знайдено композицій: {count}',
+    lines: 'Рядків: {count}',
+    preview: 'Переглянути цей текст',
+    edit: 'Редагувати цей текст',
+    errorSearch: 'Під час пошуку тексту сталася помилка. Спробуйте ще раз.',
+    errorOpen: 'Під час відкриття тексту сталася помилка. Спробуйте ще раз.',
+    chooseReferenceTrack: 'Виберіть композицію для звірки',
+    searchTracksPlaceholder: 'Пошук композицій у бібліотеці…',
+    editWithAudio: 'Редагувати зі звуком',
+    existingLyricsFound: 'Такий текст уже є',
+    redownload: 'Завантажити знову',
+    errorLoadTracks: 'Не вдалося завантажити композиції',
+    errorReadAudio: 'Не вдалося прочитати аудіофайл',
+    errorRedownload: 'Не вдалося завантажити текст знову',
+    noLyricsSubmitted: 'Для цієї композиції текст ще не надіслано',
+    continueEditing: 'Продовжити редагування',
+  },
+
+  lrclib: {
+    previousDownload: 'Текст для цієї композиції вже завантажувався раніше.',
+  },
+
+  scriptConversion: {
+    legend: 'Китайське письмо завантажених текстів',
+    off: 'Залишити як опубліковано',
+    toSimplified: 'Перетворити на спрощену китайську',
+    toTraditional: 'Перетворити на традиційну китайську',
+    hint: 'Запитується один раз, потім запам’ятовується. Перетворення автоматичне й зазвичай правильне, але не може розв’язати всі ієрогліфи з кількома відповідниками.',
+  },
+
+  shortcuts: {
+    changeFor: 'Змінити сполучення для «{action}»',
+    resetFor: 'Скинути сполучення для «{action}»',
+    deleteSelectedLine: 'Видалити вибраний рядок',
+    deleteSelectedSeparatorsToMergeAdjacentWords: 'Видалити вибрані роздільники, об’єднавши сусідні слова',
+    forward100MsPlay: 'Вперед на 100 мс і відтворити',
+    forwardLineEndBy100Ms: 'Кінець рядка вперед на 100 мс',
+    openKeyboardShortcuts: 'Відкрити сполучення клавіш',
+    replayPreviousLine: 'Повторити попередній рядок',
+    replaySelectedLine: 'Повторити вибраний рядок',
+    resetSeparatorCursorToSecondDivider: 'Повернути курсор до другого роздільника',
+    resetZoom: 'Скинути масштаб',
+    rewind100MsPlay: 'Назад на 100 мс і відтворити',
+    rewindLineEndBy100Ms: 'Кінець рядка назад на 100 мс',
+    saveLyrics: 'Зберегти текст',
+    selectNextLine: 'Вибрати наступний рядок',
+    selectNextSeparator: 'Вибрати наступний роздільник',
+    selectPreviousLine: 'Вибрати попередній рядок',
+    selectPreviousSeparator: 'Вибрати попередній роздільник',
+    syncLineMoveToNextSkipLineEndSync: 'Синхронізувати рядок і перейти далі (без кінця рядка)',
+    syncLineSyncPreviousLineEndMoveToNext: 'Синхронізувати рядок і кінець попереднього, потім далі',
+    syncLineToCurrentPlayback: 'Синхронізувати рядок із поточною позицією',
+    syncSelectedLineEndMoveToNext: 'Синхронізувати кінець вибраного рядка і перейти далі',
+    syncSelectedLineEndToCurrentPlayback: 'Синхронізувати кінець вибраного рядка з поточною позицією',
+    syncSelectedSeparatorMoveToNext: 'Синхронізувати вибраний роздільник і перейти до наступного',
+    syncSelectedSeparatorStaySelected: 'Синхронізувати вибраний роздільник (залишитися на ньому)',
+    zoomIn: 'Збільшити',
+    zoomInOut: 'Збільшити/зменшити',
+    zoomOut: 'Зменшити',
+  },
+
+  viewer: {
+    downloadDone: 'Завантажено',
+    exportDone: 'Експорт завершено',
+    finish: 'Готово',
+    stop: 'Зупинити',
+    found: 'знайдено',
+    notFound: 'не знайдено',
+    total: 'усього',
+    exported: 'експортовано',
+    skipped: 'пропущено',
+    errors: 'помилок',
+    exportOk: 'успішно експортовано',
+    unknown: 'невідомо',
+  },
+
+  errors: {
+    scanFailed: 'Не вдалося просканувати бібліотеку',
+    loadTracksFailed: 'Не вдалося завантажити композиції',
+    searchFailed: 'Не вдалося знайти текст. Спробуйте ще раз.',
+    nothingToExport: 'Не знайдено композицій із текстом для експорту',
+    exportFormatRequired: 'Виберіть хоча б один формат експорту',
+    exportStartFailed: 'Не вдалося почати експорт: {error}',
+    scanFailedDetail: 'Не вдалося просканувати бібліотеку: {error}',
+    unsavedChanges: 'Є незбережені зміни. Точно закрити?',
+  },
+}

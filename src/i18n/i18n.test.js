@@ -10,6 +10,12 @@ import de from './locales/de.js'
 import vi from './locales/vi.js'
 import th from './locales/th.js'
 import ru from './locales/ru.js'
+import ptBR from './locales/pt-BR.js'
+import itLocale from './locales/it.js'
+import tr from './locales/tr.js'
+import id from './locales/id.js'
+import pl from './locales/pl.js'
+import uk from './locales/uk.js'
 import { AVAILABLE_LOCALES, resolveLocale } from './index.js'
 
 const LOCALES = {
@@ -24,6 +30,12 @@ const LOCALES = {
   vi,
   th,
   ru,
+  'pt-BR': ptBR,
+  it: itLocale,
+  tr,
+  id,
+  pl,
+  uk,
 }
 
 /** Flatten to `group.key` paths so a missing or extra key is easy to spot. */
@@ -97,6 +109,13 @@ describe('resolveLocale', () => {
     [['th-TH'], 'th'],
     [['ru-RU'], 'ru'],
     [['en-GB'], 'en'],
+    [['pt-BR'], 'pt-BR'],
+    [['pt-PT'], 'pt-BR'],
+    [['it-IT'], 'it'],
+    [['tr-TR'], 'tr'],
+    [['id-ID'], 'id'],
+    [['pl-PL'], 'pl'],
+    [['uk-UA'], 'uk'],
   ])('maps %j to %s', (languages, expected) => {
     withLanguages(languages, () => expect(resolveLocale('auto')).toBe(expected))
   })

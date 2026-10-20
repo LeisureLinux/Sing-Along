@@ -11,6 +11,12 @@ import de from './locales/de.js'
 import vi from './locales/vi.js'
 import th from './locales/th.js'
 import ru from './locales/ru.js'
+import ptBR from './locales/pt-BR.js'
+import it from './locales/it.js'
+import tr from './locales/tr.js'
+import id from './locales/id.js'
+import pl from './locales/pl.js'
+import uk from './locales/uk.js'
 
 // Persisted choice; 'auto' follows the system language.
 const STORAGE_KEY = 'sing-along.locale'
@@ -28,6 +34,12 @@ export const AVAILABLE_LOCALES = [
   { value: 'vi', label: 'Tiếng Việt' },
   { value: 'th', label: 'ไทย' },
   { value: 'ru', label: 'Русский' },
+  { value: 'pt-BR', label: 'Português (Brasil)' },
+  { value: 'it', label: 'Italiano' },
+  { value: 'tr', label: 'Türkçe' },
+  { value: 'id', label: 'Bahasa Indonesia' },
+  { value: 'pl', label: 'Polski' },
+  { value: 'uk', label: 'Українська' },
 ]
 
 /**
@@ -41,13 +53,27 @@ export const AVAILABLE_LOCALES = [
  */
 const matchLocale = tag => {
   const lower = tag.toLowerCase()
-  const primary = lower.split('-')[0]
 
-  if (primary === 'zh') {
+  if (lower.split('-')[0] === 'zh') {
     return /hant|tw|hk|mo/.test(lower) ? 'zh-Hant' : 'zh-Hans'
   }
 
-  return AVAILABLE_LOCALES.some(option => option.value === primary) ? primary : null
+  // Exact match first, so a region-specific locale like `pt-BR` is found by its
+  // full tag rather than being reduced to `pt` and missed.
+  const exact = AVAILABLE_LOCALES.find(option => option.value.toLowerCase() === lower)
+  if (exact) {
+    return exact.value
+  }
+
+  // Then fall back to the primary subtag: `fr-CA` and `de-AT` should get their
+  // base language. A shipped locale that starts with `<primary>-` also counts,
+  // which is how `pt-PT` lands on `pt-BR` — the only Portuguese that ships.
+  const primary = lower.split('-')[0]
+  const match = AVAILABLE_LOCALES.find(option => {
+    const value = option.value.toLowerCase()
+    return value === primary || value.startsWith(`${primary}-`)
+  })
+  return match ? match.value : null
 }
 
 /**
@@ -107,6 +133,12 @@ const i18n = createI18n({
     vi,
     th,
     ru,
+    'pt-BR': ptBR,
+    it,
+    tr,
+    id,
+    pl,
+    uk,
   },
 })
 
