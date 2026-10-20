@@ -61,6 +61,12 @@ export default {
     noResults: 'Nessun risultato',
   },
 
+  album: {
+    tracks: 'brani',
+    trackCount: '{count} brani',
+    downloadAlbumLyrics: 'Scarica i testi dell’album',
+  },
+
   track: {
     duration: 'Durata',
     lyrics: 'Testo',

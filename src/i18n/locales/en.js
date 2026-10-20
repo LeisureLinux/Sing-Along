@@ -64,6 +64,12 @@ export default {
     noResults: 'No results',
   },
 
+  album: {
+    tracks: 'Tracks',
+    trackCount: '{count} tracks',
+    downloadAlbumLyrics: 'Download album lyrics',
+  },
+
   track: {
     duration: 'Duration',
     lyrics: 'Lyrics',

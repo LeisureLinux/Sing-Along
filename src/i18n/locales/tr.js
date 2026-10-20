@@ -65,6 +65,12 @@ export default {
     noResults: 'Sonuç yok',
   },
 
+  album: {
+    tracks: 'parça',
+    trackCount: '{count} parça',
+    downloadAlbumLyrics: 'Albümün şarkı sözlerini indir',
+  },
+
   track: {
     duration: 'Süre',
     lyrics: 'Şarkı sözü',

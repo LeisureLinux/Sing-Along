@@ -7,36 +7,51 @@
         </button>
       </div>
 
-      <div class="flex justify-between">
-        <div class="flex flex-col mb-8">
-          <div class="text-thin text-xl text-neutral-900 dark:text-white">
-            {{ album.name }}
-          </div>
-          <div class="flex items-center gap-2">
-            <div
-              class="text-sm text-neutral-800 group-hover:text-neutral-800 transition dark:text-white"
-            >
-              {{ album.tracks_count }} tracks
-            </div>
-            <div class="border-r border-neutral-300 h-3 flex-none" />
-            <div
-              class="text-sm text-neutral-800 group-hover:text-neutral-800 transition dark:text-white"
-            >
-              {{ album.artist_name }}
-            </div>
+      <!-- Album header: large cover, then the identifying text. The cover keeps
+           a fixed footprint when missing so the track table below does not jump
+           between albums that do and do not have art. -->
+      <div class="flex gap-5 mb-8">
+        <div class="flex-none">
+          <img
+            v-if="coverSrc"
+            :src="coverSrc"
+            :alt="album.name"
+            class="w-40 h-40 rounded-lg object-cover shadow-md"
+            draggable="false"
+          />
+          <div
+            v-else
+            class="w-40 h-40 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex justify-center items-center text-neutral-400 dark:text-neutral-600"
+          >
+            <AlbumIcon class="text-6xl" />
           </div>
         </div>
 
-        <div class="">
-          <button
-            class="button button-normal px-4 py-1.5 text-xs rounded-full"
-            @click.stop.prevent="downloadAlbumLyrics"
-          >
-            <div class="text-sm">
-              <DownloadMultiple />
+        <div class="flex flex-col justify-between grow min-w-0">
+          <div>
+            <div class="text-thin text-2xl text-neutral-900 dark:text-white truncate">
+              {{ album.name }}
             </div>
-            <span> Download album lyrics </span>
-          </button>
+            <div class="flex items-center gap-2 mt-1">
+              <div class="text-sm text-neutral-800 dark:text-neutral-300 truncate">
+                {{ album.artist_name }}
+              </div>
+              <div class="border-r border-neutral-300 h-3 flex-none" />
+              <div class="text-sm text-neutral-800 dark:text-neutral-300 flex-none">
+                {{ $t('album.trackCount', { count: album.tracks_count }) }}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <button
+              class="button button-normal px-4 py-1.5 text-xs rounded-full inline-flex items-center gap-1"
+              @click.stop.prevent="downloadAlbumLyrics"
+            >
+              <DownloadMultiple class="text-sm" />
+              <span>{{ $t('album.downloadAlbumLyrics') }}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -83,6 +98,7 @@
 
 <script setup>
 import ArrowLeft from '~icons/mdi/arrow-left'
+import AlbumIcon from '~icons/mdi/album'
 import DownloadMultiple from '~icons/mdi/download-multiple'
 import { useVirtualizer } from '@tanstack/vue-virtual'
 import { ref, computed, watch, onMounted } from 'vue'
@@ -95,6 +111,7 @@ const emit = defineEmits(['back', 'playTrack', 'playWithQueue', 'downloadLyrics'
 
 const trackIds = ref([])
 const parentRef = ref(null)
+const coverSrc = ref(null)
 
 const rowVirtualizer = useVirtualizer(
   computed(() => ({
@@ -129,8 +146,25 @@ const downloadAlbumLyrics = useDownloadTrigger(() => ({
   name: props.album.name,
 }))
 
+const loadCover = async albumId => {
+  coverSrc.value = null
+  if (!albumId) return
+  try {
+    const url = await invoke('get_album_cover', { albumId })
+    // Guard against a stale response landing after the user opened another
+    // album: only apply it if this component still shows that album.
+    if (url && albumId === props.album?.id) {
+      coverSrc.value = url
+    }
+  } catch (error) {
+    console.error('Failed to load album cover:', error)
+    coverSrc.value = null
+  }
+}
+
 onMounted(async () => {
   trackIds.value = await invoke('get_album_track_ids', { albumId: props.album.id })
+  await loadCover(props.album.id)
 })
 
 watch(
@@ -138,6 +172,7 @@ watch(
   async newId => {
     if (newId) {
       trackIds.value = await invoke('get_album_track_ids', { albumId: newId })
+      await loadCover(newId)
     }
   }
 )

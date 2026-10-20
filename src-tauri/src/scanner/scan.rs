@@ -40,6 +40,7 @@ pub fn scan_library(
     conn: &mut Connection,
     progress_callback: &dyn Fn(ScanProgress),
     detection_method: DetectionMethod,
+    cover_cache_dir: &std::path::Path,
 ) -> Result<ScanResult> {
     let start_time = Instant::now();
     let is_initial_scan = !db::get_init(conn)?;
@@ -68,7 +69,7 @@ pub fn scan_library(
                     total_files += 1;
 
                     if batch.len() >= BATCH_SIZE {
-                        let batch_result = process_batch(&batch, conn, detection_method)?;
+                        let batch_result = process_batch(&batch, conn, detection_method, cover_cache_dir)?;
                         added += batch_result.added;
                         moved += batch_result.moved;
                         unchanged += batch_result.unchanged;
@@ -89,7 +90,7 @@ pub fn scan_library(
 
     // Process remaining files in batch
     if !batch.is_empty() {
-        let batch_result = process_batch(&batch, conn, detection_method)?;
+        let batch_result = process_batch(&batch, conn, detection_method, cover_cache_dir)?;
         added += batch_result.added;
         moved += batch_result.moved;
         unchanged += batch_result.unchanged;
@@ -133,6 +134,7 @@ fn process_batch(
     batch: &[globwalk::DirEntry],
     conn: &mut Connection,
     detection_method: DetectionMethod,
+    cover_cache_dir: &std::path::Path,
 ) -> Result<BatchResult> {
     let mut result = BatchResult::default();
     let tx = conn.transaction()?;
@@ -187,7 +189,7 @@ fn process_batch(
                     }
                     None => {
                         // No match found - new file
-                        match insert_new_track(path, file_size, modified_time, &hash, &tx) {
+                        match insert_new_track(path, file_size, modified_time, &hash, &tx, cover_cache_dir) {
                             Ok(_) => result.added += 1,
                             Err(e) => {
                                 eprintln!("Error inserting track {:?}: {}", path, e)
@@ -219,7 +221,7 @@ fn process_batch(
                                 continue;
                             }
                         };
-                        match insert_new_track(path, file_size, modified_time, &hash, &tx) {
+                        match insert_new_track(path, file_size, modified_time, &hash, &tx, cover_cache_dir) {
                             Ok(_) => result.added += 1,
                             Err(e) => {
                                 eprintln!("Error inserting track {:?}: {}", path, e)
@@ -242,6 +244,7 @@ fn insert_new_track(
     modified_time: i64,
     content_hash: &str,
     tx: &rusqlite::Transaction,
+    cover_cache_dir: &std::path::Path,
 ) -> Result<()> {
     // Extract metadata and lyrics
     let (metadata, lyrics) = extract_track_info(path)?;
@@ -253,10 +256,24 @@ fn insert_new_track(
     };
 
     // Get or create album
-    let album_id = match db::find_album_tx(&metadata.album, &metadata.album_artist, tx) {
-        Ok(id) => id,
-        Err(_) => db::add_album_tx(&metadata.album, &metadata.album_artist, tx)?,
+    let (album_id, album_was_created) = match db::find_album_tx(&metadata.album, &metadata.album_artist, tx) {
+        Ok(id) => (id, false),
+        Err(_) => (db::add_album_tx(&metadata.album, &metadata.album_artist, tx)?, true),
     };
+
+    // Give the album a cover the first time we see it, or when it still has
+    // none. Re-extracting on every track of a known album would re-read the
+    // embedded art once per song for no gain.
+    if album_was_created || db::album_missing_cover_tx(album_id, tx)? {
+        if let Some(bytes) = crate::cover_cache::cover_for_track(path) {
+            let key = format!("album-{album_id}");
+            if let Some(file_name) =
+                crate::cover_cache::store_cover(cover_cache_dir, &key, &bytes)
+            {
+                db::set_album_image_tx(album_id, &file_name, tx)?;
+            }
+        }
+    }
 
     // Insert track
     let track_id = db::insert_track_from_metadata_tx(

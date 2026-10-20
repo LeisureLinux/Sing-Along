@@ -61,6 +61,12 @@ export default {
     noResults: 'ไม่มีผลลัพธ์',
   },
 
+  album: {
+    tracks: 'เพลง',
+    trackCount: '{count} เพลง',
+    downloadAlbumLyrics: 'ดาวน์โหลดเนื้อเพลงทั้งอัลบั้ม',
+  },
+
   track: {
     duration: 'ความยาว',
     lyrics: 'เนื้อเพลง',

@@ -61,6 +61,12 @@ export default {
     noResults: 'Sin resultados',
   },
 
+  album: {
+    tracks: 'Pistas',
+    trackCount: '{count} pistas',
+    downloadAlbumLyrics: 'Descargar letra del álbum',
+  },
+
   track: {
     duration: 'Duración',
     lyrics: 'Letra',

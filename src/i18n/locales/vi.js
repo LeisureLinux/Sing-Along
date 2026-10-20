@@ -61,6 +61,12 @@ export default {
     noResults: 'Không có kết quả',
   },
 
+  album: {
+    tracks: 'bài',
+    trackCount: '{count} bài',
+    downloadAlbumLyrics: 'Tải lời cả album',
+  },
+
   track: {
     duration: 'Thời lượng',
     lyrics: 'Lời',

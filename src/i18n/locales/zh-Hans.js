@@ -57,6 +57,12 @@ export default {
     noResults: '没有结果',
   },
 
+  album: {
+    tracks: '首',
+    trackCount: '{count} 首',
+    downloadAlbumLyrics: '下载整张专辑歌词',
+  },
+
   track: {
     duration: '时长',
     lyrics: '歌词',

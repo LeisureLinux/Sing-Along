@@ -65,6 +65,12 @@ export default {
     noResults: 'Нічого не знайдено',
   },
 
+  album: {
+    tracks: 'композицій',
+    trackCount: 'Композицій: {count}',
+    downloadAlbumLyrics: 'Завантажити тексти альбому',
+  },
+
   track: {
     duration: 'Тривалість',
     lyrics: 'Текст',

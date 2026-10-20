@@ -65,6 +65,12 @@ export default {
     noResults: 'Ничего не найдено',
   },
 
+  album: {
+    tracks: 'Композиций',
+    trackCount: 'Композиций: {count}',
+    downloadAlbumLyrics: 'Загрузить тексты альбома',
+  },
+
   track: {
     duration: 'Длительность',
     lyrics: 'Текст',

@@ -64,6 +64,12 @@ export default {
     noResults: 'Brak wyników',
   },
 
+  album: {
+    tracks: 'utworów',
+    trackCount: 'Utworów: {count}',
+    downloadAlbumLyrics: 'Pobierz teksty albumu',
+  },
+
   track: {
     duration: 'Czas',
     lyrics: 'Tekst',

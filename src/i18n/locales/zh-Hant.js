@@ -57,6 +57,12 @@ export default {
     noResults: '沒有結果',
   },
 
+  album: {
+    tracks: '首',
+    trackCount: '{count} 首',
+    downloadAlbumLyrics: '下載整張專輯歌詞',
+  },
+
   track: {
     duration: '長度',
     lyrics: '歌詞',

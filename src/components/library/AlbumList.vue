@@ -51,6 +51,7 @@ import { useSearchLibrary } from '@/composables/search-library.js'
 const props = defineProps(['isActive'])
 
 const albumIds = ref([])
+let coversChecked = false
 const parentRef = ref(null)
 const currentAlbum = ref(null)
 
@@ -60,7 +61,7 @@ const rowVirtualizer = useVirtualizer(
   computed(() => ({
     count: albumIds.value.length,
     getScrollElement: () => parentRef.value,
-    estimateSize: () => 52,
+    estimateSize: () => 56,
     overscan: 5,
     paddingStart: 32,
     getItemKey: index => albumIds.value[index],
@@ -97,9 +98,27 @@ const getAlbumIds = async () => {
   }
 }
 
+// Libraries scanned before covers were extracted have albums with no art, and a
+// normal rescan will not touch them (unchanged tracks are skipped). Fill them in
+// once when the Albums tab is first opened, then reload so the thumbnails show.
+const ensureCovers = async () => {
+  if (coversChecked) return
+  coversChecked = true
+  try {
+    const filled = await invoke('backfill_album_covers')
+    if (filled > 0) {
+      await getAlbumIds()
+    }
+  } catch (error) {
+    // A cover-less library still works; do not block the tab on this.
+    console.error('Album cover backfill failed:', error)
+  }
+}
+
 onMounted(async () => {
   if (props.isActive) {
     await getAlbumIds()
+    await ensureCovers()
   }
 })
 
@@ -108,6 +127,7 @@ watch(
   async () => {
     if (props.isActive) {
       await getAlbumIds()
+      await ensureCovers()
     }
   }
 )

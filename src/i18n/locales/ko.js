@@ -61,6 +61,12 @@ export default {
     noResults: '결과 없음',
   },
 
+  album: {
+    tracks: '곡',
+    trackCount: '{count}곡',
+    downloadAlbumLyrics: '앨범 가사 다운로드',
+  },
+
   track: {
     duration: '길이',
     lyrics: '가사',

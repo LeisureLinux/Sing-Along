@@ -61,6 +61,12 @@ export default {
     noResults: 'Keine Treffer',
   },
 
+  album: {
+    tracks: 'Titel',
+    trackCount: '{count} Titel',
+    downloadAlbumLyrics: 'Songtexte des Albums herunterladen',
+  },
+
   track: {
     duration: 'Dauer',
     lyrics: 'Songtext',

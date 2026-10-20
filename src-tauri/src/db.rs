@@ -895,6 +895,7 @@ pub fn get_album_by_id(id: i64, db: &Connection) -> Result<PersistentAlbum> {
       albums.id,
       albums.name,
       albums.album_artist_name,
+      albums.image_path,
       COUNT(tracks.id) AS tracks_count
     FROM albums
     JOIN tracks ON tracks.album_id = albums.id
@@ -902,14 +903,15 @@ pub fn get_album_by_id(id: i64, db: &Connection) -> Result<PersistentAlbum> {
     GROUP BY
       albums.id,
       albums.name,
-      albums.album_artist_name
+      albums.album_artist_name,
+      albums.image_path
     LIMIT 1
   "})?;
     let row = statement.query_row([id], |row| {
         Ok(PersistentAlbum {
             id: row.get("id")?,
             name: row.get("name")?,
-            image_path: None,
+            image_path: row.get("image_path")?,
             artist_name: row.get("album_artist_name")?,
             album_artist_name: row.get("album_artist_name")?,
             tracks_count: row.get("tracks_count")?,
@@ -1645,6 +1647,67 @@ pub fn find_album_tx(
 }
 
 /// Add new album (transaction version)
+/// Albums that do not have a cover yet, with a representative track file.
+///
+/// Returns `(album_id, any_track_path)` so the caller can extract art from one
+/// of the album's files. Used to backfill libraries scanned before covers were
+/// extracted; a normal rescan only fills in albums it creates.
+pub fn albums_without_cover(db: &Connection) -> Result<Vec<(i64, String)>> {
+    let mut statement = db.prepare(
+        "SELECT albums.id, tracks.file_path
+         FROM albums
+         JOIN tracks ON tracks.album_id = albums.id
+         WHERE albums.image_path IS NULL OR TRIM(albums.image_path) = ''
+         GROUP BY albums.id",
+    )?;
+    let rows = statement.query_map([], |row| {
+        Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))
+    })?;
+    let mut result = Vec::new();
+    for row in rows {
+        result.push(row?);
+    }
+    Ok(result)
+}
+
+/// True when the album has no cover recorded yet.
+///
+/// Used by the scanner to avoid re-extracting embedded art for every track of a
+/// known album: once a cover is stored, later tracks skip the work.
+pub fn album_missing_cover_tx(album_id: i64, tx: &rusqlite::Transaction) -> Result<bool> {
+    let mut statement = tx.prepare("SELECT image_path FROM albums WHERE id = ?")?;
+    let image: Option<Option<String>> = statement
+        .query_row([album_id], |r| r.get::<_, Option<String>>(0))
+        .optional()?;
+    Ok(match image {
+        Some(Some(path)) => path.trim().is_empty(),
+        Some(None) => true,
+        None => true,
+    })
+}
+
+/// Record the cached cover file name for an album.
+pub fn set_album_image_tx(
+    album_id: i64,
+    image_name: &str,
+    tx: &rusqlite::Transaction,
+) -> Result<()> {
+    tx.execute(
+        "UPDATE albums SET image_path = ?1 WHERE id = ?2",
+        rusqlite::params![image_name, album_id],
+    )?;
+    Ok(())
+}
+
+/// Set the cover for an album by id, outside a scan transaction.
+pub fn set_album_image(album_id: i64, image_name: &str, db: &Connection) -> Result<()> {
+    db.execute(
+        "UPDATE albums SET image_path = ?1 WHERE id = ?2",
+        rusqlite::params![image_name, album_id],
+    )?;
+    Ok(())
+}
+
 pub fn add_album_tx(
     name: &str,
     album_artist_name: &str,

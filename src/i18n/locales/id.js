@@ -61,6 +61,12 @@ export default {
     noResults: 'Tidak ada hasil',
   },
 
+  album: {
+    tracks: 'lagu',
+    trackCount: '{count} lagu',
+    downloadAlbumLyrics: 'Unduh lirik album',
+  },
+
   track: {
     duration: 'Durasi',
     lyrics: 'Lirik',

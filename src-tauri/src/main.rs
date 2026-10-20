@@ -16,6 +16,7 @@ pub mod player;
 pub mod scanner;
 pub mod script_convert;
 pub mod cover;
+pub mod cover_cache;
 pub mod state;
 pub mod utils;
 pub mod word_segmentation;
@@ -349,6 +350,7 @@ async fn full_scan_library(
                 let _ = app_handle_clone.emit("scan-progress", progress);
             },
             detection_method,
+            &scanner_cover_dir(&app_handle),
         )
     })
     .map_err(|err| err.to_string())?;
@@ -395,6 +397,7 @@ async fn scan_library(
                 let _ = app_handle_clone.emit("scan-progress", progress);
             },
             detection_method,
+            &scanner_cover_dir(&app_handle),
         )
     })
     .map_err(|err| err.to_string())?;
@@ -557,6 +560,79 @@ async fn get_album_ids(
     let album_ids = library::get_album_ids(search_query, conn).map_err(|err| err.to_string())?;
 
     Ok(album_ids)
+}
+
+/// Extract covers for albums that do not have one yet.
+///
+/// Separate from `scan_library` because a rescan deliberately skips unchanged
+/// tracks, so a library built before covers were extracted would never gain any.
+/// Called on demand and safe to repeat: albums that already have a cover are
+/// not touched.
+#[tauri::command]
+async fn backfill_album_covers(
+    app_handle: AppHandle,
+    app_state: State<'_, AppState>,
+) -> Result<usize, String> {
+    let albums = {
+        let conn_guard = app_state.db.lock().unwrap();
+        let conn = conn_guard.as_ref().unwrap();
+        db::albums_without_cover(conn).map_err(|err| err.to_string())?
+    };
+
+    let cache_dir = scanner_cover_dir(&app_handle);
+    let mut filled = 0usize;
+
+    for (album_id, track_path) in albums {
+        let Some(bytes) = crate::cover_cache::cover_for_track(std::path::Path::new(&track_path))
+        else {
+            continue;
+        };
+        let key = format!("album-{album_id}");
+        let Some(file_name) = crate::cover_cache::store_cover(&cache_dir, &key, &bytes) else {
+            continue;
+        };
+
+        let written = {
+            let conn_guard = app_state.db.lock().unwrap();
+            let conn = conn_guard.as_ref().unwrap();
+            db::set_album_image(album_id, &file_name, conn).map_err(|err| err.to_string())?;
+            true
+        };
+
+        if written {
+            filled += 1;
+        }
+    }
+
+    Ok(filled)
+}
+
+/// Absolute path of an album's cached cover, or `None` when it has none.
+///
+/// `PersistentAlbum.image_path` holds only the cached file name, so the UI needs
+/// this to build a loadable URL. Kept separate from `get_album` because album
+/// rows are fetched in bulk for the list; resolving a path for every row would
+/// be wasted work when only the detail view shows the large image.
+#[tauri::command]
+async fn get_album_cover(
+    album_id: i64,
+    app_handle: AppHandle,
+    app_state: State<'_, AppState>,
+) -> Result<Option<String>, String> {
+    let image_name = {
+        let conn_guard = app_state.db.lock().unwrap();
+        let conn = conn_guard.as_ref().unwrap();
+        let album = library::get_album(album_id, conn).map_err(|err| err.to_string())?;
+        album.image_path.filter(|name| !name.trim().is_empty())
+    };
+
+    let Some(name) = image_name else {
+        return Ok(None);
+    };
+
+    crate::cover_cache::cached_cover_data_url(&scanner_cover_dir(&app_handle), &name)
+        .map(Some)
+        .map_err(|err| err.to_string())
 }
 
 #[tauri::command]
@@ -1479,6 +1555,18 @@ async fn publish_lyrics(
     Ok(())
 }
 
+/// Directory where album covers extracted during a scan are cached.
+///
+/// Lives under the app data dir so it survives library resets: a rescan should
+/// not have to re-read embedded art it has already extracted.
+fn scanner_cover_dir(app_handle: &AppHandle) -> std::path::PathBuf {
+    app_handle
+        .path()
+        .app_data_dir()
+        .map(|dir| dir.join("covers"))
+        .unwrap_or_else(|_| std::env::temp_dir().join("sing-along-covers"))
+}
+
 /// Resolve a library track id to something the player can open.
 fn resolve_library_track(app_handle: &AppHandle, track_id: i64) -> Result<PlayableTrack, String> {
     app_handle
@@ -2092,6 +2180,8 @@ async fn main() {
             get_albums,
             get_album_ids,
             get_album,
+            get_album_cover,
+            backfill_album_covers,
             get_artists,
             get_artist_ids,
             get_artist,

@@ -63,6 +63,12 @@ export default {
     noResults: '結果なし',
   },
 
+  album: {
+    tracks: '曲',
+    trackCount: '{count} 曲',
+    downloadAlbumLyrics: 'アルバムの歌詞をダウンロード',
+  },
+
   track: {
     duration: '長さ',
     lyrics: '歌詞',
