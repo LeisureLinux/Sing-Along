@@ -1,4 +1,6 @@
-This is LRCGET — a desktop music player with synced lyrics support.
+This is Sing-Along — a desktop music player with synced lyrics support. It began
+as a fork of LRCGET and no longer tracks upstream; `git remote fork` points at
+LeisureLinux/Sing-Along and there is no `origin`.
 
 Stack: Tauri v2 (Rust backend + Vue 3 frontend).
 
@@ -11,7 +13,42 @@ Read these files before working on the corresponding frontend or backend tasks.
 
 After completing your changes, update these two `ARCHITECTURE.md` files as needed.
 
-If your changes are related to the backend, run `cargo check` in the `src-tauri/` directory. If your changes are only related to the frontend, you do not need to run any checks.
+Before reporting work as done, run all three:
+
+```bash
+npx eslint src --include=*.js --include=*.vue   # expect 0 errors
+npx vitest run                                  # expect all passing
+cd src-tauri && cargo test                      # expect all passing
+```
+
+`cargo check` alone is not enough — a change that compiles can still break the
+backend tests, and both suites are fast enough (< 3 s combined) that skipping
+them costs more in follow-up fixes than running them.
+
+## Releasing: never without explicit approval
+
+**Do not tag, push a version tag, or trigger the release workflow unless the user
+has said to release in this conversation.** Commit locally, run the tests, then
+stop and report — wait for a go-ahead.
+
+Why this is a hard rule rather than a preference: a release pushes a tag that
+runs the CI matrix, and the waiting (polling for ~10 minutes, then checking the
+assets) is the expensive part. Shipping three patch releases in a row because
+each one looked small at the time is the failure mode to avoid. Batch fixes and
+let the user decide when a version goes out.
+
+| Action | Approval needed |
+|---|---|
+| Edit code, run lint/tests, `git commit` | No — just do it |
+| `git push` to main | Ask first |
+| `git tag v*` and push it (triggers CI release) | **Only when the user says release** |
+| Deleting or re-tagging an existing release | Ask first; never as a "cleanup" |
+
+When you do cut a release, keep the three version fields in sync —
+`src-tauri/Cargo.toml`, `src-tauri/Cargo.lock` (the `sing-along` package entry),
+and `src-tauri/tauri.conf.json` — and check `git status` is clean first. A
+release once shipped with a feature left uncommitted because the tag was created
+before the working tree was inspected.
 
 ## Inspecting a running dev build (W3C WebDriver)
 
