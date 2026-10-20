@@ -1,4 +1,4 @@
-# LRCGET Tauri Architecture
+# Sing-Along Tauri Architecture
 
 ## Architecture Overview
 
@@ -44,10 +44,9 @@ src-tauri/
 │       ├── search.rs        # GET /api/search
 │       ├── get.rs           # GET /api/get
 │       ├── get_by_id.rs     # GET /api/get/{id}
-│       ├── publish.rs       # POST /api/publish (with PoW)
-│       ├── flag.rs          # POST /api/flag (with PoW)
+│       ├── publish.rs       # POST /api/publish (with PoW) — currently unwired
 │       └── challenge_solver.rs # SHA256 proof-of-work
-├── migrations/              # SQL files (v1-v9), rusqlite_migration
+├── migrations/              # SQL files (v1-v21), rusqlite_migration
 └── Cargo.toml / tauri.conf.json
 ```
 

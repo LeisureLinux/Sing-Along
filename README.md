@@ -1,48 +1,72 @@
 # Sing-Along
 
-**A small desktop tool for finding, editing and converting synced lyrics for
-your own music files.** Built for people who keep a local library and want
-their lyrics to work everywhere — including on phones, in cars.
+**A desktop music player with synced lyrics, built for people who keep their own
+music library.** It finds, edits, converts and exports lyrics — so the same
+library works on your phone, in your car, and on the players you already use.
 
-Sing-Along scans the music folders you choose, looks up matching lyrics, saves
-them next to your audio files or embeds them in the tags, and lets you correct
-the timings while you listen. It is a desktop companion, not a full music
-player: pick a track, watch the lyrics follow along, fix what is off.
+Sing-Along scans the folders you choose, looks up matching lyrics, saves them
+next to your audio files or embeds them in the tags, and lets you correct the
+timings while you listen. It plays your music, but it is not a music manager:
+there are no playlists to curate beyond a queue, no library metadata scraping,
+no streaming.
 
-Lyrics are retrieved from [LRCLIB](https://lrclib.net).
+Lyrics come from [LRCLIB](https://lrclib.net), with an optional
+[NetEase](https://music.163.com) fallback.
 
-## Independent project
+## Demo
 
-**Sing-Along is not tracking upstream.** It began as a fork of
-[LRCGET](https://github.com/tranxuanthang/lrcget) and has since gone its own
-way — there is no upstream remote, no pull from the original repository, and no
-intent to push changes back. Bug reports and features are decided here.
+Lyrics scrolling in time with the playing track, then the library list behind it:
 
-That also means a few things you should not expect:
+[![Watch the demo](demo/sing-along-demo-poster.jpg)](demo/sing-along-demo.mp4)
 
-- **No parity with LRCGET.** Upstream may add features this fork never gets, and
-  the other way round.
-- **A different scope.** LRCGET is a mass-downloading utility. Sing-Along is a
-  small personal tool that also edits and converts — see below.
-- **Upstream issues do not apply here.** If you hit something, report it in this
-  repository.
+![Sing-Along demo](demo/sing-along-demo.webp)
 
-The MIT license and the original copyright notice are preserved regardless; see
-[License and attribution](#license-and-attribution).
+The animated preview loops the first ~14 seconds. Click the still above to watch
+the full clip with sound ([`demo/sing-along-demo.mp4`](demo/sing-along-demo.mp4),
+36 s).
 
-## What it is good at
+GitHub strips `<video>` tags from READMEs and only inlines video uploaded through
+its own editor, so the animation is a WebP — which GitHub serves as an image and
+plays automatically — and the MP4 is a normal link rather than an embed.
 
-- **Mass-fetching lyrics** for a large local library from LRCLIB, with
-  configurable skip rules so it does not overwrite what you already fixed.
-- **Editing timings by ear.** Play a track and correct line-by-line, or
-  word-by-word, instead of hand-editing text files.
-- **Multilingual text, including CJK.** Word-level segmentation uses
-  [Charabia](https://github.com/meilisearch/charabia), so Chinese and Japanese
-  lines break at real word boundaries rather than at a fixed character count.
-  Chinese titles, artist names and file paths are handled throughout.
-- **Exporting to what phones actually read.** One library can be written out as
-  enhanced LRC (A2) or TTML, so the same lyrics work on Android players and on
-  iOS players that only understand TTML.
+## What it does
+
+**Find lyrics for a whole library.** Batch download with skip rules — overwrite
+everything, fill only tracks missing synced lyrics, or only tracks with no lyrics
+at all — chosen per download rather than as a global setting.
+
+**Sync a single track.** Every row in the library has a sync button that runs the
+same pipeline for one song, so a fix does not mean re-downloading an album.
+
+**Fix timings by ear.** Play a track and correct it line by line, or word by
+word. A keyboard shortcut stamps a line with the current playback position, so
+the usual loop is: play, hear it drift, press a key.
+
+**Convert between Simplified and Traditional Chinese.** Conversion is offered at
+download time and remembered, because it is lossy in both directions: `发` is
+`發` (as in 發財) or `髮` (as in 頭髮), and only context decides. Off by default.
+
+**Export to what your phone actually reads.** The Export menu writes the whole
+library out as plain text, LRC, enhanced LRC (A2) for Android players, or TTML
+for iOS players — in any combination — either as sidecar files or embedded into
+the audio tags.
+
+**Fetch missing album art.** Optionally searches iTunes and Deezer — both public,
+no key — and writes the front cover into the audio file's tags. Off by default,
+because it rewrites your files.
+
+**Three UI languages.** English, 简体中文, 繁體中文, following the system language
+by default.
+
+## Two lyric sources
+
+| Source | What it is | Notes |
+| ------ | ---------- | ----- |
+| LRCLIB | Open, community-run lyric database | The default. Instance URL is configurable. |
+| NetEase | China's largest music service | Fallback when LRCLIB has nothing. Non-official API — it can break, and a failure just means "no fallback lyrics found" rather than an error. |
+
+The Search tab queries both and tags each result with where it came from. Either
+source can be unticked; a source that fails does not hide the other's results.
 
 ## Why word-level lyrics need converting
 
@@ -61,80 +85,57 @@ So the same library has to be exported twice if you use two players: enhanced
 LRC for players that read the A2 extension (Gramophone, Fluxio), and TTML for
 players whose word highlighting comes only from TTML (Steve on iOS).
 
-Background, with sources, on how these formats came to exist, who owns each
-one, why two of them are encrypted, and why free offline players with
-word-level lyrics are so scarce:
+Background, with sources, on how these formats came to exist, who owns each one,
+why two of them are encrypted, and why free offline players with word-level
+lyrics are so scarce:
 
 **📖 [从「能免费在车里唱歌」出发，我为什么会撞上三种歌词格式](https://freelamp.com/articles/2026-10-18_lrc-ttml-karaoke-formats/)** (Chinese)
 
-The conversion helpers used for this live in [`tools/`](tools/README.md):
-`lrc-a2-word-sync.py` for enhanced LRC, `lrc-to-ttml.py` for TTML.
+Standalone conversion helpers live in [`tools/`](tools/README.md) if you want
+them without the app.
 
-## License and attribution
+## Independent project
 
-Sing-Along is a fork of [LRCGET](https://github.com/tranxuanthang/lrcget),
-Copyright (c) 2023 tranxuanthang, used under the MIT License. The original
-copyright notice and the MIT permission notice are retained in
-[LICENSE](LICENSE); see [NOTICE](NOTICE) for full attribution and a list of
-what this fork changed. The About dialog in the app carries the same credit.
+**Sing-Along is not tracking upstream.** It began as a fork of
+[LRCGET](https://github.com/tranxuanthang/lrcget) and has since gone its own
+way — there is no upstream remote, no pull from the original repository, and no
+intent to push changes back. Bug reports and features are decided here.
 
-## Demo
+That also means a few things you should not expect:
 
-Lyrics scrolling in time with the playing track, then the library list behind it:
+- **No parity with LRCGET.** Upstream may add features this fork never gets, and
+  the other way round.
+- **A different scope.** LRCGET is a mass-downloading utility. Sing-Along is a
+  player that also edits and converts.
+- **Upstream issues do not apply here.** If you hit something, report it in this
+  repository.
 
-[![Watch the demo](demo/sing-along-demo-poster.jpg)](demo/sing-along-demo.mp4)
+## Install
 
-![Sing-Along demo](demo/sing-along-demo.webp)
+Releases currently ship **one asset: a Linux amd64 `.deb`**:
 
-The animated preview loops the first ~14 seconds. Click the still above to watch
-the full clip with sound ([`demo/sing-along-demo.mp4`](demo/sing-along-demo.mp4),
-36 s).
-
-GitHub strips `<video>` tags from READMEs and only inlines video uploaded through
-its own editor, so the animation is a WebP — which GitHub serves as an image and
-plays automatically — and the MP4 is a normal link rather than an embed.
-
-## Troubleshooting
-
-**Audio cannot be played in Linux (Ubuntu and other distros)**
-
-Try to install `pipewire-alsa` package. For example, in Ubuntu or Debian-based distros:
-
-```
-sudo apt install pipewire-alsa
+```shell
+wget https://github.com/LeisureLinux/Sing-Along/releases/latest/download/sing-along_2.6.3_amd64.deb
+sudo apt install ./sing-along_2.6.3_amd64.deb
 ```
 
-**App won't open in Windows 10/11**
-
-If you are using Windows 10 LTSC, or have tried running some scripts to debloat Windows 10 (which will uninstall Microsoft Edge and its webview component), you might have issues as Sing-Along depends on WebView2. Reinstalling Microsoft Edge usually fixes it — WebView2 is a Windows component this app cannot ship itself.
-
-**Scrollbar is invisible in Linux (KDE Plasma 5/6)**
-
-The exact cause is still unknown, but it can be fixed by going to System Settings > Appearance > Global Theme > Application Style > Configure GNOME/GTK Application Style... > Change to something other than breeze (Adwaita or Default) > Apply.
-
-## Contact
-
-Email: [albertxu@freelamp.com](mailto:albertxu@freelamp.com)
+macOS and Windows bundles are switched off until 3.x (see [Building](#building)).
+If you are on another platform or distribution, build from source.
 
 ## Development
 
-Sing-Along is made with [Tauri](https://tauri.app) v2 (Rust backend, Vue 3
-frontend).
-
-Install the [Tauri prerequisites](https://tauri.app/start/prerequisites/) for
-your OS. In short you need:
-
-- Rust 1.81.0 or newer
-- Node.js 18 or newer
-- The platform build tools (on Windows: Visual Studio C++ Build Tools and
-  WebView2; on Linux: `libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `libasound2-dev`
-  and `build-essential`)
+Stack: [Tauri](https://tauri.app) v2 — Rust backend, Vue 3 frontend, SQLite.
 
 Two architecture notes are worth reading before changing code:
 [`src/ARCHITECTURE.md`](src/ARCHITECTURE.md) for the frontend and
-[`src-tauri/ARCHITECTURE.md`](src-tauri/ARCHITECTURE.md) for the backend.
+[`src-tauri/ARCHITECTURE.md`](src-tauri/ARCHITECTURE.md) for the backend. Both
+describe the parts that are not obvious from the file names — the composable
+state model, the event flow, the scanner, and the lyric-file formats.
 
-Start the development window with:
+Prerequisites: Rust 1.81+, Node 18+, plus the
+[Tauri platform prerequisites](https://tauri.app/start/prerequisites/) (on
+Linux: `libwebkit2gtk-4.1-dev`, `libgtk-3-dev`, `libasound2-dev`,
+`build-essential`).
 
 ```shell
 npm install
@@ -142,13 +143,21 @@ npm run tauri:dev
 ```
 
 `npm run tauri:dev` passes `--features dev,devtools`. Plain `tauri dev` only
-passes `--no-default-features`, so a debug build started that way has neither
-the devtools panel nor the WebDriver bridge — this trips people up.
+passes `--no-default-features`, so a debug build started that way has neither the
+devtools panel nor the WebDriver bridge on `127.0.0.1:4445` — this trips people
+up.
 
-**Build note:** Charabia's Japanese and Korean dictionaries are downloaded at
-build time by its build scripts. If that fails (network, TLS), point
-`LINDERA_CACHE` at a populated cache directory and the scripts take a fast path
-instead of downloading.
+Before reporting work as done, all three must pass:
+
+```shell
+npx eslint src --include=*.js --include=*.vue
+npx vitest run
+cd src-tauri && cargo test
+```
+
+**Build note:** Charabia's dictionaries are downloaded at build time by its build
+scripts. If that fails (network, TLS), point `LINDERA_CACHE` at a populated cache
+directory and the scripts take a fast path instead of downloading.
 
 ## Building
 
@@ -157,20 +166,26 @@ npm install
 npm run tauri build
 ```
 
-Release builds carry no devtools and no WebDriver server: both are behind
-opt-in cargo features that `tauri build` does not enable. Verify with
+Output lands in `src-tauri/target/release/` and the bundle in
+`src-tauri/target/release/bundle/`.
+
+Release builds carry no devtools and no WebDriver server: both are behind opt-in
+cargo features that `tauri build` does not enable. Verify with
 `cargo tree -i tauri-plugin-webdriver`, which cannot resolve the package at all
 in the default feature set.
 
-Releases currently ship **one asset: a Linux amd64 `.deb`**, named
-`sing-along_<version>_amd64.deb`. macOS and Windows bundles are switched off in
-`tauri.conf.json` (`bundle.targets` is `["deb"]`) and in the release workflow
-matrix until 3.x, so a plain `npm run tauri build` produces only that package.
+Only `deb` is enabled in `tauri.conf.json` (`bundle.targets`), so a plain build
+produces that and nothing else. Adding `rpm`, `appimage`, `dmg`, `nsis` or `msi`
+there is what re-enables them.
 
-Your built binaries are located at:
+## License and attribution
 
-```
-./src-tauri/target/release/
-```
+Sing-Along is a fork of [LRCGET](https://github.com/tranxuanthang/lrcget),
+Copyright (c) 2023 tranxuanthang, used under the MIT License. The original
+copyright notice and the MIT permission notice are retained in
+[LICENSE](LICENSE); see [NOTICE](NOTICE) for full attribution and a list of what
+this fork changed. The About dialog in the app carries the same credit.
 
-For more detailed instruction, follow the [building guide](https://tauri.app/v1/guides/building/) to build the application according to your OS platform.
+## Contact
+
+Email: [albertxu@freelamp.com](mailto:albertxu@freelamp.com)

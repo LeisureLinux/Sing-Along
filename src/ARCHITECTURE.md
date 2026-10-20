@@ -1,4 +1,4 @@
-# LRCGET Frontend Architecture
+# Sing-Along Frontend Architecture
 
 ## Architecture Overview
 
