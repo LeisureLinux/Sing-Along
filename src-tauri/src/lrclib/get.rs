@@ -25,6 +25,28 @@ pub struct RawResponse {
 
 
 impl RawResponse {
+    /// Build a response from a search hit.
+    ///
+    /// `/api/search` already carries the lyric text, so a separate `/api/get`
+    /// round-trip is unnecessary — and that endpoint matches exactly, which a
+    /// real library rarely satisfies.
+    pub fn from_search_item(item: &crate::lrclib::search::SearchItem) -> Self {
+        Self {
+            plain_lyrics: item.plain_lyrics.clone(),
+            synced_lyrics: item.synced_lyrics.clone(),
+            lyricsfile: item.lyricsfile.clone(),
+            instrumental: item.instrumental,
+            lang: None,
+            isrc: None,
+            spotify_id: None,
+            name: item.name.clone(),
+            album_name: item.album_name.clone(),
+            artist_name: item.artist_name.clone(),
+            release_date: None,
+            duration: item.duration,
+        }
+    }
+
     /// Build a response from lyrics fetched by another source (e.g. NetEase).
     ///
     /// The source-specific fields (`lang`, `isrc`, `spotify_id`) stay empty:

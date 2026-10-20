@@ -7,20 +7,35 @@ use thiserror::Error;
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-struct SearchItem {
-    id: i64,
-    name: Option<String>,
-    artist_name: Option<String>,
-    album_name: Option<String>,
-    duration: Option<f64>,
-    instrumental: bool,
-    plain_lyrics: Option<String>,
-    synced_lyrics: Option<String>,
-    lyricsfile: Option<String>,
+pub struct SearchItem {
+    pub id: i64,
+    #[serde(default)]
+    pub name: Option<String>,
+    #[serde(default)]
+    pub artist_name: Option<String>,
+    #[serde(default)]
+    pub album_name: Option<String>,
+    #[serde(default)]
+    pub duration: Option<f64>,
+    #[serde(default)]
+    pub instrumental: bool,
+    #[serde(default)]
+    pub plain_lyrics: Option<String>,
+    #[serde(default)]
+    pub synced_lyrics: Option<String>,
+    #[serde(default)]
+    pub lyricsfile: Option<String>,
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct Response(Vec<SearchItem>);
+pub struct Response(pub Vec<SearchItem>);
+
+impl Response {
+    /// The hits, in the order the service returned them.
+    pub fn items(&self) -> &[SearchItem] {
+        &self.0
+    }
+}
 
 #[derive(Error, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -71,8 +86,19 @@ pub async fn request(
 
     match res.status() {
         reqwest::StatusCode::OK => {
-            let lrclib_response = res.json::<Response>().await?;
-            Ok(lrclib_response)
+            // Read the body first so a malformed payload can be reported with its
+            // content, not just "error decoding response body".
+            let body = res.text().await?;
+            match serde_json::from_str::<Response>(&body) {
+                Ok(parsed) => Ok(parsed),
+                Err(err) => {
+                    eprintln!(
+                        "[search] could not decode: {err}\nbody head: {}",
+                        body.get(..400).unwrap_or(&body)
+                    );
+                    Err(err.into())
+                }
+            }
         }
 
         reqwest::StatusCode::BAD_REQUEST

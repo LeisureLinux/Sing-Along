@@ -18,6 +18,7 @@ pub mod script_convert;
 pub mod cover;
 pub mod cover_cache;
 pub mod http;
+pub mod cli;
 pub mod state;
 pub mod utils;
 pub mod word_segmentation;
@@ -140,8 +141,31 @@ fn resolve_lrclib_lyrics_payload(
         .filter(|content| !content.trim().is_empty());
 
     if let Some(lyricsfile_content) = provided_lyricsfile {
-        let parsed =
-            lyricsfile::parse_lyricsfile(&lyricsfile_content).map_err(|err| err.to_string())?;
+        // The `lyricsfile` field is not always the YAML document this app writes:
+        // LRCLIB also serves plain LRC there. Fall back to parsing it as LRC
+        // rather than rejecting an otherwise valid record.
+        let parsed = match lyricsfile::parse_lyricsfile(&lyricsfile_content) {
+            Ok(parsed) => parsed,
+            Err(_) => {
+                let lrc = crate::parser::lrc::parse_lrc(&lyricsfile_content);
+                if lrc.timed_lines.is_empty() {
+                    return Err(LRCLIB_TRACK_NOT_FOUND.to_owned());
+                }
+                let mut synced = String::new();
+                for line in &lrc.timed_lines {
+                    synced.push_str(&crate::parser::lrc::format_timestamp(line.timestamp_ms));
+                    synced.push_str(&line.text);
+                    synced.push('\n');
+                }
+                let plain = crate::utils::strip_timestamp(&synced);
+                return Ok(ResolvedLyricsPayload {
+                    plain_lyrics: plain,
+                    synced_lyrics: synced,
+                    is_instrumental: false,
+                    provided_lyricsfile: Some(lyricsfile_content),
+                });
+            }
+        };
         let plain_lyrics = parsed.plain_lyrics.unwrap_or_default();
         let synced_lyrics = parsed.synced_lyrics.unwrap_or_default();
         let is_instrumental = parsed.is_instrumental;
@@ -2201,6 +2225,14 @@ fn show_main_window(app: &AppHandle) {
 
 #[tokio::main(worker_threads = 4)]
 async fn main() {
+    // One binary, two modes: `sing-along <command>` runs headless and exits,
+    // `sing-along` starts the window. Same convention as `code` and `vim`, so
+    // scripts and the GUI drive the same code.
+    let args: Vec<String> = std::env::args().collect();
+    if let Some(code) = cli::run(&args).await {
+        std::process::exit(code);
+    }
+
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
