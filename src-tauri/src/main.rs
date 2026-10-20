@@ -1380,7 +1380,15 @@ async fn save_lyrics(
     Ok("Lyrics saved successfully".to_owned())
 }
 
-#[tauri::command]
+/// Upload a lyricsfile to the LRCLIB community database.
+///
+/// DISABLED. Not registered in the invoke handler (see the comment there), kept
+/// so the feature can be restored without rebuilding it from history. Adding
+/// `#[tauri::command]` back and uncommenting the registration is enough.
+///
+/// The frontend no longer offers it: the editor's split save button became a
+/// plain Save.
+#[allow(dead_code)]
 async fn publish_lyrics(
     title: String,
     album_name: String,
@@ -2098,7 +2106,11 @@ async fn main() {
             search_lyrics,
             search_lyrics_multi,
             save_lyrics,
-            publish_lyrics,
+            // Publishing to the community database is disabled for now. The
+            // command below is kept so re-enabling it is a one-line change;
+            // unregistering it means a stale frontend build cannot reach the
+            // network path even by accident.
+            // publish_lyrics,
             export_lyrics,
             export_track_lyrics,
             get_track_ids_with_lyrics,

@@ -77,6 +77,25 @@ const i18n = createI18n({
 export function initLocale() {
   i18n.global.locale.value = resolveLocale(readLocalePreference())
   document.documentElement.setAttribute('lang', i18n.global.locale.value)
+  applyWindowTitle()
+}
+
+/**
+ * Keep the OS window title in the UI language.
+ *
+ * The title is set from tauri.conf.json at launch, which is fixed English. The
+ * window manager reads that, not the HTML <title>, so switching language has to
+ * write it through the Tauri window API as well.
+ */
+async function applyWindowTitle() {
+  document.title = i18n.global.t('app.windowTitle')
+  try {
+    const { getCurrentWindow } = await import('@tauri-apps/api/window')
+    await getCurrentWindow().setTitle(i18n.global.t('app.windowTitle'))
+  } catch {
+    // Running outside Tauri (tests, a plain browser): the document title is all
+    // there is, and it has already been set.
+  }
 }
 
 /** Switch language and remember the choice. */
@@ -88,6 +107,7 @@ export function setLocale(preference) {
 function setLocaleValue(preference) {
   i18n.global.locale.value = resolveLocale(preference)
   document.documentElement.setAttribute('lang', i18n.global.locale.value)
+  applyWindowTitle()
 }
 
 export default i18n

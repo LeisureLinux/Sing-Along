@@ -183,7 +183,7 @@ fn embed_cover_mp3(track_path: &str, bytes: &[u8]) -> Result<()> {
 
 fn embed_cover_flac(track_path: &str, bytes: &[u8]) -> Result<()> {
     use lofty::config::{ParseOptions, WriteOptions};
-    use lofty::file::{AudioFile, TaggedFileExt};
+    use lofty::file::AudioFile;
     use lofty::flac::FlacFile;
     use lofty::ogg::OggPictureStorage;
     use lofty::picture::{Picture, PictureType};
@@ -212,15 +212,6 @@ fn embed_cover_flac(track_path: &str, bytes: &[u8]) -> Result<()> {
     Ok(())
 }
 
-fn detect_mime(bytes: &[u8]) -> &'static str {
-    if bytes.starts_with(&[0xFF, 0xD8]) {
-        "image/jpeg"
-    } else if bytes.starts_with(&[0x89, b'P', b'N', b'G']) {
-        "image/png"
-    } else {
-        "image/jpeg"
-    }
-}
 
 #[cfg(test)]
 mod tests {

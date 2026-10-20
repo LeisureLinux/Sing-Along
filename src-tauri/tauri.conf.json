@@ -72,7 +72,7 @@
         "width": 1024,
         "height": 768,
         "resizable": true,
-        "title": "Sing-Along",
+        "title": "Sing-Along Player: Offline music lyric download/edit/export",
         "decorations": true,
         "transparent": false,
         "useHttpsScheme": true

@@ -17,7 +17,6 @@ FONT = "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
 FONT_BOLD = "/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc"
 
 GREEN = (88, 190, 107)  # WeChat's card surround, sampled from the source
-TITLE = "感谢对 Sing-Along 项目的认可"
 
 
 def crop_qr(src: Image.Image) -> Image.Image:
@@ -73,47 +72,15 @@ def main() -> int:
 
     qr = crop_qr(Image.open(src_path))
 
-    # The title has to fit inside the QR's own width, otherwise the canvas grows
-    # sideways and the code ends up floating in whitespace. Rather than wrap the
-    # line, step the font size down until it fits.
+    # The image is the code alone. Any wording belongs in the app's own UI, not
+    # baked into the pixels: that keeps it translatable and lets the text and
+    # the code be laid out by the page rather than by this script.
     margin = 20
-    title_gap = 22
-
-    probe = ImageDraw.Draw(Image.new("RGB", (1, 1)))
-    max_text_w = qr.width - margin * 2
-
-    title_size = 38
-    while title_size > 12:
-        font = ImageFont.truetype(FONT_BOLD, title_size)
-        if probe.textbbox((0, 0), TITLE, font=font)[2] <= max_text_w:
-            break
-        title_size -= 1
-
-    font = ImageFont.truetype(FONT_BOLD, title_size)
-    # Use the glyph box, not the font metrics: the metrics include leading above
-    # and below the glyphs, which would silently eat the gap we just reserved.
-    box = probe.textbbox((0, 0), TITLE, font=font)
-    text_w, text_h = box[2] - box[0], box[3] - box[1]
-
-    width = qr.width + margin * 2
-    height = margin + text_h + title_gap + qr.height + margin
-
-    canvas = Image.new("RGB", (width, height), (255, 255, 255))
-    draw = ImageDraw.Draw(canvas)
-
-    draw.text(
-        ((width - text_w) // 2, margin - box[1]),
-        TITLE,
-        font=font,
-        fill=(32, 32, 32),
-    )
-
-    card_x = (width - qr.width) // 2
-    card_y = margin + text_h + title_gap
-    canvas.paste(qr, (card_x, card_y))
+    canvas = Image.new("RGB", (qr.width + margin * 2, qr.height + margin * 2), (255, 255, 255))
+    canvas.paste(qr, (margin, margin))
 
     canvas.save(out_path, "PNG", optimize=True)
-    print(f"{out_path}: {canvas.width}x{canvas.height} (title {title_size}px)")
+    print(f"{out_path}: {canvas.width}x{canvas.height}")
     return 0
 
 

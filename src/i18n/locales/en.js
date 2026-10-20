@@ -9,6 +9,7 @@
 export default {
   app: {
     name: 'Sing-Along',
+    windowTitle: 'Sing-Along Player: Offline music lyric download/edit/export',
     loadingLibrary: 'Loading library...',
   },
 
@@ -160,6 +161,7 @@ export default {
     exportHint: "Export to track's directory:",
     savingAndExporting: 'Saving and exporting...',
     saveAndExport: 'Save and export',
+    saveHint: 'Save lyrics',
     saveAndPublish: 'Save and Publish',
   },
 

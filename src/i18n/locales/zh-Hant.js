@@ -2,6 +2,7 @@
 export default {
   app: {
     name: 'Sing-Along',
+    windowTitle: 'Sing-Along 播放器：離線歌曲歌詞下載/編輯/匯出',
     loadingLibrary: '正在載入曲庫…',
   },
 
@@ -153,6 +154,7 @@ export default {
     exportHint: '匯出到歌曲所在目錄：',
     savingAndExporting: '正在儲存並匯出…',
     saveAndExport: '儲存並匯出',
+    saveHint: '儲存歌詞',
     saveAndPublish: '儲存並發佈',
   },
 

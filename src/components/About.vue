@@ -85,15 +85,20 @@
         <label class="group-label mb-2">{{ $t('about.donate') }}</label>
 
         <div class="text-sm text-neutral-800 dark:text-neutral-300">
+          <!-- Both lines are shown in every UI language: the payment app is
+               Chinese, so an English-only reader still needs to recognise what
+               the code is for, and a Chinese reader should not have to infer it
+               from a translation of an English sentence. -->
+          <div class="text-center mb-3 leading-relaxed">
+            <div class="font-bold">Thanks for your donation!</div>
+            <div class="font-bold">感谢您的赞赏！</div>
+          </div>
           <img
             :src="donateQr"
             :alt="$t('about.donateAlt')"
             class="w-56 mx-auto"
             draggable="false"
           />
-          <div class="mt-2 text-xs text-neutral-500 dark:text-neutral-400 text-center">
-            {{ $t('about.donateHint') }}
-          </div>
         </div>
       </div>
     </div>

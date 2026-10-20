@@ -9,12 +9,12 @@
           @click="emit('save')"
         >
           <ContentSave class="text-base" />
-          Save
+          {{ $t('actions.save') }}
         </button>
 
         <template #popper>
           <div class="text-xs font-bold">
-            Save lyrics
+            {{ $t('editor.saveHint') }}
             <span class="text-[0.65rem] text-neutral-800 bg-neutral-50 px-1 rounded-full"
               >Ctrl+S</span
             >
@@ -32,18 +32,9 @@
 
         <template #popper>
           <div class="dropdown-container">
-            <div class="dropdown-section-label">{{ $t('editor.publishHint') }}</div>
-            <div class="px-2 py-2">
-              <button
-                v-close-popper
-                class="button button-primary w-full text-sm h-8 rounded"
-                @click="emit('save-and-publish')"
-              >
-                {{ $t('editor.saveAndPublish') }}
-              </button>
-            </div>
-
-            <div class="dropdown-divider" />
+            <!-- Publishing to the community database is disabled for now: the
+                 code path stays (see EditLyricsV2PublishModal) but is not
+                 reachable from the UI. -->
             <div class="dropdown-section-label">{{ $t('editor.exportHint') }}</div>
 
             <label class="dropdown-item">
@@ -107,7 +98,7 @@ import ContentSave from '~icons/mdi/content-save'
 import CheckboxButton from '@/components/common/CheckboxButton.vue'
 import { invoke } from '@tauri-apps/api/core'
 
-const emit = defineEmits(['save', 'save-and-publish', 'export'])
+const emit = defineEmits(['save', 'export'])
 
 const exportPlainText = ref(false)
 const exportSyncedLrc = ref(false)

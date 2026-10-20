@@ -12,7 +12,6 @@
         :is-dirty="isDirty"
         :is-exporting="isExporting"
         @save="saveLyrics"
-        @save-and-publish="saveAndPublish"
         @export="exportLyrics"
       />
     </template>
@@ -262,6 +261,9 @@ const codemirrorStyle = ref({
   fontSize: 1.0,
 })
 
+// Publishing to the community database is disabled: the composable and its
+// modal are kept so the feature can be re-enabled by wiring this back up.
+// eslint-disable-next-line no-unused-vars
 const { saveAndPublish } = useEditLyricsV2Publish({
   audioSource: audioSourceRef,
   lyricsfileDocument: lyricsfileDocument,
