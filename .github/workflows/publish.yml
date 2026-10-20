@@ -108,8 +108,8 @@ jobs:
           releaseBody: |
             Synced lyrics tool for your own music files.
 
-            **Linux amd64 only** for now: download `sing-along___VERSION__.deb`
-            and install with `sudo apt install ./sing-along___VERSION__.deb`.
+            **Linux amd64 only** for now: download `sing-along___VERSION___amd64.deb`
+            and install with `sudo apt install ./sing-along___VERSION___amd64.deb`.
             Other distributions and architectures ship again from 3.x onward.
 
             Full changelog: https://github.com/LeisureLinux/Sing-Along/commits/main
@@ -129,12 +129,15 @@ jobs:
           # default is kept), so it is worth re-checking after any action bump.
           uploadUpdaterJson: false
           args: ${{ matrix.args }}
-          # One asset, one predictable name: `sing-along_2.5.7.deb` (an
-          # underscore before the version, no architecture suffix). Tauri's
-          # default is `Sing-Along_2.5.4_amd64.deb` — a capital, which reads
-          # badly in a URL. `[mainBinaryName]` resolves to `sing-along` from
-          # tauri.conf.json.
+          # One asset, one predictable name: `sing-along_2.5.7_amd64.deb`.
+          # Tauri's default is `Sing-Along_2.5.4_amd64.deb`; only the product
+          # name differs (capital, no underscore before the version), which
+          # reads badly in a URL.
+          #
+          # `[mainBinaryName]` is `sing-along` from tauri.conf.json (not
+          # `[name]`, which is the product name "Sing-Along"). On Linux `[arch]`
+          # renders as the Debian architecture, `amd64` on this runner.
           #
           # No dot before `[ext]`: that variable already carries one (`.deb`),
-          # so `.[ext]` would render `sing-along_2.5.7..deb`.
-          releaseAssetNamePattern: '[mainBinaryName]_[version][ext]'
+          # so `.[ext]` would render `sing-along_2.5.7_amd64..deb`.
+          releaseAssetNamePattern: '[mainBinaryName]_[version]_[arch][ext]'

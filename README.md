@@ -162,7 +162,7 @@ opt-in cargo features that `tauri build` does not enable. Verify with
 in the default feature set.
 
 Releases currently ship **one asset: a Linux amd64 `.deb`**, named
-`sing-along_<version>.deb`. macOS and Windows bundles are switched off in
+`sing-along_<version>_amd64.deb`. macOS and Windows bundles are switched off in
 `tauri.conf.json` (`bundle.targets` is `["deb"]`) and in the release workflow
 matrix until 3.x, so a plain `npm run tauri build` produces only that package.
 
