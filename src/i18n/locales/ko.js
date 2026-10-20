@@ -184,6 +184,10 @@ export default {
     credits: '크레딧 및 라이선스',
     creditsText:
       'Sing-Along은 LRCGET의 포크입니다. Copyright (c) 2023 tranxuanthang, MIT 라이선스에 따라 사용합니다.',
+    commandLine: '명령줄',
+    commandLineHint: '같은 프로그램을 창 없이 실행할 수 있습니다:',
+    manPageHint: '전체 사용법:',
+    skillHint: 'AI 에이전트용 스킬이 함께 제공됩니다:',
     donate: '후원',
     donateAlt: 'WeChat 결제 QR 코드',
     donateHint: 'Sing-Along을 후원해 주셔서 감사합니다.',

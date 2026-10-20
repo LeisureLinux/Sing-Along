@@ -188,6 +188,10 @@ export default {
     credits: 'Katkılar ve lisans',
     creditsText:
       'Sing-Along, LRCGET’in bir çatalıdır, Copyright (c) 2023 tranxuanthang, MIT lisansı ile kullanılır.',
+    commandLine: 'Komut satırı',
+    commandLineHint: 'Aynı program pencere olmadan çalışır:',
+    manPageHint: 'Tam kullanım:',
+    skillHint: 'Yapay zekâ ajanları için bir skill gelir:',
     donate: 'Destek ol',
     donateAlt: 'WeChat ödeme QR kodu',
     donateHint: 'Sing-Along’u desteklediğin için teşekkürler.',

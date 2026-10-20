@@ -31,9 +31,15 @@ version predates the CLI. Install 2.9.0 or newer.
 `~/Music`, `~/Music/<artist>`, or an external drive.
 
 **2. Which script?** Only for Chinese lyrics. `--script simplified` or
-`--script traditional`. If the user's UI language is Chinese, they usually want
-their own script. Never convert lyrics for a non-Chinese library — the flag is
-off by default and should stay off.
+`--script traditional`.
+
+Decide by inspecting the files, not by guessing: read one `.lrc` and look for
+Traditional-only characters (們, 這, 說, 麼) or Simplified-only ones (们, 这, 说,
+么). A library that is already in the user's script needs no flag.
+
+Never convert a non-Chinese library — the flag is off by default and should stay
+off. Conversion is lossy (发 → 發 or 髮 depending on context), so it is only
+worth doing when the lyrics are actually in the other script.
 
 **3. Which player?** This decides the export format and it is not optional —
 word-level lyric formats are not portable.
@@ -61,8 +67,16 @@ when both exist for the same track.
 sing-along status /path/to/music
 ```
 
-Reports each file as `synced`, `plain` (lyrics but no timing) or `none`, then a
-summary. Use this first so you can tell the user what is actually missing.
+Reports each file as one of:
+
+| Label | Meaning |
+| ----- | ------- |
+| `synced` | Has timed lyrics — nothing to do |
+| `plain` | Has lyric text but no timestamps |
+| `none` | No lyric file at all |
+
+Use this first so you can tell the user what is actually missing before touching
+anything.
 
 ```bash
 sing-along fetch /path/to/music
@@ -80,9 +94,12 @@ re-downloaded. Failures print a reason:
 
 | Output | Meaning | What to do |
 | ------ | ------- | ---------- |
-| `missing … (no timed lyrics)` | LRCLIB has the song but only unsynchronised text | Nothing to fix — this track has no synced lyrics anywhere. Report it as such; do not retry. |
-| `missing …` (no reason) | No match found | Suggest the user check the title/artist tags, or search in the GUI where they can pick a different result. |
-| `missing … (error sending request…)` | The service is unreachable | Retry with `--proxy`. |
+| `missing …  (no timed lyrics)` | LRCLIB has the song but only unsynchronised text | Nothing to fix — no synced version exists anywhere. Report it as such; do not retry. |
+| `missing …  (NotFound…)` | The service has no record of this track | Suggest checking the title/artist tags, or searching in the GUI where a different match can be picked. |
+| `missing …  (error sending request…)` | The service is unreachable | Retry with `--proxy`. The summary line will say so. |
+
+The summary only suggests `--proxy` when lookups actually failed to reach the
+service. If it does not mention the proxy, retrying will not help.
 
 Re-run `status` afterwards and report the before/after counts.
 
@@ -98,20 +115,20 @@ is written.
 
 If it reports `had no lyrics`, run `fetch` first and export again.
 
-**Verify the output.** For TTML, the text of each `<p>` must equal the original
-lyric line:
+**Verify the output.** A wrongly split token or a word tag left in as text still
+produces valid TTML, so the file has to be checked against its source:
 
 ```bash
-python3 - <<'PY'
-import re, sys
-ttml = open(sys.argv[1]).read()
-for para in re.findall(r'<p[^>]*>(.*?)</p>', ttml, re.S):
-    print(re.sub(r'<[^>]+>', '', para))
-PY /path/to/track.ttml
+python3 tools/verify-ttml.py /path/to/track.ttml --against /path/to/track.lrc
 ```
 
-If those lines do not match the source lyrics, stop and report it — do not hand
-the file to the user.
+It prints every paragraph's visible text and exits non-zero if it does not match
+the source. If it reports a mismatch, stop and report it — do not hand the file
+to the user.
+
+One expected difference: the converter **drops credit lines** (`作词：方文山`,
+`Produced by …`) because they carry no singing. The script knows this and filters
+them from the source side; if you compare by hand, filter them too.
 
 ## Workflow: switch formats
 

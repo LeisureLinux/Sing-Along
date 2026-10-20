@@ -184,6 +184,10 @@ export default {
     credits: 'เครดิตและสัญญาอนุญาต',
     creditsText:
       'Sing-Along เป็นฟอร์กของ LRCGET, Copyright (c) 2023 tranxuanthang ใช้ภายใต้สัญญาอนุญาต MIT',
+    commandLine: 'บรรทัดคำสั่ง',
+    commandLineHint: 'โปรแกรมเดียวกันทำงานได้โดยไม่ต้องเปิดหน้าต่าง:',
+    manPageHint: 'วิธีใช้ทั้งหมด:',
+    skillHint: 'มีสกิลสำหรับ AI agent มาด้วย:',
     donate: 'สนับสนุน',
     donateAlt: 'คิวอาร์โค้ดชำระเงิน WeChat',
     donateHint: 'ขอบคุณที่สนับสนุน Sing-Along',

@@ -26,20 +26,26 @@
       "deb": {
         "desktopTemplate": "../packaging/linux/sing-along.desktop",
         "files": {
-          "/usr/share/metainfo/sing-along.metainfo.xml": "../packaging/linux/sing-along.metainfo.xml"
+          "/usr/share/metainfo/sing-along.metainfo.xml": "../packaging/linux/sing-along.metainfo.xml",
+          "/usr/share/sing-along/skills/sing-along/SKILL.md": "../skills/sing-along/SKILL.md",
+          "/usr/share/man/man1/sing-along.1": "../packaging/linux/sing-along.1"
         },
         "depends": []
       },
       "appimage": {
         "files": {
-          "/usr/share/metainfo/sing-along.metainfo.xml": "../packaging/linux/sing-along.metainfo.xml"
+          "/usr/share/metainfo/sing-along.metainfo.xml": "../packaging/linux/sing-along.metainfo.xml",
+          "/usr/share/sing-along/skills/sing-along/SKILL.md": "../skills/sing-along/SKILL.md",
+          "/usr/share/man/man1/sing-along.1": "../packaging/linux/sing-along.1"
         },
         "bundleMediaFramework": false
       },
       "rpm": {
         "desktopTemplate": "../packaging/linux/sing-along.desktop",
         "files": {
-          "/usr/share/metainfo/sing-along.metainfo.xml": "../packaging/linux/sing-along.metainfo.xml"
+          "/usr/share/metainfo/sing-along.metainfo.xml": "../packaging/linux/sing-along.metainfo.xml",
+          "/usr/share/sing-along/skills/sing-along/SKILL.md": "../skills/sing-along/SKILL.md",
+          "/usr/share/man/man1/sing-along.1": "../packaging/linux/sing-along.1"
         },
         "depends": []
       }

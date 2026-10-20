@@ -1,0 +1,123 @@
+.TH SING-ALONG 1 "2026" "sing-along 2.9" "User Commands"
+.SH NAME
+sing-along \- synced lyrics for your own music files
+.SH SYNOPSIS
+.B sing-along
+.RI [ command ]
+.RI [ options ]
+.RI [ path ...]
+.SH DESCRIPTION
+.B sing-along
+is a desktop music player with synced lyrics. Run with no arguments it opens the
+player window. Run with a command it works headless, which is what scripts and
+coding agents use.
+.PP
+Lyrics are fetched from LRCLIB, with an optional NetEase fallback, and written as
+a sidecar file next to the audio.
+.SH COMMANDS
+.TP
+.B fetch \fIpath\fR...
+Download lyrics for every audio file under the given paths and write them as
+\fB.lrc\fR beside each track. Files that already have lyrics are counted as
+skipped rather than re-downloaded.
+.TP
+.B export \fIpath\fR...
+Write the lyrics that are already present in one specific player's format. Which
+format is right depends on the player and is not interchangeable; see
+\fBFORMATS\fR below.
+.TP
+.B status \fIpath\fR...
+Report each file as \fBsynced\fR (timed lyrics), \fBplain\fR (text but no timing)
+or \fBnone\fR, then a summary. Run this before \fBfetch\fR to see what is actually
+missing.
+.TP
+.B formats
+List the players \fBexport\fR understands.
+.SH OPTIONS
+.SS fetch
+.TP
+.BI \-\-script " off|simplified|traditional"
+Convert Chinese lyrics to the given script while writing. Off by default.
+Conversion is lossy, so it is only worth doing when the lyrics are in the other
+script.
+.TP
+.B \-\-overwrite
+Re-download even where a lyric file already exists.
+.TP
+.BI \-\-proxy " url"
+Send lyric requests through this proxy. Without it the app connects directly;
+it deliberately does not inherit \fBHTTP_PROXY\fR from the environment, which is
+usually set for other tooling.
+.SS export
+.TP
+.BI \-\-for " player"
+Target player, for example \fBsteve\fR or \fBgramophone\fR. See \fBFORMATS\fR.
+.TP
+.BI \-\-format " a2|lrc|ttml|txt"
+Explicit format instead of \fB\-\-for\fR.
+.TP
+.B \-\-dry-run
+Print what would be written without writing anything.
+.SH FORMATS
+Word-level lyric files are not portable: each player reads one dialect and shows
+the others as literal text.
+.TP
+.B steve, apple, ios
+TTML. Steve on iOS highlights words only from TTML; its LRC reader is line-level
+and does not strip tags, so enhanced LRC appears as timestamps inside the lyrics.
+.TP
+.B gramophone, fluxio, android
+Enhanced LRC (A2), the \fB<mm:ss.xx>word\fR extension.
+.TP
+.B lrc
+Plain line-level LRC, for any reader.
+.TP
+.B txt
+Plain text, no timing.
+.PP
+Booming (Android) is not supported. Its parser inserts a space after every
+non-final word regardless of script, so Chinese renders as a spaced-out line. No
+file format avoids that.
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B 1
+An operation failed; the reason is printed.
+.TP
+.B 2
+Unknown command or malformed arguments.
+.SH EXAMPLES
+Fetch missing lyrics for a library, converting to Simplified Chinese:
+.PP
+.RS 4
+sing-along fetch ~/Music --script simplified
+.RE
+.PP
+Export for an iPhone, previewing first:
+.PP
+.RS 4
+sing-along export ~/Music --for steve --dry-run
+.RE
+.PP
+Check what a folder is missing:
+.PP
+.RS 4
+sing-along status ~/Music
+.RE
+.SH SKILLS
+A skill file describing the recommended workflow for a coding agent ships at
+\fB/usr/share/sing-along/skills/sing-along/SKILL.md\fR. It covers the questions to
+settle first, the player-to-format mapping, how to verify a converted file, and
+the rules that matter (never rewrite lyric text; do not claim a track can be
+synced when only unsynchronised text exists).
+.SH FILES
+.TP
+.B ~/.local/share/app.singalong.desktop/
+Database, settings, cached album covers.
+.TP
+.B <track>.lrc
+Lyric sidecar written beside the audio file.
+.SH SEE ALSO
+The player's Settings dialog documents the proxy and Chinese script options.

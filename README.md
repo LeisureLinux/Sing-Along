@@ -141,6 +141,49 @@ That also means a few things you should not expect:
 - **Upstream issues do not apply here.** If you hit something, report it in this
   repository.
 
+## Command line
+
+The same binary runs headless. `sing-along` with no arguments opens the player;
+a subcommand does the work without a window:
+
+```shell
+sing-along fetch ~/Music                    # download missing lyrics
+sing-along fetch ~/Music --script simplified
+sing-along export ~/Music --for steve        # TTML for iOS
+sing-along export ~/Music --for gramophone   # enhanced LRC for Android
+sing-along status ~/Music                    # what a folder is missing
+sing-along formats                           # list export targets
+```
+
+`man sing-along` documents all of it, including why the format has to match the
+player: Steve on iOS reads word timing only from TTML, Gramophone and Fluxio only
+from enhanced LRC, and sending one to the other shows the timestamps as lyric
+text.
+
+## Using it from an AI agent
+
+The package ships a skill describing the workflow for a coding agent — the
+questions to settle first, the player-to-format table, how to verify a converted
+file, and the rules that matter (never rewrite lyric text; do not claim a track
+can be synced when only unsynchronised text exists).
+
+It is installed at `/usr/share/sing-along/skills/sing-along/SKILL.md`, and lives
+in this repository at [`skills/sing-along/SKILL.md`](skills/sing-along/SKILL.md).
+
+To use it with Claude Code or a similar agent, point the agent at that file, or
+copy it into the skills directory the agent reads:
+
+```shell
+mkdir -p ~/.claude/skills/sing-along
+cp /usr/share/sing-along/skills/sing-along/SKILL.md ~/.claude/skills/sing-along/
+```
+
+Typical requests it covers:
+
+- "帮我把这个目录下的音乐文件的歌词补充完整"
+- "把这些歌词导出成 Steve 能用的格式"
+- "检查一下这个文件夹缺哪些歌词"
+
 ## Install
 
 Releases currently ship **one asset: a Linux amd64 `.deb`**:

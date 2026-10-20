@@ -261,6 +261,7 @@ async fn fetch(args: &[String]) -> Result<()> {
     let mut fetched = 0usize;
     let mut skipped = 0usize;
     let mut missing = 0usize;
+    let mut transport_failures = 0usize;
 
     for track in &tracks {
         let path = Path::new(&track.file_path);
@@ -289,6 +290,9 @@ async fn fetch(args: &[String]) -> Result<()> {
                 missing += 1;
                 // Distinguish "the service is unreachable" from "no match": a
                 // bare count sends people to the wrong fix.
+                if err.to_string().contains("request") || err.to_string().contains("connect") {
+                    transport_failures += 1;
+                }
                 println!("missing  {}  ({err})", track.file_path);
                 continue;
             }
@@ -326,10 +330,13 @@ async fn fetch(args: &[String]) -> Result<()> {
     }
 
     println!("\n{fetched} fetched, {skipped} already had lyrics, {missing} not found");
-    if fetched == 0 && missing > 0 {
+    // Only suggest the proxy when the failures looked like network errors. A
+    // run where every miss was "no timed lyrics" is not a connectivity problem,
+    // and pointing at --proxy sends the user down the wrong path.
+    if fetched == 0 && transport_failures > 0 {
         println!(
-            "If every lookup failed, the service may be unreachable — try\n\
-             `sing-along fetch <path> --proxy http://your-proxy:port`."
+            "\nSome lookups could not reach the service. If this machine needs a proxy,\n\
+             retry with `sing-along fetch <path> --proxy http://your-proxy:port`."
         );
     }
     Ok(())

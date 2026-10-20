@@ -57,6 +57,31 @@
         </div>
       </div>
 
+      <!-- Command line and agent skill. Both ship with the package, but nothing
+           in the GUI tells you they exist, so the About dialog is where someone
+           would look. -->
+      <div class="mt-6">
+        <label class="group-label mb-2">{{ $t('about.commandLine') }}</label>
+
+        <div class="text-sm">
+          <div class="mb-2">{{ $t('about.commandLineHint') }}</div>
+          <pre
+            class="px-2 py-1.5 rounded bg-neutral-100 dark:bg-neutral-800 text-xs overflow-x-auto select-text"
+          >sing-along fetch ~/Music
+sing-along export ~/Music --for steve
+sing-along status ~/Music</pre>
+          <div class="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+            {{ $t('about.manPageHint') }}
+            <code class="select-text">man sing-along</code>
+          </div>
+
+          <div class="mt-3">{{ $t('about.skillHint') }}</div>
+          <pre
+            class="mt-1 px-2 py-1.5 rounded bg-neutral-100 dark:bg-neutral-800 text-xs overflow-x-auto select-text"
+          >/usr/share/sing-along/skills/sing-along/SKILL.md</pre>
+        </div>
+      </div>
+
       <div class="mt-6">
         <label class="group-label mb-2">{{ $t('about.credits') }}</label>
 

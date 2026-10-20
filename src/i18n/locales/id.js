@@ -184,6 +184,10 @@ export default {
     credits: 'Kredit dan lisensi',
     creditsText:
       'Sing-Along adalah fork dari LRCGET, Copyright (c) 2023 tranxuanthang, digunakan di bawah lisensi MIT.',
+    commandLine: 'Baris perintah',
+    commandLineHint: 'Program yang sama berjalan tanpa jendela:',
+    manPageHint: 'Penggunaan lengkap:',
+    skillHint: 'Ada skill untuk agen AI dalam paket:',
     donate: 'Dukung',
     donateAlt: 'Kode QR pembayaran WeChat',
     donateHint: 'Terima kasih telah mendukung Sing-Along.',

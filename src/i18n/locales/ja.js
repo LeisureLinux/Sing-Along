@@ -186,6 +186,10 @@ export default {
     credits: 'クレジットとライセンス',
     creditsText:
       'Sing-Along は LRCGET のフォークです。Copyright (c) 2023 tranxuanthang、MIT ライセンスに基づき使用しています。',
+    commandLine: 'コマンドライン',
+    commandLineHint: '同じプログラムをウィンドウなしで実行できます：',
+    manPageHint: '詳しい使い方：',
+    skillHint: 'AI エージェント用のスキルを同梱しています：',
     donate: 'サポート',
     donateAlt: 'WeChat 支払い用 QR コード',
     donateHint: 'Sing-Along を支援していただきありがとうございます。',

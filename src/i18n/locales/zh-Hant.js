@@ -180,6 +180,10 @@ export default {
     credits: '致謝與授權',
     creditsText:
       'Sing-Along 是 LRCGET 的分支專案，Copyright (c) 2023 tranxuanthang，依 MIT 授權使用。',
+    commandLine: '命令列',
+    commandLineHint: '同一個程式也可以不開視窗執行：',
+    manPageHint: '完整用法：',
+    skillHint: '隨套件提供了一個供 AI 代理使用的技能檔：',
     donate: '贊賞',
     donateAlt: '微信收款碼',
     donateHint: '感謝對 Sing-Along 專案的認可。',

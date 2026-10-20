@@ -184,6 +184,10 @@ export default {
     credits: 'Ghi công và giấy phép',
     creditsText:
       'Sing-Along là bản fork của LRCGET, Copyright (c) 2023 tranxuanthang, dùng theo giấy phép MIT.',
+    commandLine: 'Dòng lệnh',
+    commandLineHint: 'Cùng một chương trình chạy được không cần cửa sổ:',
+    manPageHint: 'Cách dùng đầy đủ:',
+    skillHint: 'Có kèm một skill cho AI agent:',
     donate: 'Ủng hộ',
     donateAlt: 'Mã QR thanh toán WeChat',
     donateHint: 'Cảm ơn bạn đã ủng hộ Sing-Along.',
