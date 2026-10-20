@@ -104,6 +104,10 @@ export default {
     directoriesHint: '新增或移除掃描目錄…',
     lrclibInstance: 'LRCLIB 實例',
     embed: '將歌詞嵌入音樂檔案',
+    coverSync: '專輯封面',
+    syncCoverLabel: '下載專輯封面',
+    syncCoverHint:
+      '同步歌詞時從 iTunes 或 Deezer 抓取正面封面並寫入音訊檔。兩個來源都是公開介面，無需金鑰。',
     embedExperimental: '實驗性',
     downloadLyricsFor: '為以下歌曲下載歌詞',
     showLineCount: '顯示歌詞行數',

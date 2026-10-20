@@ -104,6 +104,10 @@ export default {
     directoriesHint: '添加或移除扫描目录…',
     lrclibInstance: 'LRCLIB 实例',
     embed: '将歌词嵌入音乐文件',
+    coverSync: '专辑封面',
+    syncCoverLabel: '下载专辑封面',
+    syncCoverHint:
+      '同步歌词时从 iTunes 或 Deezer 抓取正面封面并写入音频文件。两个来源都是公开接口，无需密钥。',
     embedExperimental: '实验性',
     downloadLyricsFor: '为以下歌曲下载歌词',
     showLineCount: '显示歌词行数',

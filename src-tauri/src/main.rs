@@ -242,6 +242,7 @@ async fn set_config(
     theme_mode: &str,
     lrclib_instance: &str,
     volume: f64,
+    sync_cover: bool,
     app_state: State<'_, AppState>,
 ) -> Result<(), String> {
     let conn_guard = app_state.db.lock().unwrap();
@@ -254,6 +255,7 @@ async fn set_config(
         theme_mode,
         lrclib_instance,
         volume,
+        sync_cover,
         conn,
     )
     .map_err(|err| err.to_string())?;

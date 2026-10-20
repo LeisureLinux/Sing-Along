@@ -202,6 +202,7 @@ pub fn set_config(
     theme_mode: &str,
     lrclib_instance: &str,
     volume: f64,
+    sync_cover: bool,
     db: &Connection,
 ) -> Result<()> {
     let mut statement = db.prepare(indoc! {"
@@ -213,7 +214,8 @@ pub fn set_config(
         try_embed_lyrics = ?,
         theme_mode = ?,
         lrclib_instance = ?,
-        volume = ?
+        volume = ?,
+        sync_cover = ?
       WHERE 1
     "})?;
     statement.execute((
@@ -224,6 +226,7 @@ pub fn set_config(
         theme_mode,
         lrclib_instance,
         volume,
+        sync_cover,
     ))?;
     Ok(())
 }
@@ -1892,7 +1895,7 @@ mod export_preferences_tests {
             .unwrap()
             .to_latest(&mut conn)
             .unwrap();
-        set_config(true, false, true, true, "dark", "https://example.test", 0.4, &conn)
+        set_config(true, false, true, true, "dark", "https://example.test", 0.4, false, &conn)
             .unwrap();
         set_export_preferences(None, Some(true), Some(true), Some(true), None, None, &conn)
             .unwrap();
@@ -1926,15 +1929,14 @@ mod export_preferences_tests {
         let mut conn = Connection::open_in_memory().unwrap();
         let migrations = Migrations::from_directory(&MIGRATIONS_DIR).unwrap();
         migrations.to_version(&mut conn, 16).unwrap();
-        set_config(
-            true,
-            false,
-            true,
-            true,
-            "dark",
-            "https://example.test",
-            0.4,
-            &conn,
+        // Write the pre-21 settings with raw SQL: set_config also writes
+        // sync_cover, which does not exist at schema version 16.
+        conn.execute(
+            "UPDATE config_data SET skip_tracks_with_synced_lyrics = 1, \
+             skip_tracks_with_plain_lyrics = 0, show_line_count = 1, \
+             try_embed_lyrics = 1, theme_mode = 'dark', \
+             lrclib_instance = 'https://example.test', volume = 0.4",
+            [],
         )
         .unwrap();
         conn.execute(
@@ -1968,6 +1970,7 @@ mod export_preferences_tests {
             "light",
             "https://other.test",
             0.6,
+            false,
             &conn,
         )
         .unwrap();

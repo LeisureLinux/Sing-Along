@@ -111,6 +111,10 @@ export default {
     directoriesHint: 'Add and remove scanning directories...',
     lrclibInstance: 'LRCLIB instance',
     embed: 'Embed lyrics into music files',
+    coverSync: 'Album Cover',
+    syncCoverLabel: 'Download album cover art',
+    syncCoverHint:
+      'Fetch front cover art from iTunes or Deezer and embed it into the audio file when syncing lyrics. Both sources are public and require no key.',
     embedExperimental: 'Experimental',
     downloadLyricsFor: 'Download lyrics for',
     showLineCount: 'Show line count',

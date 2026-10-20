@@ -123,6 +123,21 @@
         </div>
       </div>
 
+      <div>
+        <label class="group-label mb-4">{{ $t('config.coverSync') }}</label>
+
+        <div class="flex items-start">
+          <CheckboxButton id="sync-cover" v-model="syncCover" name="sync-cover">
+            <div class="flex flex-col">
+              <span class="mb-0.5">{{ $t('config.syncCoverLabel') }}</span>
+              <span class="text-xs text-neutral-500 dark:text-neutral-400">{{
+                $t('config.syncCoverHint')
+              }}</span>
+            </div>
+          </CheckboxButton>
+        </div>
+      </div>
+
       <div class="flex flex-col gap-1">
         <a href="#" class="link hidden" @click="refreshLibrary">{{
           $t('config.scanIncremental')
@@ -165,6 +180,7 @@ const skipTracksWithSyncedLyrics = ref(true)
 const skipTracksWithPlainLyrics = ref(false)
 const showLineCount = ref(true)
 const tryEmbedLyrics = ref(false)
+const syncCover = ref(false)
 const editingThemeMode = ref('auto')
 const editingLrclibInstance = ref('')
 
@@ -177,6 +193,7 @@ const save = async () => {
     themeMode: editingThemeMode.value,
     lrclibInstance: editingLrclibInstance.value,
     volume: volume.value,
+    syncCover: syncCover.value,
   })
   setThemeMode(editingThemeMode.value)
   setLrclibInstance(editingLrclibInstance.value)
@@ -215,6 +232,7 @@ const beforeOpenHandler = async () => {
 
   showLineCount.value = config.show_line_count
   tryEmbedLyrics.value = config.try_embed_lyrics
+  syncCover.value = config.sync_cover ?? false
   editingThemeMode.value = config.theme_mode
   editingLrclibInstance.value = config.lrclib_instance
 }
