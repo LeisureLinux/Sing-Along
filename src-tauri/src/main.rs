@@ -879,6 +879,25 @@ async fn apply_lyrics(
         .ok_or_else(|| "Failed to build lyricsfile")?
     };
 
+    // Apply the configured Chinese script conversion. Picking a result in the
+    // search dialog is the same user intent as downloading it, so it goes
+    // through the same conversion step; without this, a track set to Simplified
+    // would silently get Traditional lyrics from a manual search.
+    let lyricsfile_content = {
+        let configured = app_handle
+            .db(|db: &Connection| db::get_config(db).map(|config| config.lyric_script))
+            .unwrap_or_else(|_| "off".to_owned());
+        match configured.as_str() {
+            script if script != "off" && crate::script_convert::has_cjk(&lyricsfile_content) => {
+                match crate::script_convert::ScriptTarget::parse(script) {
+                    Some(target) => crate::script_convert::convert(&lyricsfile_content, target),
+                    None => lyricsfile_content,
+                }
+            }
+            _ => lyricsfile_content,
+        }
+    };
+
     // Upsert the lyricsfile record (handles presence fields automatically)
     app_handle
         .db(|db: &Connection| {

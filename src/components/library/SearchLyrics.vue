@@ -167,8 +167,11 @@ import Preview from './search-lyrics/Preview.vue'
 import { useModal } from 'vue-final-modal'
 import { countLines } from '@/utils/count-lines.js'
 import { normalizeLrclibLyrics } from '@/utils/lyricsfile.js'
+import { convertLyricScript, scriptForLocale } from '@/utils/script-conversion.js'
+import { useI18n } from 'vue-i18n'
 
 const toast = useToast()
+const { i18n } = useI18n()
 const props = defineProps(['searchingTrack'])
 const emit = defineEmits(['close'])
 
@@ -237,9 +240,28 @@ const preview = lyricsItem => {
 
 const apply = async lyricsItem => {
   try {
+    // Pick up the configured script before saving. A manual search is the same
+    // user intent as a download, so a track set to Simplified should not end up
+    // with the Traditional text LRCLIB happens to serve.
+    const config = await invoke('get_config')
+    const target =
+      config.lyric_script === 'ask' || !config.lyric_script
+        ? scriptForLocale(i18n.global.locale.value)
+        : config.lyric_script
+
+    const item =
+      target === 'off' || target === 'ask'
+        ? lyricsItem
+        : {
+            ...lyricsItem,
+            plainLyrics: convertLyricScript(lyricsItem.plainLyrics, target),
+            syncedLyrics: convertLyricScript(lyricsItem.syncedLyrics, target),
+            lyricsfile: convertLyricScript(lyricsItem.lyricsfile, target),
+          }
+
     const result = await invoke('apply_lyrics', {
       trackId: props.searchingTrack.id,
-      lrclibResponse: lyricsItem,
+      lrclibResponse: item,
     })
     toast.success(result)
   } catch (error) {
