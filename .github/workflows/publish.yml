@@ -18,24 +18,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Each platform names exactly the installers it should ship. This keeps
-          # the release page's contents explicit rather than depending on what
-          # `"all"` happens to include on a given runner image.
+          # Linux amd64 only, and only the .deb.
           #
-          # Note this alone does not control the macOS `.app.tar.gz`: the updater
-          # archives are requested by `tauri-action` via `includeUpdaterJson`, not
-          # by the target list. See the action's `with:` block below.
-          # Apple Silicon only. Intel Macs are not built: Apple has stopped
-          # shipping new Intel hardware and macOS support for it is winding down,
-          # so maintaining a second macOS job doubles the slowest leg of the
-          # matrix for a shrinking audience. Re-add
-          # `--target x86_64-apple-darwin` here if that changes.
-          - platform: 'macos-latest'
-            args: '--target aarch64-apple-darwin --bundles dmg'
+          # macOS and Windows builds are switched off until 3.x. They cost the
+          # slowest legs of the matrix (code signing, extra runner time) for a
+          # project that is still changing shape every few releases, and the
+          # Linux .deb covers the machines this is developed and tested on.
+          # Re-add the platform rows below when 3.x ships:
+          #
+          #   - platform: 'macos-latest'
+          #     args: '--target aarch64-apple-darwin --bundles dmg'
+          #   - platform: 'windows-latest'
+          #     args: '--bundles nsis,msi'
+          #
+          # Note this list alone does not control the macOS `.app.tar.gz`: the
+          # updater archives are requested by `tauri-action` via
+          # `includeUpdaterJson`, not by the target list.
           - platform: 'ubuntu-22.04'
-            args: '--bundles deb,rpm,appimage'
-          - platform: 'windows-latest'
-            args: '--bundles nsis,msi'
+            args: '--bundles deb'
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -49,10 +49,9 @@ jobs:
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          # Only the target actually being built: installing an extra Rust
-          # target costs a download and gains nothing when the matrix no longer
-          # builds for it.
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
+          # No extra targets: the matrix only builds the runner's own platform,
+          # so installing another one would be a download with no use.
+          targets: ''
 
       # The upstream workflow pinned libwebkit2gtk to a specific version that
       # only existed on one runner image; that breaks as soon as the image moves.
@@ -101,17 +100,13 @@ jobs:
           # reused when it does, so re-running a failed release does not produce
           # a duplicate.
           tagName: ${{ github.ref_type == 'tag' && github.ref_name || 'v__VERSION__' }}
-          releaseName: 'Sing-Along __VERSION__'
+          releaseName: 'sing-along v__VERSION__'
           releaseBody: |
             Synced lyrics tool for your own music files.
 
-            See the assets below to download and install.
-
-            - **Linux**: `.deb` (Debian/Ubuntu), `.rpm` (Fedora/openSUSE), or the
-              `.AppImage` which runs on most distributions.
-            - **Windows**: `-setup.exe` to install, `.msi` for managed deployment.
-            - **macOS**: the `.dmg` builds are Apple Silicon only (M1 and later).
-              Intel Macs are not built.
+            **Linux amd64 only** for now: download `sing-along-__VERSION__.deb`
+            and install with `sudo apt install ./sing-along-__VERSION__.deb`.
+            Other distributions and architectures ship again from 3.x onward.
 
             Full changelog: https://github.com/LeisureLinux/Sing-Along/commits/main
           # Published straight away rather than left as a draft. The tests run
@@ -130,3 +125,12 @@ jobs:
           # default, which is how the first attempt at this quietly did nothing.
           includeUpdaterJson: false
           args: ${{ matrix.args }}
+          # One asset, one predictable name. Tauri's default is
+          # `Sing-Along_2.5.4_amd64.deb` — a capital and an underscore in a URL
+          # that does not sort next to the other files. `[mainBinaryName]`
+          # resolves to `sing-along` (tauri.conf.json), giving
+          # `sing-along-2.5.4.deb`.
+          #
+          # No dot before `[ext]`: that variable already carries one (`.deb`),
+          # so `.[ext]` would render `sing-along-2.5.4..deb`.
+          releaseAssetNamePattern: '[mainBinaryName]-[version][ext]'

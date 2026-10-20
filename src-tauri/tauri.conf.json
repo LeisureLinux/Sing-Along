@@ -55,12 +55,7 @@
     "resources": [],
     "shortDescription": "Utility for mass-downloading LRC synced lyrics for your offline music library.",
     "targets": [
-      "deb",
-      "rpm",
-      "appimage",
-      "nsis",
-      "msi",
-      "dmg"
+      "deb"
     ]
   },
   "productName": "Sing-Along",
