@@ -92,20 +92,16 @@
         <button class="track-button" @click="searchLyrics(track)">
           <TextSearch />
         </button>
-        <VTooltip theme="singalong-tooltip">
-          <button
-            class="track-button"
-            :class="{ 'animate-spin': isSyncing }"
-            :disabled="isSyncing"
-            @click="syncLyrics"
-          >
-            <Sync v-if="!isSyncing" />
-            <Loading v-else class="animate-spin text-sm" />
-          </button>
-          <template #popper>
-            <div class="text-xs font-bold">{{ $t('actions.syncLyrics') }}</div>
-          </template>
-        </VTooltip>
+        <button
+          class="track-button"
+          :class="{ 'animate-spin': isSyncing }"
+          :disabled="isSyncing"
+          :title="$t('actions.syncLyrics')"
+          @click="syncLyrics"
+        >
+          <Sync v-if="!isSyncing" />
+          <Loading v-else class="animate-spin text-sm" />
+        </button>
         <button class="track-button" @click="openEditLyricsV2(track)">
           <PlaylistEdit />
         </button>
@@ -120,7 +116,6 @@ import Pause from '~icons/mdi/pause'
 import TextSearch from '~icons/mdi/text-search'
 import Sync from '~icons/mdi/sync'
 import Loading from '~icons/mdi/loading'
-import { VTooltip } from 'floating-vue'
 import { useToast } from 'vue-toastification'
 import { useI18n } from 'vue-i18n'
 import PlaylistEdit from '~icons/mdi/playlist-edit'

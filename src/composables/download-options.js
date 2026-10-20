@@ -17,6 +17,7 @@ const emptyDraft = () => ({
   embedIntoTrack: false,
   // 'ask' means the user has not answered yet, so the popup shows the prompt.
   lyricScript: 'ask',
+  syncCover: false,
 })
 const downloadDraft = ref(emptyDraft())
 const tryEmbedLyrics = ref(false)
