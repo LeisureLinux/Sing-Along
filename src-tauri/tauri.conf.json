@@ -89,5 +89,5 @@
       "csp": "default-src 'self'; img-src 'self' data: asset: http://asset.localhost https://asset.localhost http://localhost https://localhost; media-src *; connect-src ipc: http://ipc.localhost 'self' asset: http://asset.localhost https://asset.localhost *; style-src 'unsafe-inline' 'self'"
     }
   },
-  "version": "2.7.3"
+  "version": "2.8.0"
 }
