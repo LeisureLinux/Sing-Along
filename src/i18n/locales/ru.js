@@ -1,0 +1,296 @@
+/**
+ * Russian strings.
+ *
+ * Keys mirror en.js exactly — see that file for the reference.
+ *
+ * Plurals use vue-i18n pluralisation only where the caller passes a count;
+ * elsewhere the phrasing is chosen to avoid agreement problems (e.g. "найдено:
+ * {count}" instead of "{count} треков").
+ */
+export default {
+  app: {
+    name: 'Sing-Along',
+    windowTitle: 'Sing-Along: плеер с загрузкой, редактированием и экспортом текстов песен офлайн',
+    loadingLibrary: 'Загрузка библиотеки…',
+  },
+
+  setup: {
+    selectStrategy: 'Выбрать способ',
+
+    selectDirectories: 'Выбрать папки',
+  },
+
+  tabs: {
+    tracks: 'Композиции',
+    albums: 'Альбомы',
+    artists: 'Исполнители',
+    lrclib: 'Поиск текста',
+  },
+
+  actions: {
+    chooseFile: 'Выбрать файл…',
+
+    download: 'Загрузить',
+    downloadAll: 'Загрузить все тексты',
+    export: 'Экспорт',
+    cancel: 'Отмена',
+    close: 'Закрыть',
+    save: 'Сохранить',
+    delete: 'Удалить',
+    confirm: 'Подтвердить',
+    back: 'Назад',
+    search: 'Поиск',
+    refresh: 'Обновить',
+    open: 'Открыть',
+    copy: 'Копировать',
+    copied: 'Скопировано',
+    apply: 'Применить',
+    continueLabel: 'Продолжить',
+    syncLyrics: 'Синхронизировать текст',
+    retry: 'Повторить',
+  },
+
+  search: {
+    noTracksFound: 'Композиции не найдены',
+    typeToSearch: 'Введите запрос для поиска по библиотеке',
+
+    libraryPlaceholder: 'Поиск композиций в библиотеке…',
+    lyricsPlaceholder: 'Введите название, альбом или исполнителя, чтобы найти текст…',
+    title: 'Название',
+    album: 'Альбом',
+    artist: 'Исполнитель',
+    tracksPlaceholder: 'Поиск композиций…',
+    albumsPlaceholder: 'Поиск альбомов…',
+    artistsPlaceholder: 'Поиск исполнителей…',
+    noResults: 'Ничего не найдено',
+  },
+
+  track: {
+    duration: 'Длительность',
+    lyrics: 'Текст',
+    instrumental: 'Инструментал',
+    synced: 'Синхронизирован',
+    plain: 'Без синхронизации',
+    track: 'Композиция',
+    unknownAlbum: 'Неизвестный альбом',
+    unknownArtist: 'Неизвестный исполнитель',
+  },
+
+  player: {
+    previousTrack: 'Предыдущая композиция',
+    nextTrack: 'Следующая композиция',
+    playbackSpeed: 'Скорость воспроизведения',
+    shuffleOn: 'Перемешивание включено',
+    shuffleOff: 'Перемешивание выключено',
+    repeatOne: 'Повтор одной',
+    repeatAll: 'Повтор всех',
+    repeatOff: 'Повтор выключен',
+    volume: 'Громкость',
+  },
+
+  filters: {
+    allTracks: 'Все композиции (перезаписать существующие тексты)',
+    syncedTracks: 'Только без синхронизированного текста',
+    plainTracks: 'Только без обычного текста',
+    instrumentalTracks: 'Инструментальные композиции',
+    noLyricsTracks: 'Композиции совсем без текста',
+  },
+
+  config: {
+    appearance: 'Оформление',
+    fileWriteWarning:
+      'Эта опция может повредить ваши аудиофайлы. Сделайте резервную копию библиотеки перед включением.',
+    scanIncremental: 'Искать новые и изменённые композиции…',
+    scanFull: 'Сбросить библиотеку и просканировать заново…',
+
+    title: 'Настройки',
+    theme: 'Тема',
+    themeAuto: 'Автоматически',
+    themeLight: 'Светлая',
+    themeDark: 'Тёмная',
+    language: 'Язык',
+    languageAuto: 'Как в системе',
+    directories: 'Папки с музыкой',
+    addDirectory: 'Добавить папку',
+    manageDirectories: 'Управление папками',
+    directoriesHint: 'Добавить и удалить папки для сканирования…',
+    lrclibInstance: 'Экземпляр LRCLIB',
+    embed: 'Встраивать текст в музыкальные файлы',
+    coverSync: 'Обложка альбома',
+    syncCoverLabel: 'Загружать обложку альбома',
+    syncCoverHint:
+      'При синхронизации текста обложка загружается с iTunes или Deezer и встраивается в аудиофайл. Оба источника публичные и не требуют ключа.',
+    embedExperimental: 'Экспериментально',
+    downloadLyricsFor: 'Загружать текст для',
+    showLineCount: 'Показывать число строк',
+    save: 'Сохранить настройки',
+    saved: 'Настройки сохранены',
+  },
+
+  exportOptions: {
+    title: 'Параметры экспорта',
+    toTrackDirectory: 'Экспортировать все тексты в папку соответствующей композиции',
+    plainLyrics: 'Обычный текст (.txt)',
+    syncedLyrics: 'Синхронизированный текст (.lrc)',
+    embedIntoTrack: 'Встроить в файл композиции',
+    wordLevelHint: 'Пословный текст — выберите формат под целевой плеер:',
+    wordNone: 'Не экспортировать пословно',
+    a2: 'Enhanced LRC / A2 (.alrc) — Android',
+    ttml: 'TTML (.ttml) — iOS',
+  },
+
+  downloadOptions: {
+    skipExisting: 'Пропускать композиции, где текст уже есть',
+
+    title: 'Параметры загрузки',
+    autoExport: 'Автоматически экспортировать тексты',
+    createLrc: 'Создавать отдельные файлы LRC',
+    exportLrc: 'LRC (.lrc)',
+    exportTxt: 'Обычный текст (.txt)',
+    syncCover: 'Также загружать обложку альбома',
+    exportEmbedded: 'Встроить в файлы',
+    start: 'Начать загрузку',
+  },
+
+  editor: {
+    syncWord: 'Синхронизировать слово',
+    noPlainYet: 'Обычного текста пока нет',
+    noSyncedYet: 'Синхронизированных строк пока нет',
+    markedInstrumental: 'Композиция отмечена как инструментальная',
+
+    publishHint: 'Опубликовать текст в вашем экземпляре LRCLIB:',
+    exportHint: 'Экспортировать в папку композиции:',
+    savingAndExporting: 'Сохранение и экспорт…',
+    saveAndExport: 'Сохранить и экспортировать',
+    saveHint: 'Сохранить текст',
+    saveAndPublish: 'Сохранить и опубликовать',
+  },
+
+  about: {
+    title: 'О программе',
+    update: 'Обновление',
+    currentVersion: 'Текущая версия',
+    newestVersion: 'Последняя версия',
+    updateAvailable: 'Доступна новая версия.',
+    upToDate: 'У вас последняя версия.',
+    updateFailed: 'Не удалось проверить обновления.',
+    homePage: 'Домашняя страница, контакты и поддержка',
+    credits: 'Благодарности и лицензия',
+    creditsText:
+      'Sing-Along — форк LRCGET, Copyright (c) 2023 tranxuanthang, используется по лицензии MIT.',
+    donate: 'Поддержать',
+    donateAlt: 'QR-код оплаты WeChat',
+    donateHint: 'Спасибо за поддержку Sing-Along.',
+    releasePage: 'Страница релизов Sing-Along',
+    checking: 'Получение данных о последней версии с GitHub…',
+    forkOf: 'Sing-Along — форк',
+    copyrightSuffix: ', Copyright (c) 2023 tranxuanthang, используется по лицензии MIT.',
+    contributors: 'Ранее код предоставили',
+    contributorsSuffix: ', также по лицензии MIT.',
+    lyricsFrom: 'Тексты предоставлены',
+    lyricsProvidedBy: 'Тексты предоставляет LRCLIB.',
+  },
+
+  status: {
+    scanning: 'Сканирование…',
+    discovering: 'Поиск файлов…',
+    preparing: 'Подготовка',
+    downloading: 'Загрузка',
+    exporting: 'Экспорт',
+    exported: 'Экспортировано',
+    processing: 'Обработка',
+    loadingEditor: 'Загрузка редактора…',
+    noLyricsFound: 'Текст не найден',
+  },
+
+  lyricsSearch: {
+    title: 'Поиск текста песни',
+    placeholder: 'Введите название, альбом или исполнителя, чтобы найти текст…',
+    searchingFor: 'Поиск',
+    foundTracks: 'Найдено: {count}',
+    lines: 'Строк: {count}',
+    preview: 'Просмотреть этот текст',
+    edit: 'Редактировать этот текст',
+    errorSearch: 'При поиске текста произошла ошибка. Попробуйте ещё раз.',
+    errorOpen: 'При открытии текста произошла ошибка. Попробуйте ещё раз.',
+    chooseReferenceTrack: 'Выберите композицию для сверки',
+    searchTracksPlaceholder: 'Поиск композиций в библиотеке…',
+    editWithAudio: 'Редактировать со звуком',
+    existingLyricsFound: 'Такой текст уже есть',
+    redownload: 'Загрузить заново',
+    errorLoadTracks: 'Не удалось загрузить композиции',
+    errorReadAudio: 'Не удалось прочитать аудиофайл',
+    errorRedownload: 'Не удалось загрузить текст заново',
+    noLyricsSubmitted: 'Для этой композиции текст ещё не отправлен',
+    continueEditing: 'Продолжить редактирование',
+  },
+
+  lrclib: {
+    previousDownload: 'Текст для этой композиции уже загружался ранее.',
+  },
+
+  scriptConversion: {
+    legend: 'Китайское письмо загруженных текстов',
+    off: 'Оставить как опубликовано',
+    toSimplified: 'Преобразовать в упрощённый китайский',
+    toTraditional: 'Преобразовать в традиционный китайский',
+    hint: 'Спрашивается один раз, затем запоминается. Преобразование автоматическое и обычно верное, но не может разрешить все иероглифы с несколькими соответствиями.',
+  },
+
+  shortcuts: {
+    changeFor: 'Изменить сочетание для «{action}»',
+    resetFor: 'Сбросить сочетание для «{action}»',
+    deleteSelectedLine: 'Удалить выбранную строку',
+    deleteSelectedSeparatorsToMergeAdjacentWords: 'Удалить выбранные разделители, объединив соседние слова',
+    forward100MsPlay: 'Вперёд на 100 мс и воспроизвести',
+    forwardLineEndBy100Ms: 'Конец строки вперёд на 100 мс',
+    openKeyboardShortcuts: 'Открыть сочетания клавиш',
+    replayPreviousLine: 'Повторить предыдущую строку',
+    replaySelectedLine: 'Повторить выбранную строку',
+    resetSeparatorCursorToSecondDivider: 'Вернуть курсор ко второму разделителю',
+    resetZoom: 'Сбросить масштаб',
+    rewind100MsPlay: 'Назад на 100 мс и воспроизвести',
+    rewindLineEndBy100Ms: 'Конец строки назад на 100 мс',
+    saveLyrics: 'Сохранить текст',
+    selectNextLine: 'Выбрать следующую строку',
+    selectNextSeparator: 'Выбрать следующий разделитель',
+    selectPreviousLine: 'Выбрать предыдущую строку',
+    selectPreviousSeparator: 'Выбрать предыдущий разделитель',
+    syncLineMoveToNextSkipLineEndSync: 'Синхронизировать строку и перейти к следующей (без конца строки)',
+    syncLineSyncPreviousLineEndMoveToNext: 'Синхронизировать строку и конец предыдущей, затем к следующей',
+    syncLineToCurrentPlayback: 'Синхронизировать строку с текущей позицией',
+    syncSelectedLineEndMoveToNext: 'Синхронизировать конец выбранной строки и перейти к следующей',
+    syncSelectedLineEndToCurrentPlayback: 'Синхронизировать конец выбранной строки с текущей позицией',
+    syncSelectedSeparatorMoveToNext: 'Синхронизировать выбранный разделитель и перейти к следующему',
+    syncSelectedSeparatorStaySelected: 'Синхронизировать выбранный разделитель (остаться на нём)',
+    zoomIn: 'Приблизить',
+    zoomInOut: 'Приблизить/отдалить',
+    zoomOut: 'Отдалить',
+  },
+
+  viewer: {
+    downloadDone: 'Загружено',
+    exportDone: 'Экспорт завершён',
+    finish: 'Готово',
+    stop: 'Остановить',
+    found: 'найдено',
+    notFound: 'не найдено',
+    total: 'всего',
+    exported: 'экспортировано',
+    skipped: 'пропущено',
+    errors: 'ошибок',
+    exportOk: 'успешно экспортировано',
+    unknown: 'неизвестно',
+  },
+
+  errors: {
+    scanFailed: 'Не удалось просканировать библиотеку',
+    loadTracksFailed: 'Не удалось загрузить композиции',
+    searchFailed: 'Не удалось найти текст. Попробуйте ещё раз.',
+    nothingToExport: 'Не найдено композиций с текстом для экспорта',
+    exportFormatRequired: 'Выберите хотя бы один формат экспорта',
+    exportStartFailed: 'Не удалось начать экспорт: {error}',
+    scanFailedDetail: 'Не удалось просканировать библиотеку: {error}',
+    unsavedChanges: 'Есть несохранённые изменения. Точно закрыть?',
+  },
+}

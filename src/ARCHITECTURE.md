@@ -31,6 +31,7 @@ src/
 │   ├── library/            # Library views + lyric edit/search
 │   └── now-playing/        # Playback controls
 ├── composables/            # Shared state (player, downloader, search, edit)
+├── i18n/                   # vue-i18n setup + locales/ (11 languages)
 └── utils/                  # Helpers (lyrics, durations, linting)
 ```
 
@@ -67,6 +68,34 @@ Module-level ref composables (singletons by design):
 
 - `BaseModal.vue` — Reusable modal wrapper using Vue Final Modal with consistent styling
 - `ConfirmModal.vue` — Simple confirmation modal for user actions (e.g., confirming close on unsaved changes)
+
+## Internationalisation
+
+`src/i18n/index.js` exports the configured vue-i18n instance plus
+`AVAILABLE_LOCALES`, `resolveLocale`, `initLocale` and `setLocale`.
+
+**Never read `localStorage` at module import time.** The locale file is imported
+by Node test runs where `localStorage` does not exist; `initLocale()` is called
+from `main.js` after the DOM is ready for exactly that reason. A module-level
+`readLocalePreference()` here breaks every test that transitively imports it.
+
+**Locale resolution** walks `navigator.languages` and takes the first tag whose
+primary subtag matches a shipped locale, so `['fr-CA', 'en']` yields French rather
+than falling to English. Chinese is special-cased on the script/region subtag:
+`Hant`/`TW`/`HK`/`MO` give `zh-Hant`, everything else under `zh` gives `zh-Hans`.
+
+**Adding a language** is three steps: copy `locales/en.js` to
+`locales/<tag>.js`, translate the values (never the keys), then add the module to
+the imports, the `messages` map, and `AVAILABLE_LOCALES` in `index.js`.
+`i18n.test.js` enforces the rest — every locale must have exactly the English key
+set, no empty strings, and the same `{placeholder}` set per key as English, which
+is what catches a dropped `{count}` before it renders literally on screen.
+
+**Window title** is applied through `applyWindowTitle()`, which writes both
+`document.title` and the OS window title via the Tauri window API. That API is a
+static import on purpose: a `await import('@tauri-apps/api/window')` fails to
+resolve under Vite, and the resulting rejection was once swallowed by a `catch`,
+leaving the title stuck on whatever `tauri.conf.json` said.
 
 ## Library & Lyrics System
 
