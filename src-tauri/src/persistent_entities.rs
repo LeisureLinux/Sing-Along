@@ -98,4 +98,6 @@ pub struct PersistentConfig {
     /// Whether LRCLIB misses fall back to NetEase (unofficial API).
     pub netease_fallback_enabled: bool,
     pub sync_cover: bool,
+    /// Empty means direct connection. See migration 22.
+    pub proxy_url: String,
 }

@@ -37,23 +37,34 @@ pub async fn request(
     artist_name: &str,
     q: &str,
     lrclib_instance: &str,
+    proxy_url: &str,
 ) -> Result<Response> {
-    let params: Vec<(String, String)> = vec![
-        ("track_name".to_owned(), title.to_owned()),
-        ("artist_name".to_owned(), artist_name.to_owned()),
-        ("album_name".to_owned(), album_name.to_owned()),
-        ("q".to_owned(), q.to_owned()),
-    ];
+    // Only send parameters that carry a value. Empty fields are still treated as
+    // filters by the endpoint, and a request with three empty filters next to a
+    // real `q` is rejected often enough to look like a flaky network.
+    let params: Vec<(String, String)> = [
+        ("track_name", title),
+        ("artist_name", artist_name),
+        ("album_name", album_name),
+        ("q", q),
+    ]
+    .into_iter()
+    .filter(|(_, value)| !value.trim().is_empty())
+    .map(|(key, value)| (key.to_owned(), value.to_owned()))
+    .collect();
 
     let version = env!("CARGO_PKG_VERSION");
     let user_agent = format!(
         "Sing-Along v{} (https://github.com/LeisureLinux/Sing-Along)",
         version
     );
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(10))
-        .user_agent(user_agent)
-        .build()?;
+    // reqwest reads HTTPS_PROXY/HTTP_PROXY from the environment by default. On a
+    // machine where those are set for other tooling, every LRCLIB request then
+    // goes through a proxy that may not reach it, and the failure surfaces as
+    // "error sending request" — indistinguishable from LRCLIB being down. The
+    // instance URL is configured by the user, so a proxy meant for something else
+    // should not be silently in the path.
+    let client = crate::http::client_with_agent(proxy_url, 10, &user_agent)?;
     let api_endpoint = format!("{}/api/search", lrclib_instance.trim_end_matches('/'));
     let url = reqwest::Url::parse_with_params(&api_endpoint, &params)?;
     let res = client.get(url).send().await?;

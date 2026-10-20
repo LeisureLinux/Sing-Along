@@ -39,6 +39,7 @@ pub async fn request(
     lyricsfile: Option<&str>,
     publish_token: &str,
     lrclib_instance: &str,
+    proxy_url: &str,
 ) -> Result<()> {
     let data = Request {
         artist_name: artist_name.to_owned(),
@@ -55,10 +56,7 @@ pub async fn request(
         "Sing-Along v{} (https://github.com/LeisureLinux/Sing-Along)",
         version
     );
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(10))
-        .user_agent(user_agent)
-        .build()?;
+    let client = crate::http::client_with_agent(proxy_url, 10, &user_agent)?;
     let api_endpoint = format!("{}/api/publish", lrclib_instance.trim_end_matches('/'));
     let url = reqwest::Url::parse(&api_endpoint)?;
     let res = client

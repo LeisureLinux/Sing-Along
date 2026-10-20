@@ -21,16 +21,13 @@ pub struct ResponseError {
     message: String,
 }
 
-pub async fn request(lrclib_instance: &str) -> Result<Response> {
+pub async fn request(lrclib_instance: &str, proxy_url: &str) -> Result<Response> {
     let version = env!("CARGO_PKG_VERSION");
     let user_agent = format!(
         "Sing-Along v{} (https://github.com/LeisureLinux/Sing-Along)",
         version
     );
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(10))
-        .user_agent(user_agent)
-        .build()?;
+    let client = crate::http::client_with_agent(proxy_url, 10, &user_agent)?;
     let api_endpoint = format!(
         "{}/api/request-challenge",
         lrclib_instance.trim_end_matches('/')

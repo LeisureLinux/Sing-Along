@@ -17,7 +17,7 @@ tauri-build = { version = "2.5.6", features = [] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
-tauri = { version = "2.10.1", features = ["protocol-asset"] }
+tauri = { version = "2.10.1", features = ["protocol-asset", "tray-icon"] }
 globwalk = "0.9.1"
 reqwest = { version = "0.12.7", features = ["json"] }
 lofty = "0.24.0"

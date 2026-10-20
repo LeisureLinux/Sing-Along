@@ -65,22 +65,19 @@ pub struct ResponseError {
     message: String,
 }
 
-async fn make_request(id: i64, lrclib_instance: &str) -> Result<reqwest::Response> {
+async fn make_request(id: i64, lrclib_instance: &str, proxy_url: &str) -> Result<reqwest::Response> {
     let version = env!("CARGO_PKG_VERSION");
     let user_agent = format!(
         "Sing-Along v{} (https://github.com/LeisureLinux/Sing-Along)",
         version
     );
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(10))
-        .user_agent(user_agent)
-        .build()?;
+    let client = crate::http::client_with_agent(proxy_url, 10, &user_agent)?;
     let api_endpoint = format!("{}/api/get/{}", lrclib_instance.trim_end_matches('/'), id);
     Ok(client.get(&api_endpoint).send().await?)
 }
 
-pub async fn request_raw(id: i64, lrclib_instance: &str) -> Result<RawResponse> {
-    let res = make_request(id, lrclib_instance).await?;
+pub async fn request_raw(id: i64, lrclib_instance: &str, proxy_url: &str) -> Result<RawResponse> {
+    let res = make_request(id, lrclib_instance, proxy_url).await?;
 
     match res.status() {
         reqwest::StatusCode::OK => {
@@ -125,8 +122,8 @@ pub async fn request_raw(id: i64, lrclib_instance: &str) -> Result<RawResponse> 
     }
 }
 
-pub async fn request(id: i64, lrclib_instance: &str) -> Result<Response> {
-    let res = make_request(id, lrclib_instance).await?;
+pub async fn request(id: i64, lrclib_instance: &str, proxy_url: &str) -> Result<Response> {
+    let res = make_request(id, lrclib_instance, proxy_url).await?;
 
     match res.status() {
         reqwest::StatusCode::OK => {

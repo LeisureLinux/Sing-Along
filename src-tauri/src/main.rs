@@ -17,6 +17,7 @@ pub mod scanner;
 pub mod script_convert;
 pub mod cover;
 pub mod cover_cache;
+pub mod http;
 pub mod state;
 pub mod utils;
 pub mod word_segmentation;
@@ -236,6 +237,7 @@ async fn set_config(
     lrclib_instance: &str,
     volume: f64,
     sync_cover: bool,
+    proxy_url: String,
     app_state: State<'_, AppState>,
 ) -> Result<(), String> {
     let conn_guard = app_state.db.lock().unwrap();
@@ -249,6 +251,7 @@ async fn set_config(
         lrclib_instance,
         volume,
         sync_cover,
+        &proxy_url,
         conn,
     )
     .map_err(|err| err.to_string())?;
@@ -769,6 +772,7 @@ async fn download_lyrics(
         &track.artist_name,
         track.duration,
         &config.lrclib_instance,
+            &config.proxy_url,
     )
     .await;
 
@@ -780,7 +784,7 @@ async fn download_lyrics(
             }
 
             match netease::fetch_lyrics(
-                &netease_client(),
+                &netease_client(&config.proxy_url),
                 &track.title,
                 &track.artist_name,
                 Some(track.duration),
@@ -981,9 +985,11 @@ async fn apply_lyrics(
         })
         .map_err(|err| err.to_string())?;
 
-    std::thread::spawn(move || {
-        app_handle.emit("reload-track-id", track_id).unwrap();
-    });
+    // Emitted synchronously, before returning, so the row and the player have
+    // refreshed by the time the caller shows a success message. The previous
+    // spawn meant a race: the frontend could render the "applied" state while
+    // the old lyric data was still in place.
+    let _ = app_handle.emit("reload-track-id", track_id);
 
     if resolved.is_instrumental {
         Ok("Marked track as instrumental".to_owned())
@@ -1014,6 +1020,7 @@ async fn retrieve_lyrics(
         &artist_name,
         duration,
         &config.lrclib_instance,
+            &config.proxy_url,
     )
     .await
     .map_err(|err| err.to_string())?;
@@ -1030,7 +1037,7 @@ async fn retrieve_lyrics_by_id(
         .db(|db: &Connection| db::get_config(db))
         .map_err(|err| err.to_string())?;
 
-    let response = lrclib::get_by_id::request_raw(id, &config.lrclib_instance)
+    let response = lrclib::get_by_id::request_raw(id, &config.lrclib_instance, &config.proxy_url)
         .await
         .map_err(|err| err.to_string())?;
 
@@ -1054,6 +1061,7 @@ async fn search_lyrics(
         &artist_name,
         &q,
         &config.lrclib_instance,
+            &config.proxy_url,
     )
     .await
     .map_err(|err| err.to_string())?;
@@ -1100,7 +1108,7 @@ async fn search_lyrics_multi(
     let mut errors: Vec<String> = Vec::new();
 
     if use_lrclib {
-        match lrclib::search::request("", "", "", &keyword, &config.lrclib_instance).await {
+        match lrclib::search::request("", "", "", &keyword, &config.lrclib_instance, &config.proxy_url).await {
             Ok(response) => {
                 let items = serde_json::to_value(&response)
                     .ok()
@@ -1136,13 +1144,13 @@ async fn search_lyrics_multi(
     }
 
     if use_netease {
-        match crate::netease::search_songs(&netease_client(), &keyword).await {
+        match crate::netease::search_songs(&netease_client(&config.proxy_url), &keyword).await {
             Ok(songs) => {
                 // NetEase search returns metadata only; the lyric text is a
                 // second request per song. Fetching one at a time keeps the
                 // dialog responsive enough and avoids hammering the endpoint.
                 for song in songs {
-                    let synced = crate::netease::lyrics_for_song(&netease_client(), song.id)
+                    let synced = crate::netease::lyrics_for_song(&netease_client(&config.proxy_url), song.id)
                         .await
                         .ok()
                         .flatten();
@@ -1199,7 +1207,7 @@ async fn prepare_search_hit_lyricsfile(
         return prepare_lrclib_lyricsfile(id, app_handle).await;
     }
 
-    let synced = crate::netease::lyrics_for_song(&netease_client(), id)
+    let synced = crate::netease::lyrics_for_song(&netease_client(&config.proxy_url), id)
         .await
         .map_err(|err| err.to_string())?
         .ok_or_else(|| "NETEASE_NO_LYRICS".to_owned())?;
@@ -1287,7 +1295,7 @@ async fn prepare_lrclib_lyricsfile(
     }
 
     // Fetch from LRCLIB API
-    let lrclib_response = lrclib::get_by_id::request_raw(lrclib_id, &lrclib_instance)
+    let lrclib_response = lrclib::get_by_id::request_raw(lrclib_id, &lrclib_instance, &config.proxy_url)
         .await
         .map_err(|err| err.to_string())?;
 
@@ -1355,7 +1363,7 @@ async fn refresh_lrclib_lyricsfile(
     let lrclib_instance = config.lrclib_instance;
 
     // Fetch fresh data from LRCLIB API (always re-download)
-    let lrclib_response = lrclib::get_by_id::request_raw(lrclib_id, &lrclib_instance)
+    let lrclib_response = lrclib::get_by_id::request_raw(lrclib_id, &lrclib_instance, &config.proxy_url)
         .await
         .map_err(|err| err.to_string())?;
 
@@ -1517,7 +1525,7 @@ async fn publish_lyrics(
     app_handle
         .emit("publish-lyrics-progress", &progress)
         .unwrap();
-    let challenge_response = lrclib::request_challenge::request(&config.lrclib_instance)
+    let challenge_response = lrclib::request_challenge::request(&config.lrclib_instance, &config.proxy_url)
         .await
         .map_err(|err| err.to_string())?;
     progress.request_challenge = "Done".to_owned();
@@ -1545,6 +1553,7 @@ async fn publish_lyrics(
         lyricsfile.as_deref(),
         &publish_token,
         &config.lrclib_instance,
+        &config.proxy_url,
     )
     .await
     .map_err(|err| err.to_string())?;
@@ -1575,13 +1584,13 @@ fn resolve_library_track(app_handle: &AppHandle, track_id: i64) -> Result<Playab
         .map_err(|err| err.to_string())
 }
 
-/// Shared HTTP client for NetEase requests. A single client keeps connections
-/// pooled across the download queue.
-fn netease_client() -> reqwest::Client {
-    reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(15))
-        .build()
-        .expect("failed to build HTTP client")
+/// Shared HTTP client for NetEase and cover requests.
+///
+/// Uses the configured proxy for the same reason the LRCLIB clients do: the
+/// environment the app was launched from may carry a proxy meant for other
+/// tooling, and routing lyric or cover lookups through it silently fails.
+fn netease_client(proxy_url: &str) -> reqwest::Client {
+    crate::http::client(proxy_url, 15).expect("failed to build HTTP client")
 }
 
 /// Search and embed album cover art for a track.
@@ -1594,11 +1603,12 @@ async fn sync_cover(
     track_path: String,
     artist: String,
     album: String,
+    app_handle: AppHandle,
 ) -> Result<(), String> {
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(15))
-        .build()
-        .map_err(|e| e.to_string())?;
+    let proxy_url = app_handle
+        .db(|db: &Connection| db::get_config(db).map(|c| c.proxy_url))
+        .unwrap_or_default();
+    let client = crate::http::client(&proxy_url, 15).map_err(|e| e.to_string())?;
 
     crate::cover::embed_cover(&track_path, &client, &artist, &album)
         .await
@@ -2140,6 +2150,55 @@ async fn segment_words(text: String) -> Result<Vec<String>, String> {
 // handful of concurrent commands, so a large default worker pool (one thread per
 // core plus extras) just burns stack and memory. A small pool is enough and
 // keeps idle thread count down.
+/// Create the tray icon with Show / Quit.
+///
+/// Two separate entries on purpose: hiding must be easy, and quitting must be
+/// deliberate. Closing the window hides it (see the `CloseRequested` handler), so
+/// without an explicit Quit the process would have no way to exit from the
+/// window manager.
+fn build_tray(app: &AppHandle) -> tauri::Result<()> {
+    use tauri::menu::{Menu, MenuItem};
+    use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+
+    let show = MenuItem::with_id(app, "show", "Show Sing-Along", true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+    let menu = Menu::with_items(app, &[&show, &quit])?;
+
+    TrayIconBuilder::with_id("main-tray")
+        .icon(app.default_window_icon().cloned().expect("no default icon"))
+        .tooltip("Sing-Along")
+        .menu(&menu)
+        .show_menu_on_left_click(false)
+        .on_menu_event(|app, event| match event.id().as_ref() {
+            "show" => show_main_window(app),
+            "quit" => app.exit(0),
+            _ => {}
+        })
+        .on_tray_icon_event(|tray, event| {
+            // Left click toggles: the usual gesture for "give me my window back".
+            if let TrayIconEvent::Click {
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                ..
+            } = event
+            {
+                show_main_window(tray.app_handle());
+            }
+        })
+        .build(app)?;
+
+    Ok(())
+}
+
+/// Bring the main window back from the tray.
+fn show_main_window(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
+    }
+}
+
 #[tokio::main(worker_threads = 4)]
 async fn main() {
     let builder = tauri::Builder::default()
@@ -2231,6 +2290,16 @@ async fn main() {
         ])
         .setup(|app| {
             let handle = app.handle();
+
+            // Tray icon: closing the window hides it instead of quitting, and the
+            // tray restores it. Wayland has no "minimize to tray" of its own, so
+            // this is the app's job. Quitting for real still works from the tray
+            // menu — see `build_tray` for why that distinction is explicit.
+            if let Err(err) = build_tray(app.handle()) {
+                // Not fatal: the app still works without a tray, it just cannot
+                // be hidden to one.
+                eprintln!("Failed to create the tray icon: {err}");
+            }
 
             let app_state: State<AppState> = handle.state();
             let db = db::initialize_database(&handle).expect("Database initialize should succeed");
@@ -2348,6 +2417,17 @@ async fn main() {
             });
 
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            // Closing hides to the tray rather than exiting. Without this the
+            // process would die and the tray icon would vanish with it, which is
+            // the opposite of what hiding means.
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if window.label() == "main" {
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -101,6 +101,7 @@ async fn make_request(
     artist_name: &str,
     duration: f64,
     lrclib_instance: &str,
+    proxy_url: &str,
 ) -> Result<reqwest::Response> {
     let params: Vec<(String, String)> = vec![
         ("artist_name".to_owned(), artist_name.to_owned()),
@@ -114,10 +115,7 @@ async fn make_request(
         "Sing-Along v{} (https://github.com/LeisureLinux/Sing-Along)",
         version
     );
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(10))
-        .user_agent(user_agent)
-        .build()?;
+    let client = crate::http::client_with_agent(proxy_url, 10, &user_agent)?;
     let api_endpoint = format!("{}/api/get", lrclib_instance.trim_end_matches('/'));
     let url = reqwest::Url::parse_with_params(&api_endpoint, &params)?;
     Ok(client.get(url).send().await?)
@@ -129,8 +127,9 @@ pub async fn request_raw(
     artist_name: &str,
     duration: f64,
     lrclib_instance: &str,
+    proxy_url: &str,
 ) -> Result<RawResponse> {
-    let res = make_request(title, album_name, artist_name, duration, lrclib_instance).await?;
+    let res = make_request(title, album_name, artist_name, duration, lrclib_instance, proxy_url).await?;
 
     match res.status() {
         reqwest::StatusCode::OK => {
@@ -181,8 +180,9 @@ pub async fn request(
     artist_name: &str,
     duration: f64,
     lrclib_instance: &str,
+    proxy_url: &str,
 ) -> Result<Response> {
-    let res = make_request(title, album_name, artist_name, duration, lrclib_instance).await?;
+    let res = make_request(title, album_name, artist_name, duration, lrclib_instance, proxy_url).await?;
 
     match res.status() {
         reqwest::StatusCode::OK => {
