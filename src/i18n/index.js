@@ -1,4 +1,5 @@
 import { createI18n } from 'vue-i18n'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import en from './locales/en.js'
 import zhHans from './locales/zh-Hans.js'
 import zhHant from './locales/zh-Hant.js'
@@ -87,15 +88,16 @@ export function initLocale() {
  * window manager reads that, not the HTML <title>, so switching language has to
  * write it through the Tauri window API as well.
  */
-async function applyWindowTitle() {
-  document.title = i18n.global.t('app.windowTitle')
-  try {
-    const { getCurrentWindow } = await import('@tauri-apps/api/window')
-    await getCurrentWindow().setTitle(i18n.global.t('app.windowTitle'))
-  } catch {
-    // Running outside Tauri (tests, a plain browser): the document title is all
-    // there is, and it has already been set.
-  }
+function applyWindowTitle() {
+  const title = i18n.global.t('app.windowTitle')
+  document.title = title
+  // Static import, not `await import(...)`: Vite does not resolve a bare
+  // specifier inside a dynamic import here, so the call failed and the window
+  // manager kept showing the title from tauri.conf.json. A rejected promise is
+  // swallowed because tests run outside Tauri, where there is no window API.
+  getCurrentWindow()
+    .setTitle(title)
+    .catch(() => {})
 }
 
 /** Switch language and remember the choice. */
