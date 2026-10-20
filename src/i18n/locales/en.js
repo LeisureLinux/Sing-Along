@@ -98,10 +98,14 @@ export default {
     syncedTracks: 'Only tracks without synced lyrics',
     plainTracks: 'Only tracks without plain lyrics',
     instrumentalTracks: 'Instrumental tracks',
+    pendingOnly: 'Pending sync',
+    pendingHint: 'Show only tracks without synced lyrics',
     noLyricsTracks: 'Tracks without any lyrics',
   },
 
   config: {
+    proxy: 'Proxy server',
+    proxyHint: 'Leave empty to connect directly. Applies to the lyric and cover services.',
     appearance: 'Appearance',
     fileWriteWarning:
       'This option could corrupt your track files. Make sure to back up your library before enabling it.',
@@ -227,6 +231,8 @@ export default {
     errorReadAudio: 'Failed to read the audio file',
     errorRedownload: 'Failed to redownload lyrics',
     noLyricsSubmitted: 'There is currently no lyrics submitted for this track',
+    apply: 'Use this lyrics',
+    noResults: 'No lyrics found for this search',
     continueEditing: 'Continue Editing',
   },
 

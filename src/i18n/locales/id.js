@@ -95,10 +95,14 @@ export default {
     syncedTracks: 'Hanya lagu tanpa lirik tersinkron',
     plainTracks: 'Hanya lagu tanpa lirik biasa',
     instrumentalTracks: 'Lagu instrumental',
+    pendingOnly: 'Menunggu',
+    pendingHint: 'Hanya tampilkan lagu tanpa lirik tersinkron',
     noLyricsTracks: 'Lagu tanpa lirik sama sekali',
   },
 
   config: {
+    proxy: 'Server proxy',
+    proxyHint: 'Kosongkan untuk koneksi langsung. Berlaku untuk lirik dan sampul.',
     appearance: 'Tampilan',
     fileWriteWarning:
       'Opsi ini dapat merusak berkas audio Anda. Cadangkan pustaka Anda sebelum mengaktifkannya.',
@@ -223,6 +227,8 @@ export default {
     errorLoadTracks: 'Gagal memuat lagu',
     errorReadAudio: 'Gagal membaca berkas audio',
     errorRedownload: 'Gagal mengunduh ulang lirik',
+    apply: 'Gunakan lirik ini',
+    noResults: 'Tidak ada lirik untuk pencarian ini',
     noLyricsSubmitted: 'Belum ada lirik yang dikirim untuk lagu ini',
     continueEditing: 'Lanjut menyunting',
   },

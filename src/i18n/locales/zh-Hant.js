@@ -91,10 +91,14 @@ export default {
     syncedTracks: '僅缺少同步歌詞的歌曲',
     plainTracks: '僅缺少純文字歌詞的歌曲',
     instrumentalTracks: '純音樂歌曲',
+    pendingOnly: '待同步',
+    pendingHint: '只顯示還沒有同步歌詞的歌曲',
     noLyricsTracks: '完全沒有歌詞的歌曲',
   },
 
   config: {
+    proxy: '代理伺服器',
+    proxyHint: '留空則直連。用於歌詞與封面服務。',
     appearance: '外觀',
     fileWriteWarning:
       '此選項可能損壞你的音樂檔，啟用前請先備份曲庫。',
@@ -219,6 +223,8 @@ export default {
     errorLoadTracks: '載入歌曲失敗',
     errorReadAudio: '讀取音訊檔失敗',
     errorRedownload: '重新下載歌詞失敗',
+    apply: '使用這段歌詞',
+    noResults: '沒有找到符合的歌詞',
     noLyricsSubmitted: '這首歌目前還沒有提交歌詞',
     continueEditing: '繼續編輯',
   },

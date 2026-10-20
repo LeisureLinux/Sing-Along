@@ -95,10 +95,14 @@ export default {
     syncedTracks: 'Uniquement les pistes sans paroles synchronisées',
     plainTracks: 'Uniquement les pistes sans paroles simples',
     instrumentalTracks: 'Pistes instrumentales',
+    pendingOnly: 'À synchroniser',
+    pendingHint: 'Afficher seulement les pistes sans paroles synchronisées',
     noLyricsTracks: 'Pistes sans aucune parole',
   },
 
   config: {
+    proxy: 'Serveur proxy',
+    proxyHint: 'Laisser vide pour se connecter directement. S’applique aux paroles et pochettes.',
     appearance: 'Apparence',
     fileWriteWarning:
       'Cette option peut corrompre vos fichiers audio. Sauvegardez votre bibliothèque avant de l’activer.',
@@ -223,6 +227,8 @@ export default {
     errorLoadTracks: 'Impossible de charger les pistes',
     errorReadAudio: 'Impossible de lire le fichier audio',
     errorRedownload: 'Impossible de télécharger à nouveau les paroles',
+    apply: 'Utiliser ces paroles',
+    noResults: 'Aucune parole trouvée pour cette recherche',
     noLyricsSubmitted: 'Aucune parole n’a encore été soumise pour cette piste',
     continueEditing: 'Continuer la modification',
   },

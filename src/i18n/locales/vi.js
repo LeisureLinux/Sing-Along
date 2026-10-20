@@ -95,10 +95,14 @@ export default {
     syncedTracks: 'Chỉ bài chưa có lời đồng bộ',
     plainTracks: 'Chỉ bài chưa có lời thường',
     instrumentalTracks: 'Bài không lời',
+    pendingOnly: 'Chờ đồng bộ',
+    pendingHint: 'Chỉ hiện bài chưa có lời đồng bộ',
     noLyricsTracks: 'Bài chưa có lời nào',
   },
 
   config: {
+    proxy: 'Máy chủ proxy',
+    proxyHint: 'Để trống để kết nối trực tiếp. Áp dụng cho lời và ảnh bìa.',
     appearance: 'Giao diện',
     fileWriteWarning:
       'Tùy chọn này có thể làm hỏng tệp nhạc của bạn. Hãy sao lưu thư viện trước khi bật.',
@@ -223,6 +227,8 @@ export default {
     errorLoadTracks: 'Không tải được bài hát',
     errorReadAudio: 'Không đọc được tệp âm thanh',
     errorRedownload: 'Không tải lại được lời',
+    apply: 'Dùng lời này',
+    noResults: 'Không tìm thấy lời nào cho lần tìm này',
     noLyricsSubmitted: 'Bài này chưa có lời nào được gửi lên',
     continueEditing: 'Tiếp tục sửa',
   },

@@ -99,10 +99,14 @@ export default {
     syncedTracks: 'Yalnızca eşitlenmiş sözü olmayanlar',
     plainTracks: 'Yalnızca düz sözü olmayanlar',
     instrumentalTracks: 'Enstrümantal parçalar',
+    pendingOnly: 'Bekleyen',
+    pendingHint: 'Yalnızca eşitlenmiş sözü olmayanları göster',
     noLyricsTracks: 'Hiç şarkı sözü olmayan parçalar',
   },
 
   config: {
+    proxy: 'Proxy sunucusu',
+    proxyHint: 'Doğrudan bağlanmak için boş bırakın. Sözler ve kapaklar için geçerli.',
     appearance: 'Görünüm',
     fileWriteWarning:
       'Bu seçenek ses dosyalarına zarar verebilir. Etkinleştirmeden önce kitaplığını yedekle.',
@@ -227,6 +231,8 @@ export default {
     errorLoadTracks: 'Parçalar yüklenemedi',
     errorReadAudio: 'Ses dosyası okunamadı',
     errorRedownload: 'Sözler yeniden indirilemedi',
+    apply: 'Bu sözleri kullan',
+    noResults: 'Bu arama için söz bulunamadı',
     noLyricsSubmitted: 'Bu parça için henüz söz gönderilmedi',
     continueEditing: 'Düzenlemeye devam et',
   },

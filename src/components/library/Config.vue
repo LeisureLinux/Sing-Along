@@ -52,7 +52,7 @@
           </select>
         </div>
 
-        <div class="flex flex-col">
+        <div class="flex flex-col mb-4">
           <label class="block mb-2 child-label" for="lrclib-instance">{{
             $t('config.lrclibInstance')
           }}</label>
@@ -63,6 +63,23 @@
             placeholder="https://"
             class="input px-4 h-8"
           />
+        </div>
+
+        <!-- Explicit proxy for the lyric services. Empty means connect
+             directly; an unset value would otherwise inherit HTTP_PROXY from
+             whatever shell launched the app. -->
+        <div class="flex flex-col">
+          <label class="block mb-2 child-label" for="proxy-url">{{ $t('config.proxy') }}</label>
+          <input
+            id="proxy-url"
+            v-model="editingProxyUrl"
+            type="text"
+            placeholder="http://127.0.0.1:8888"
+            class="input px-4 h-8"
+          />
+          <span class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{{
+            $t('config.proxyHint')
+          }}</span>
         </div>
       </div>
 
@@ -124,6 +141,7 @@ const emit = defineEmits(['close', 'refreshLibrary', 'fullScanLibrary', 'manageD
 const syncCover = ref(false)
 const editingThemeMode = ref('auto')
 const editingLrclibInstance = ref('')
+const editingProxyUrl = ref('')
 
 // Fields this dialog no longer edits (the per-batch skip rules and the
 // experimental embed flag) still exist in config: the download dialog reads
@@ -151,6 +169,7 @@ const save = async () => {
     lrclibInstance: editingLrclibInstance.value,
     volume: volume.value,
     syncCover: syncCover.value,
+    proxyUrl: editingProxyUrl.value,
   })
   setThemeMode(editingThemeMode.value)
   setLrclibInstance(editingLrclibInstance.value)
@@ -183,5 +202,6 @@ const beforeOpenHandler = async () => {
   syncCover.value = config.sync_cover ?? false
   editingThemeMode.value = config.theme_mode
   editingLrclibInstance.value = config.lrclib_instance
+  editingProxyUrl.value = config.proxy_url ?? ''
 }
 </script>

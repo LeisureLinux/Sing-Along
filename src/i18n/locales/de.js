@@ -95,10 +95,14 @@ export default {
     syncedTracks: 'Nur Titel ohne synchronen Songtext',
     plainTracks: 'Nur Titel ohne unsynchronisierten Songtext',
     instrumentalTracks: 'Instrumentale Titel',
+    pendingOnly: 'Ausstehend',
+    pendingHint: 'Nur Titel ohne synchronen Songtext anzeigen',
     noLyricsTracks: 'Titel ganz ohne Songtext',
   },
 
   config: {
+    proxy: 'Proxy-Server',
+    proxyHint: 'Leer lassen für direkte Verbindung. Gilt für Songtexte und Cover.',
     appearance: 'Darstellung',
     fileWriteWarning:
       'Diese Option kann deine Audiodateien beschädigen. Sichere deine Bibliothek, bevor du sie aktivierst.',
@@ -223,6 +227,8 @@ export default {
     errorLoadTracks: 'Titel konnten nicht geladen werden',
     errorReadAudio: 'Audiodatei konnte nicht gelesen werden',
     errorRedownload: 'Songtext konnte nicht erneut heruntergeladen werden',
+    apply: 'Diesen Songtext verwenden',
+    noResults: 'Kein Songtext für diese Suche gefunden',
     noLyricsSubmitted: 'Für diesen Titel wurde noch kein Songtext eingereicht',
     continueEditing: 'Bearbeitung fortsetzen',
   },

@@ -95,10 +95,14 @@ export default {
     syncedTracks: 'Solo brani senza testo sincronizzato',
     plainTracks: 'Solo brani senza testo non sincronizzato',
     instrumentalTracks: 'Brani strumentali',
+    pendingOnly: 'Da sincronizzare',
+    pendingHint: 'Mostra solo brani senza testo sincronizzato',
     noLyricsTracks: 'Brani senza alcun testo',
   },
 
   config: {
+    proxy: 'Server proxy',
+    proxyHint: 'Lascia vuoto per la connessione diretta. Vale per testi e copertine.',
     appearance: 'Aspetto',
     fileWriteWarning:
       'Questa opzione può danneggiare i file audio. Fai un backup della libreria prima di attivarla.',
@@ -223,6 +227,8 @@ export default {
     errorLoadTracks: 'Impossibile caricare i brani',
     errorReadAudio: 'Impossibile leggere il file audio',
     errorRedownload: 'Impossibile scaricare di nuovo il testo',
+    apply: 'Usa questo testo',
+    noResults: 'Nessun testo trovato per questa ricerca',
     noLyricsSubmitted: 'Non è ancora stato inviato alcun testo per questo brano',
     continueEditing: 'Continua a modificare',
   },

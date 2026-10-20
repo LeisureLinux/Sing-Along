@@ -95,10 +95,14 @@ export default {
     syncedTracks: 'Solo pistas sin letra sincronizada',
     plainTracks: 'Solo pistas sin letra sin sincronizar',
     instrumentalTracks: 'Pistas instrumentales',
+    pendingOnly: 'Pendientes',
+    pendingHint: 'Mostrar solo pistas sin letra sincronizada',
     noLyricsTracks: 'Pistas sin ninguna letra',
   },
 
   config: {
+    proxy: 'Servidor proxy',
+    proxyHint: 'Vacío para conectar directamente. Se aplica a letras y portadas.',
     appearance: 'Apariencia',
     fileWriteWarning:
       'Esta opción puede dañar tus archivos de audio. Haz una copia de seguridad de tu biblioteca antes de activarla.',
@@ -223,6 +227,8 @@ export default {
     errorLoadTracks: 'No se pudieron cargar las pistas',
     errorReadAudio: 'No se pudo leer el archivo de audio',
     errorRedownload: 'No se pudo volver a descargar la letra',
+    apply: 'Usar esta letra',
+    noResults: 'No se encontraron letras para esta búsqueda',
     noLyricsSubmitted: 'Todavía no hay letra enviada para esta pista',
     continueEditing: 'Seguir editando',
   },

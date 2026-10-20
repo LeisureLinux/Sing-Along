@@ -97,10 +97,14 @@ export default {
     syncedTracks: '同期歌詞がない曲のみ',
     plainTracks: 'テキスト歌詞がない曲のみ',
     instrumentalTracks: 'インスト曲',
+    pendingOnly: '未同期',
+    pendingHint: '同期歌詞がない曲だけを表示',
     noLyricsTracks: '歌詞がまったくない曲',
   },
 
   config: {
+    proxy: 'プロキシ',
+    proxyHint: '空欄なら直接接続。歌詞とカバーの取得に使います。',
     appearance: '外観',
     fileWriteWarning:
       'このオプションは音楽ファイルを破損する可能性があります。有効にする前にライブラリをバックアップしてください。',
@@ -225,6 +229,8 @@ export default {
     errorLoadTracks: '曲の読み込みに失敗しました',
     errorReadAudio: '音声ファイルの読み込みに失敗しました',
     errorRedownload: '歌詞の再ダウンロードに失敗しました',
+    apply: 'この歌詞を使う',
+    noResults: '一致する歌詞が見つかりません',
     noLyricsSubmitted: 'この曲にはまだ歌詞が登録されていません',
     continueEditing: '編集を続ける',
   },

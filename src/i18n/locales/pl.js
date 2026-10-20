@@ -98,10 +98,14 @@ export default {
     syncedTracks: 'Tylko utwory bez zsynchronizowanego tekstu',
     plainTracks: 'Tylko utwory bez zwykłego tekstu',
     instrumentalTracks: 'Utwory instrumentalne',
+    pendingOnly: 'Do synchronizacji',
+    pendingHint: 'Pokazuj tylko utwory bez zsynchronizowanego tekstu',
     noLyricsTracks: 'Utwory bez żadnego tekstu',
   },
 
   config: {
+    proxy: 'Serwer proxy',
+    proxyHint: 'Pozostaw puste, aby łączyć się bezpośrednio. Dotyczy tekstów i okładek.',
     appearance: 'Wygląd',
     fileWriteWarning:
       'Ta opcja może uszkodzić pliki audio. Zrób kopię zapasową biblioteki przed włączeniem.',
@@ -226,6 +230,8 @@ export default {
     errorLoadTracks: 'Nie udało się wczytać utworów',
     errorReadAudio: 'Nie udało się odczytać pliku audio',
     errorRedownload: 'Nie udało się ponownie pobrać tekstu',
+    apply: 'Użyj tego tekstu',
+    noResults: 'Nie znaleziono tekstu dla tego wyszukiwania',
     noLyricsSubmitted: 'Dla tego utworu nie przesłano jeszcze tekstu',
     continueEditing: 'Kontynuuj edycję',
   },

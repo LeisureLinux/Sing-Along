@@ -3,8 +3,29 @@
     id="library-header"
     class="px-4 py-2 h-12 flex justify-between gap-4 flex-none items-stretch"
   >
-    <div class="flex-1 ml-2">
-      <MiniSearch :active-tab="props.activeTab" />
+    <div class="flex-1 ml-2 flex items-center gap-3">
+      <MiniSearch :active-tab="props.activeTab" class="grow min-w-0" />
+
+      <!-- Only meaningful on the tracks tab: albums and artists have no lyric
+           status to filter on. The whole library filter is shared state, so this
+           and the filter dropdown stay consistent.
+           `ml-3` on top of the parent gap keeps the pill clear of the search
+           field's rounded edge, which visually touched it at the old spacing. -->
+      <button
+        v-if="props.activeTab === 'tracks'"
+        class="button text-xs px-3 h-8 rounded-full flex-none inline-flex items-center gap-1 ml-3"
+        :class="
+          pendingOnly
+            ? 'button-primary'
+            : 'button-normal text-neutral-800 dark:text-neutral-300'
+        "
+        :title="$t('filters.pendingHint')"
+        @click.prevent="togglePendingOnly"
+      >
+        <SyncAlert v-if="pendingOnly" class="text-sm" />
+        <Sync v-else class="text-sm" />
+        <span class="whitespace-nowrap">{{ $t('filters.pendingOnly') }}</span>
+      </button>
     </div>
 
     <div class="flex-1 flex gap-4 justify-center items-center text-sm">
@@ -284,8 +305,11 @@ import DotsVertical from '~icons/mdi/dots-vertical'
 import Refresh from '~icons/mdi/refresh'
 import FolderMultiple from '~icons/mdi/folder-multiple'
 import Export from '~icons/mdi/export'
+import Sync from '~icons/mdi/sync'
+import SyncAlert from '~icons/mdi/sync-alert'
 import CheckboxButton from '@/components/common/CheckboxButton.vue'
 import { useDownloader } from '@/composables/downloader.js'
+import { useSearchLibrary } from '@/composables/search-library.js'
 import { useExporter } from '@/composables/export.js'
 import { useExportPreferences } from '@/composables/export-preferences.js'
 import MiniSearch from './MiniSearch.vue'
@@ -324,6 +348,19 @@ const submittingExport = ref(false)
 const exportError = ref('')
 
 const { isBuildingQueue } = useDownloadOptions()
+
+const { searchValue, setSearch, filters } = useSearchLibrary()
+
+// "Pending" means: no synced lyrics yet. The library filter is expressed as
+// "include tracks that already have synced lyrics", so pending is its negation.
+// Reads the shared filter rather than holding its own flag, so toggling the
+// corresponding checkbox in the filter dropdown keeps this button in step.
+const pendingOnly = computed(() => !filters.value.syncedLyricsTracks)
+
+const togglePendingOnly = () => {
+  const next = { ...filters.value, syncedLyricsTracks: pendingOnly.value }
+  setSearch(searchValue.value, next)
+}
 const openDownloadOptions = useDownloadTrigger(() => ({ type: 'library' }))
 
 const openExportOptions = async () => {

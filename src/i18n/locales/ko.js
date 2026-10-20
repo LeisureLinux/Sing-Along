@@ -95,10 +95,14 @@ export default {
     syncedTracks: '동기화 가사가 없는 곡만',
     plainTracks: '일반 가사가 없는 곡만',
     instrumentalTracks: '연주곡',
+    pendingOnly: '동기화 대기',
+    pendingHint: '동기화된 가사가 없는 곡만 표시',
     noLyricsTracks: '가사가 전혀 없는 곡',
   },
 
   config: {
+    proxy: '프록시 서버',
+    proxyHint: '비워 두면 직접 연결합니다. 가사와 커버에 적용됩니다.',
     appearance: '모양',
     fileWriteWarning:
       '이 옵션은 음악 파일을 손상시킬 수 있습니다. 사용하기 전에 라이브러리를 백업하세요.',
@@ -223,6 +227,8 @@ export default {
     errorLoadTracks: '곡을 불러오지 못했습니다',
     errorReadAudio: '음원 파일을 읽지 못했습니다',
     errorRedownload: '가사를 다시 다운로드하지 못했습니다',
+    apply: '이 가사 사용',
+    noResults: '일치하는 가사를 찾을 수 없습니다',
     noLyricsSubmitted: '이 곡에는 아직 등록된 가사가 없습니다',
     continueEditing: '계속 편집',
   },

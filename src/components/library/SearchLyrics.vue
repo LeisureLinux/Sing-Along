@@ -1,6 +1,6 @@
 <template>
   <BaseModal
-    title="Search Lyrics"
+    :title="$t('lyricsSearch.title')"
     content-class="w-full h-[80vh] max-w-screen-sm"
     background="non-interactive"
     :lock-scroll="true"
@@ -8,8 +8,10 @@
   >
     <div class="grow overflow-hidden flex flex-col gap-6">
       <form class="flex flex-col flex-none gap-4" @submit.prevent="doSearchLyrics">
+        <!-- Album is deliberately absent: it never helps the search and, when
+             it is a folder name, actively prevents it. -->
         <div class="grid grid-cols-2 gap-2">
-          <div class="col-span-2">
+          <div>
             <label for="title" class="group-label mb-1">{{ $t('search.title') }}</label>
             <input
               id="title"
@@ -22,24 +24,12 @@
           </div>
 
           <div>
-            <label for="albumName" class="group-label mb-1">{{ $t('search.album') }}</label>
-            <input
-              id="artistName"
-              v-model="albumName"
-              type="text"
-              class="input w-full py-1.5 px-2"
-              :placeholder="$t('search.album')"
-              :disabled="loading"
-            />
-          </div>
-
-          <div>
             <label for="artistName" class="group-label mb-1">{{ $t('search.artist') }}</label>
             <input
               id="artistName"
               v-model="artistName"
               type="text"
-              class="input w-full py-1.5 p-2"
+              class="input w-full py-1.5 px-2"
               :placeholder="$t('search.artist')"
               :disabled="loading"
             />
@@ -52,7 +42,7 @@
             :class="{ 'button-disabled': loading, 'button-primary': !loading }"
             :disabled="loading"
           >
-            Search
+            {{ $t('actions.search') }}
           </button>
         </div>
       </form>
@@ -78,12 +68,12 @@
                     <span
                       v-if="result.lyrics.syncedLyrics"
                       class="text-neutral-800 dark:text-neutral-300 font-bold text-[0.65rem] bg-neutral-200 dark:bg-neutral-700 rounded px-1 py-0.5"
-                      >{{ countLines(result.lyrics.syncedLyrics) }} Lines</span
+                      >{{ $t('lyricsSearch.lines', { count: countLines(result.lyrics.syncedLyrics) }) }}</span
                     >
                     <span
                       v-else-if="result.lyrics.plainLyrics"
                       class="text-neutral-800 dark:text-neutral-300 font-bold text-[0.65rem] bg-neutral-200 dark:bg-neutral-700 rounded px-1 py-0.5"
-                      >{{ countLines(result.lyrics.plainLyrics) }} Lines</span
+                      >{{ $t('lyricsSearch.lines', { count: countLines(result.lyrics.plainLyrics) }) }}</span
                     >
                   </template>
                   <span
@@ -135,20 +125,35 @@
               <div class="flex gap-2 items-center">
                 <button
                   class="button-tiny"
-                  title="Preview this lyrics"
+                  :title="$t('lyricsSearch.preview')"
                   @click="preview(result.item)"
                 >
                   <Eye />
                 </button>
-                <button class="button-tiny" title="Apply this lyrics" @click="apply(result.item)">
+                <button class="button-tiny" :title="$t('lyricsSearch.apply')" @click="apply(result.item)">
                   <ContentSave />
                 </button>
               </div>
             </div>
           </div>
 
+          <div
+            v-else-if="searchError"
+            class="flex flex-col gap-2 justify-center items-center h-full text-sm"
+          >
+            <div class="text-red-700 dark:text-red-400 text-center break-words">
+              {{ $t('lyricsSearch.errorSearch') }}
+            </div>
+            <div class="text-xs text-neutral-500 dark:text-neutral-400 break-words text-center">
+              {{ searchError }}
+            </div>
+            <button class="button button-normal px-4 py-1.5 text-xs rounded-full" @click="doSearchLyrics">
+              {{ $t('actions.retry') }}
+            </button>
+          </div>
+
           <div v-else class="flex justify-center items-center h-full text-sm text-neutral-400">
-            There is no lyrics record that matches your search
+            {{ $t('lyricsSearch.noResults') }}
           </div>
         </div>
       </div>
@@ -171,17 +176,17 @@ import { convertLyricScript, scriptForLocale } from '@/utils/script-conversion.j
 import { useI18n } from 'vue-i18n'
 
 const toast = useToast()
-const { i18n } = useI18n()
+const { t, i18n } = useI18n()
 const props = defineProps(['searchingTrack'])
 const emit = defineEmits(['close'])
 
 const loading = ref(true)
 const searchResult = ref(null)
+const searchError = ref('')
 const previewingLyrics = ref(null)
 const previewingTrack = ref(null)
 
 const title = ref('')
-const albumName = ref('')
 const artistName = ref('')
 const showLineCount = ref(true)
 
@@ -215,18 +220,38 @@ const humanDuration = seconds => {
   return new Date(seconds * 1000).toISOString().slice(14, 19)
 }
 
+/**
+ * Search LRCLIB by free text.
+ *
+ * `album_name` is never sent. In a personal library it is whatever the folder or
+ * tag happened to be — "KXT", "Unknown Album" — and LRCLIB ANDs the fields, so
+ * including it turns a search that would return twenty hits into zero. Only the
+ * title and artist are meaningful, and they go through `q` because that is the
+ * free-text search the Search tab uses and the one that actually matches.
+ */
 const doSearchLyrics = async () => {
   loading.value = true
+  searchError.value = ''
+  const query = [title.value, artistName.value]
+    .map(v => (v || '').trim())
+    .filter(Boolean)
+    .join(' ')
+
   try {
-    searchResult.value = await invoke('search_lyrics', {
-      title: title.value,
-      albumName: albumName.value,
-      artistName: artistName.value,
-      q: '',
-    })
+    searchResult.value = query
+      ? await invoke('search_lyrics', {
+          title: '',
+          albumName: '',
+          artistName: '',
+          q: query,
+        })
+      : []
   } catch (error) {
+    // A transport failure is not the same as "no match": saying the latter when
+    // LRCLIB is unreachable sends the user looking for a different search term.
     console.error(error)
-    toast.error(error)
+    searchResult.value = null
+    searchError.value = String(error)
   } finally {
     loading.value = false
   }
@@ -263,10 +288,16 @@ const apply = async lyricsItem => {
       trackId: props.searchingTrack.id,
       lrclibResponse: item,
     })
+
+    // The backend emits `reload-track-id` synchronously before returning, so the
+    // row and the player bar have already picked up the new lyrics by now.
+    // Closing the dialog is what makes that visible: it was covering the list
+    // the whole time, which read as "nothing happened".
     toast.success(result)
+    emit('close')
   } catch (error) {
     console.error(error)
-    toast.error(error)
+    toast.error(String(error))
   }
 }
 
@@ -280,7 +311,6 @@ const initialize = async () => {
   loading.value = true
 
   title.value = props.searchingTrack.title
-  albumName.value = props.searchingTrack.album_name
   artistName.value = props.searchingTrack.artist_name
   showLineCount.value = config.show_line_count
 }

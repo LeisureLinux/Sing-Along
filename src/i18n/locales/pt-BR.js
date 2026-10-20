@@ -95,10 +95,14 @@ export default {
     syncedTracks: 'Apenas faixas sem letra sincronizada',
     plainTracks: 'Apenas faixas sem letra não sincronizada',
     instrumentalTracks: 'Faixas instrumentais',
+    pendingOnly: 'Pendentes',
+    pendingHint: 'Mostrar apenas faixas sem letra sincronizada',
     noLyricsTracks: 'Faixas sem nenhuma letra',
   },
 
   config: {
+    proxy: 'Servidor proxy',
+    proxyHint: 'Deixe vazio para conectar diretamente. Vale para letras e capas.',
     appearance: 'Aparência',
     fileWriteWarning:
       'Esta opção pode corromper seus arquivos de áudio. Faça backup da sua biblioteca antes de ativá-la.',
@@ -223,6 +227,8 @@ export default {
     errorLoadTracks: 'Não foi possível carregar as faixas',
     errorReadAudio: 'Não foi possível ler o arquivo de áudio',
     errorRedownload: 'Não foi possível baixar a letra novamente',
+    apply: 'Usar esta letra',
+    noResults: 'Nenhuma letra encontrada nesta busca',
     noLyricsSubmitted: 'Ainda não há letra enviada para esta faixa',
     continueEditing: 'Continuar editando',
   },
