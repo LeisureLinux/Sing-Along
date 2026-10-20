@@ -15,7 +15,7 @@ export default {
     tracks: '歌曲',
     albums: '專輯',
     artists: '藝人',
-    lrclib: 'LRCLIB',
+    lrclib: '搜尋歌詞',
   },
 
   actions: {
@@ -168,6 +168,9 @@ export default {
     credits: '致謝與授權',
     creditsText:
       'Sing-Along 是 LRCGET 的分支專案，Copyright (c) 2023 tranxuanthang，依 MIT 授權使用。',
+    donate: '贊賞',
+    donateAlt: '微信收款碼',
+    donateHint: '感謝對 Sing-Along 專案的認可。',
     releasePage: 'Sing-Along 發佈頁',
     checking: '正在從 GitHub 取得最新版本資訊…',
     forkOf: 'Sing-Along 是',

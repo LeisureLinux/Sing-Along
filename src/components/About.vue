@@ -80,6 +80,22 @@
           </div>
         </div>
       </div>
+
+      <div class="mt-6">
+        <label class="group-label mb-2">{{ $t('about.donate') }}</label>
+
+        <div class="text-sm text-neutral-800 dark:text-neutral-300">
+          <img
+            :src="donateQr"
+            :alt="$t('about.donateAlt')"
+            class="w-56 mx-auto"
+            draggable="false"
+          />
+          <div class="mt-2 text-xs text-neutral-500 dark:text-neutral-400 text-center">
+            {{ $t('about.donateHint') }}
+          </div>
+        </div>
+      </div>
     </div>
   </BaseModal>
 </template>
@@ -91,6 +107,7 @@ import { ref, computed } from 'vue'
 import { getVersion } from '@tauri-apps/api/app'
 import semver from 'semver'
 import BaseModal from '@/components/common/BaseModal.vue'
+import donateQr from '@/assets/donate-qr.png'
 
 const emit = defineEmits(['close'])
 

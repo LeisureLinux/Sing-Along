@@ -22,7 +22,7 @@ export default {
     tracks: 'Tracks',
     albums: 'Albums',
     artists: 'Artists',
-    lrclib: 'LRCLIB',
+    lrclib: 'Search',
   },
 
   actions: {
@@ -175,6 +175,9 @@ export default {
     credits: 'Credits and license',
     creditsText:
       'Sing-Along is a fork of LRCGET, Copyright (c) 2023 tranxuanthang, used under the MIT License.',
+    donate: 'Support',
+    donateAlt: 'WeChat payment QR code',
+    donateHint: 'Thank you for supporting Sing-Along.',
     releasePage: 'Sing-Along release page',
     checking: 'Fetching newest version data from GitHub...',
     forkOf: 'Sing-Along is a fork of',
