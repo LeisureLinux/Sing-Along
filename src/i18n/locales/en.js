@@ -95,6 +95,9 @@ export default {
   },
 
   config: {
+    appearance: 'Appearance',
+    fileWriteWarning:
+      'This option could corrupt your track files. Make sure to back up your library before enabling it.',
     scanIncremental: 'Scan for new and modified tracks...',
     scanFull: 'Reset library and perform full scan...',
 
@@ -192,6 +195,28 @@ export default {
     processing: 'Processing',
     loadingEditor: 'Loading editor...',
     noLyricsFound: 'No lyrics found',
+  },
+
+  lyricsSearch: {
+    title: 'Search lyrics',
+    placeholder: 'Type a song title, album, or artist to find lyrics...',
+    searchingFor: 'Searching for',
+    foundTracks: 'Found {count} tracks',
+    lines: '{count} lines',
+    preview: 'Preview this lyrics',
+    edit: 'Edit this lyrics',
+    errorSearch: 'An error occurred while searching for lyrics. Please try again.',
+    errorOpen: 'An error occurred while opening the lyrics. Please try again.',
+    chooseReferenceTrack: 'Choose a reference track',
+    searchTracksPlaceholder: 'Search tracks in library...',
+    editWithAudio: 'Edit with audio',
+    existingLyricsFound: 'Existing Lyrics Found',
+    redownload: 'Redownload',
+    errorLoadTracks: 'Failed to load tracks',
+    errorReadAudio: 'Failed to read the audio file',
+    errorRedownload: 'Failed to redownload lyrics',
+    noLyricsSubmitted: 'There is currently no lyrics submitted for this track',
+    continueEditing: 'Continue Editing',
   },
 
   lrclib: {

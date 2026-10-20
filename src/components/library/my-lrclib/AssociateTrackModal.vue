@@ -1,6 +1,6 @@
 <template>
   <BaseModal
-    title="Choose a reference track"
+    :title="$t('lyricsSearch.chooseReferenceTrack')"
     content-class="w-full max-w-xl h-full max-h-[80vh]"
     body-class="flex flex-col h-full"
     :close-button="true"
@@ -12,7 +12,7 @@
         v-model="searchQuery"
         type="text"
         class="w-full input px-10 py-2"
-        placeholder="Search tracks in library..."
+        :placeholder="$t('lyricsSearch.searchTracksPlaceholder')"
         autofocus
       />
       <div class="absolute top-0 left-0 w-10 h-full flex items-center justify-center">
@@ -94,7 +94,7 @@
           :disabled="!canEditWithAudio"
           @click="editWithAudio"
         >
-          Edit with audio
+          {{ $t('lyricsSearch.editWithAudio') }}
         </button>
       </div>
     </template>
@@ -106,6 +106,7 @@ import { ref, computed, watch } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { open } from '@tauri-apps/plugin-dialog'
 import { useToast } from 'vue-toastification'
+import { useI18n } from 'vue-i18n'
 import Loading from '~icons/mdi/loading'
 import Magnify from '~icons/mdi/magnify'
 import Close from '~icons/mdi/close'
@@ -124,6 +125,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'selectTrack', 'selectFile'])
 
 const toast = useToast()
+const { t } = useI18n()
 
 const searchQuery = ref('')
 const isLoading = ref(false)
@@ -176,7 +178,7 @@ const loadTracks = async () => {
     allTracks.value = await invoke('get_tracks')
   } catch (error) {
     console.error('Error loading tracks:', error)
-    toast.error('Failed to load tracks')
+    toast.error(t('lyricsSearch.errorLoadTracks'))
   } finally {
     isLoading.value = false
   }
@@ -210,7 +212,7 @@ const selectAudioFile = async () => {
     }
   } catch (error) {
     console.error('Error selecting file:', error)
-    toast.error('Failed to read audio file')
+    toast.error(t('lyricsSearch.errorReadAudio'))
   } finally {
     isSelectingFile.value = false
   }

@@ -3,16 +3,8 @@
     v-show="props.isActive"
     class="flex flex-col justify-center gap-6 items-center w-full h-full p-4"
   >
-    <!--<img src="@/assets/lrclib.png" class="w-20 h-20" />-->
-
-    <div
-      class="font-bold text-xs text-neutral-800 dark:text-neutral-400 select-none cursor-default"
-    >
-      Search with LRCLIB instance:
-      <span
-        class="text-neutral-800 dark:text-neutral-300 rounded-full px-2 py-1 bg-neutral-50 dark:bg-neutral-900"
-        >{{ lrclibInstance }}</span
-      >
+    <div class="text-xl font-bold text-neutral-800 dark:text-neutral-200">
+      {{ $t('lyricsSearch.title') }}
     </div>
 
     <form
@@ -24,8 +16,8 @@
         v-model="keyword"
         type="text"
         class="outline-none grow h-12 px-6 bg-transparent text-neutral-800 dark:text-neutral-200 placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
-        placeholder="Type a song title, album, or artist to find lyrics..."
-        autofocus
+        :placeholder="$t('lyricsSearch.placeholder')"
+        :autofocus="props.isActive"
         @focus="inputActive = true"
         @blur="inputActive = false"
       />
@@ -34,10 +26,26 @@
       </button>
     </form>
 
+    <!-- Source selection. Both are public services with different catalogues,
+         so searching both is often how a missing lyric gets found; letting the
+         user uncheck one keeps a slow or blocked source out of the wait. -->
+    <div class="flex flex-wrap gap-4 justify-center text-sm">
+      <label class="flex items-center gap-1 cursor-pointer">
+        <input v-model="useLrclib" type="checkbox" class="accent-hoa-1100" />
+        <span class="text-neutral-800 dark:text-neutral-300">LRCLIB</span>
+      </label>
+      <label class="flex items-center gap-1 cursor-pointer">
+        <input v-model="useNetease" type="checkbox" class="accent-hoa-1100" />
+        <span class="text-neutral-800 dark:text-neutral-300">NetEase</span>
+      </label>
+    </div>
+
     <Transition name="slide-fade">
       <SearchResult
         v-if="searchingKeyword"
         :keyword="searchingKeyword"
+        :use-lrclib="submittedLrclib"
+        :use-netease="submittedNetease"
         @back="searchingKeyword = null"
       />
     </Transition>
@@ -45,13 +53,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import Magnify from '~icons/mdi/magnify'
 import SearchResult from './my-lrclib/SearchResult.vue'
-import { invoke } from '@tauri-apps/api/core'
-import { useGlobalState } from '../../composables/global-state'
-
-const { lrclibInstance } = useGlobalState()
 
 const props = defineProps({
   isActive: {
@@ -64,7 +68,21 @@ const searchingKeyword = ref('')
 const keyword = ref('')
 const inputActive = ref(false)
 
+const useLrclib = ref(true)
+const useNetease = ref(true)
+
+// The result view keeps searching the sources that were ticked when the search
+// was submitted, not whatever the boxes say later: changing a checkbox while
+// results are on screen should not silently re-run the query underneath.
+const submittedLrclib = ref(true)
+const submittedNetease = ref(true)
+
 const onSubmit = () => {
+  if (!keyword.value.trim()) {
+    return
+  }
+  submittedLrclib.value = useLrclib.value
+  submittedNetease.value = useNetease.value
   searchingKeyword.value = keyword.value
 }
 </script>

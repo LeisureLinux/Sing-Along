@@ -1,6 +1,6 @@
 <template>
   <BaseModal
-    title="Existing Lyrics Found"
+    :title="$t('lyricsSearch.existingLyricsFound')"
     content-class="w-full max-w-md"
     :close-button="true"
     @close="emit('close')"
@@ -20,14 +20,14 @@
         >
           <Loading v-if="isLoading" class="animate-spin mr-1" />
           <Refresh v-else class="mr-1" />
-          Redownload
+          {{ $t('lyricsSearch.redownload') }}
         </button>
         <button
           class="button button-primary px-4 h-8 rounded-full text-sm"
           @click="continueEditing"
         >
           <Pencil class="mr-1" />
-          Continue Editing
+          {{ $t('lyricsSearch.continueEditing') }}
         </button>
       </div>
     </template>
@@ -38,6 +38,7 @@
 import { ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { useToast } from 'vue-toastification'
+import { useI18n } from 'vue-i18n'
 import BaseModal from '@/components/common/BaseModal.vue'
 import Loading from '~icons/mdi/loading'
 import Refresh from '~icons/mdi/refresh'
@@ -57,6 +58,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'redownload', 'continue'])
 
 const toast = useToast()
+const { t } = useI18n()
 const isLoading = ref(false)
 
 const redownload = async () => {
@@ -67,7 +69,7 @@ const redownload = async () => {
     emit('close')
   } catch (error) {
     console.error('Error refreshing lyrics:', error)
-    toast.error('Failed to redownload lyrics from LRCLIB')
+    toast.error(t('lyricsSearch.errorRedownload'))
   } finally {
     isLoading.value = false
   }

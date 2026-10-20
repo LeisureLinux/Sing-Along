@@ -88,6 +88,9 @@ export default {
   },
 
   config: {
+    appearance: '外观',
+    fileWriteWarning:
+      '此选项可能损坏你的音乐文件，启用前请先备份曲库。',
     scanIncremental: '扫描新增和修改的歌曲…',
     scanFull: '重置曲库并完整扫描…',
 
@@ -185,6 +188,28 @@ export default {
     processing: '处理中',
     loadingEditor: '正在加载编辑器…',
     noLyricsFound: '未找到歌词',
+  },
+
+  lyricsSearch: {
+    title: '搜索歌词',
+    placeholder: '输入歌名、专辑或歌手…',
+    searchingFor: '正在搜索',
+    foundTracks: '找到 {count} 首',
+    lines: '{count} 行',
+    preview: '预览歌词',
+    edit: '编辑歌词',
+    errorSearch: '搜索歌词时出错，请重试。',
+    errorOpen: '打开歌词时出错，请重试。',
+    chooseReferenceTrack: '选择参考歌曲',
+    searchTracksPlaceholder: '在曲库中搜索歌曲…',
+    editWithAudio: '配合音频编辑',
+    existingLyricsFound: '已存在相同的歌词',
+    redownload: '重新下载',
+    errorLoadTracks: '加载歌曲失败',
+    errorReadAudio: '读取音频文件失败',
+    errorRedownload: '重新下载歌词失败',
+    noLyricsSubmitted: '这首歌目前还没有提交歌词',
+    continueEditing: '继续编辑',
   },
 
   lrclib: {

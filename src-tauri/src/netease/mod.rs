@@ -70,6 +70,16 @@ struct SearchResult {
     songs: Vec<NeteaseSong>,
 }
 
+/// A search hit, exposed so the manual search dialog can list NetEase results
+/// next to LRCLIB's without knowing about NetEase's response shape.
+#[derive(Debug, Clone)]
+pub struct SongHit {
+    pub id: i64,
+    pub name: String,
+    pub artists: String,
+    pub duration_secs: Option<f64>,
+}
+
 #[derive(Deserialize)]
 struct NeteaseSong {
     id: i64,
@@ -136,6 +146,36 @@ pub async fn fetch_lyrics(
         })),
         _ => Ok(None),
     }
+}
+
+/// Search NetEase for songs matching a free-text query.
+///
+/// Unlike `fetch_lyrics`, this does not pick a best match: the manual search
+/// dialog shows every hit and lets the user choose.
+pub async fn search_songs(client: &reqwest::Client, query: &str) -> Result<Vec<SongHit>> {
+    let songs = search(client, query).await?;
+    Ok(songs
+        .into_iter()
+        .map(|song| SongHit {
+            id: song.id,
+            name: song.name,
+            artists: song
+                .artists
+                .into_iter()
+                .map(|a| a.name)
+                .collect::<Vec<_>>()
+                .join(", "),
+            duration_secs: song.duration.map(|ms| ms as f64 / 1000.0),
+        })
+        .collect())
+}
+
+/// Fetch the LRC text for a NetEase song id.
+pub async fn lyrics_for_song(
+    client: &reqwest::Client,
+    song_id: i64,
+) -> Result<Option<String>> {
+    fetch_lrc_by_id(client, song_id).await
 }
 
 async fn search(client: &reqwest::Client, query: &str) -> Result<Vec<NeteaseSong>> {

@@ -18,7 +18,7 @@
             }"
             @click="lyricsType = 'synced'"
           >
-            Synced Lyrics
+            {{ $t('track.synced') }}
           </button>
           <button
             class="button text-xs w-36 px-3 py-1.5 rounded-full"
@@ -28,7 +28,7 @@
             }"
             @click="lyricsType = 'plain'"
           >
-            Plain Lyrics
+            {{ $t('track.plain') }}
           </button>
         </div>
       </div>
@@ -44,14 +44,14 @@
       v-else-if="resolvedLyrics.instrumental"
       class="grow rounded bg-white text-neutral-800 dark:bg-neutral-950 dark:text-neutral-200 whitespace-pre-line p-4 overflow-scroll italic flex items-center justify-center"
     >
-      This track is instrumental
+      {{ $t('track.instrumental') }}
     </div>
 
     <div
       v-else
       class="grow rounded bg-white text-neutral-800 dark:bg-neutral-950 dark:text-neutral-200 whitespace-pre-line p-4 overflow-scroll italic flex items-center justify-center"
     >
-      There is currently no lyrics submitted for this track
+      {{ $t('lyricsSearch.noLyricsSubmitted') }}
     </div>
   </BaseModal>
 </template>

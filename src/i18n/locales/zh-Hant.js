@@ -88,6 +88,9 @@ export default {
   },
 
   config: {
+    appearance: '外觀',
+    fileWriteWarning:
+      '此選項可能損壞你的音樂檔，啟用前請先備份曲庫。',
     scanIncremental: '掃描新增與修改的歌曲…',
     scanFull: '重設曲庫並完整掃描…',
 
@@ -185,6 +188,28 @@ export default {
     processing: '處理中',
     loadingEditor: '正在載入編輯器…',
     noLyricsFound: '未找到歌詞',
+  },
+
+  lyricsSearch: {
+    title: '搜尋歌詞',
+    placeholder: '輸入歌名、專輯或歌手…',
+    searchingFor: '正在搜尋',
+    foundTracks: '找到 {count} 首',
+    lines: '{count} 行',
+    preview: '預覽歌詞',
+    edit: '編輯歌詞',
+    errorSearch: '搜尋歌詞時出錯，請重試。',
+    errorOpen: '開啟歌詞時出錯，請重試。',
+    chooseReferenceTrack: '選擇參考歌曲',
+    searchTracksPlaceholder: '在曲庫中搜尋歌曲…',
+    editWithAudio: '配合音訊編輯',
+    existingLyricsFound: '已存在相同的歌詞',
+    redownload: '重新下載',
+    errorLoadTracks: '載入歌曲失敗',
+    errorReadAudio: '讀取音訊檔失敗',
+    errorRedownload: '重新下載歌詞失敗',
+    noLyricsSubmitted: '這首歌目前還沒有提交歌詞',
+    continueEditing: '繼續編輯',
   },
 
   lrclib: {

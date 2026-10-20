@@ -1,56 +1,13 @@
 <template>
   <BaseModal
-    title="Configuration"
+    :title="$t('config.title')"
     body-class="flex flex-col h-full justify-between overflow-y-auto"
     @before-open="beforeOpenHandler"
     @close="emit('close')"
   >
     <div class="flex flex-col gap-8">
       <div>
-        <label class="group-label mb-4">Common</label>
-
-        <div class="flex flex-col mb-4">
-          <label class="block mb-2 child-label">{{ $t('config.downloadLyricsFor') }}</label>
-
-          <RadioButton
-            id="download-lyrics-for-all"
-            v-model="downloadLyricsFor"
-            class="mb-1"
-            name="download-lyrics-for"
-            value="all"
-          >
-            All tracks (overwrite existing lyrics)
-          </RadioButton>
-
-          <RadioButton
-            id="skip-synced"
-            v-model="downloadLyricsFor"
-            class="mb-1"
-            name="download-lyrics-for"
-            value="skipSynced"
-          >
-            Only tracks without synced lyrics
-          </RadioButton>
-
-          <RadioButton
-            id="skip-plain"
-            v-model="downloadLyricsFor"
-            class="mb-1"
-            name="download-lyrics-for"
-            value="skipPlain"
-          >
-            Only tracks without any lyrics
-          </RadioButton>
-        </div>
-
-        <!-- Total lines number should always show in search result, this configuration is not necessary -->
-        <!-- <div class="flex flex-col mb-4">
-          <label class="block mb-2 child-label">Search settings</label>
-
-          <CheckboxButton id="show-line-count" v-model="showLineCount" name="show-line-count">
-            Show the number of lines a lyric file has in the search menu
-          </CheckboxButton>
-        </div> -->
+        <label class="group-label mb-4">{{ $t('config.appearance') }}</label>
 
         <div class="flex flex-col mb-4">
           <label class="block mb-2 child-label">{{ $t('config.theme') }}</label>
@@ -96,7 +53,9 @@
         </div>
 
         <div class="flex flex-col">
-          <label class="block mb-2 child-label" for="lrclib-instance">LRCLIB instance</label>
+          <label class="block mb-2 child-label" for="lrclib-instance">{{
+            $t('config.lrclibInstance')
+          }}</label>
           <input
             id="lrclib-instance"
             v-model="editingLrclibInstance"
@@ -104,22 +63,6 @@
             placeholder="https://"
             class="input px-4 h-8"
           />
-        </div>
-      </div>
-
-      <div>
-        <label class="group-label mb-4">{{ $t('config.embedExperimental') }}</label>
-
-        <div class="flex items-start">
-          <CheckboxButton id="try-embed-lyrics" v-model="tryEmbedLyrics" name="try-embed-lyrics">
-            <div class="flex flex-col">
-              <span class="mb-0.5">Enable embed lyrics option</span>
-              <span class="text-xs text-yellow-700 dark:text-yellow-400"
-                >This option could corrupt your track files. Make sure to backup your library before
-                enabling it.</span
-              >
-            </div>
-          </CheckboxButton>
         </div>
       </div>
 
@@ -132,6 +75,9 @@
               <span class="mb-0.5">{{ $t('config.syncCoverLabel') }}</span>
               <span class="text-xs text-neutral-500 dark:text-neutral-400">{{
                 $t('config.syncCoverHint')
+              }}</span>
+              <span class="text-xs text-yellow-700 dark:text-yellow-400 mt-1">{{
+                $t('config.fileWriteWarning')
               }}</span>
             </div>
           </CheckboxButton>
@@ -157,7 +103,7 @@
 
 <script setup>
 import { invoke } from '@tauri-apps/api/core'
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useGlobalState } from '../../composables/global-state'
 import { AVAILABLE_LOCALES, readLocalePreference, setLocale } from '@/i18n/index.js'
 import { usePlayer } from '@/composables/player.js'
@@ -175,21 +121,32 @@ const { volume } = usePlayer()
 
 const emit = defineEmits(['close', 'refreshLibrary', 'fullScanLibrary', 'manageDirectories'])
 
-const downloadLyricsFor = ref('all')
-const skipTracksWithSyncedLyrics = ref(true)
-const skipTracksWithPlainLyrics = ref(false)
-const showLineCount = ref(true)
-const tryEmbedLyrics = ref(false)
 const syncCover = ref(false)
 const editingThemeMode = ref('auto')
 const editingLrclibInstance = ref('')
 
+// Fields this dialog no longer edits (the per-batch skip rules and the
+// experimental embed flag) still exist in config: the download dialog reads
+// them. Holding the loaded values lets save() write them back unchanged
+// instead of resetting them to a hardcoded default.
+const preserved = ref({
+  skipTracksWithSyncedLyrics: true,
+  skipTracksWithPlainLyrics: false,
+  showLineCount: true,
+  tryEmbedLyrics: false,
+})
+
 const save = async () => {
   await invoke('set_config', {
-    skipTracksWithSyncedLyrics: skipTracksWithSyncedLyrics.value,
-    skipTracksWithPlainLyrics: skipTracksWithPlainLyrics.value,
-    showLineCount: showLineCount.value,
-    tryEmbedLyrics: tryEmbedLyrics.value,
+    // Which tracks a batch should skip is chosen per download, in the download
+    // dialog — it is not a global preference, so it is not edited here. The
+    // loaded values are written back untouched.
+    skipTracksWithSyncedLyrics: preserved.value.skipTracksWithSyncedLyrics,
+    skipTracksWithPlainLyrics: preserved.value.skipTracksWithPlainLyrics,
+    showLineCount: preserved.value.showLineCount,
+    // Embedding lyrics into audio files is offered by the download dialog; this
+    // dialog does not toggle it, so keep whatever is already stored.
+    tryEmbedLyrics: preserved.value.tryEmbedLyrics,
     themeMode: editingThemeMode.value,
     lrclibInstance: editingLrclibInstance.value,
     volume: volume.value,
@@ -217,36 +174,14 @@ const manageDirectories = () => {
 
 const beforeOpenHandler = async () => {
   const config = await invoke('get_config')
-  skipTracksWithSyncedLyrics.value = config.skip_tracks_with_synced_lyrics
-  skipTracksWithPlainLyrics.value = config.skip_tracks_with_plain_lyrics
-
-  console.log(skipTracksWithSyncedLyrics.value, skipTracksWithPlainLyrics.value)
-
-  if (skipTracksWithSyncedLyrics.value && !skipTracksWithPlainLyrics.value) {
-    downloadLyricsFor.value = 'skipSynced'
-  } else if (skipTracksWithPlainLyrics.value) {
-    downloadLyricsFor.value = 'skipPlain'
-  } else {
-    downloadLyricsFor.value = 'all'
+  preserved.value = {
+    skipTracksWithSyncedLyrics: config.skip_tracks_with_synced_lyrics,
+    skipTracksWithPlainLyrics: config.skip_tracks_with_plain_lyrics,
+    showLineCount: config.show_line_count,
+    tryEmbedLyrics: config.try_embed_lyrics,
   }
-
-  showLineCount.value = config.show_line_count
-  tryEmbedLyrics.value = config.try_embed_lyrics
   syncCover.value = config.sync_cover ?? false
   editingThemeMode.value = config.theme_mode
   editingLrclibInstance.value = config.lrclib_instance
 }
-
-watch(downloadLyricsFor, newVal => {
-  if (newVal === 'skipSynced') {
-    skipTracksWithSyncedLyrics.value = true
-    skipTracksWithPlainLyrics.value = false
-  } else if (newVal === 'skipPlain') {
-    skipTracksWithSyncedLyrics.value = true
-    skipTracksWithPlainLyrics.value = true
-  } else {
-    skipTracksWithSyncedLyrics.value = false
-    skipTracksWithPlainLyrics.value = false
-  }
-})
 </script>

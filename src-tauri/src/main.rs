@@ -46,14 +46,6 @@ struct PublishLyricsProgress {
     publish_lyrics: String,
 }
 
-#[derive(Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-struct FlagLyricsProgress {
-    request_challenge: String,
-    solve_challenge: String,
-    flag_lyrics: String,
-}
-
 #[derive(Clone, Copy, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum ExportLyricsFormat {
@@ -993,6 +985,187 @@ async fn search_lyrics(
     Ok(response)
 }
 
+/// One row in the manual search dialog.
+///
+/// Both sources are flattened into this shape so the UI can render a single
+/// list. The `id` is meaningful only together with `source` — LRCLIB and
+/// NetEase number their tracks independently.
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SearchHit {
+    source: String,
+    id: i64,
+    name: String,
+    artist_name: String,
+    album_name: Option<String>,
+    duration: Option<f64>,
+    instrumental: bool,
+    plain_lyrics: Option<String>,
+    synced_lyrics: Option<String>,
+}
+
+/// Search lyrics across the sources the user selected.
+///
+/// A failing source never fails the whole search: LRCLIB being down should not
+/// hide NetEase results. The per-source error is reported alongside whatever
+/// did come back so the dialog can say which part failed.
+#[tauri::command]
+async fn search_lyrics_multi(
+    keyword: String,
+    use_lrclib: bool,
+    use_netease: bool,
+    app_handle: AppHandle,
+) -> Result<SearchOutcome, String> {
+    let config = app_handle
+        .db(|db: &Connection| db::get_config(db))
+        .map_err(|err| err.to_string())?;
+
+    let mut hits: Vec<SearchHit> = Vec::new();
+    let mut errors: Vec<String> = Vec::new();
+
+    if use_lrclib {
+        match lrclib::search::request("", "", "", &keyword, &config.lrclib_instance).await {
+            Ok(response) => {
+                let items = serde_json::to_value(&response)
+                    .ok()
+                    .and_then(|v| v.as_array().cloned())
+                    .unwrap_or_default();
+                for item in items {
+                    let get_str = |key: &str| {
+                        item.get(key)
+                            .and_then(|v| v.as_str())
+                            .map(|v| v.to_owned())
+                    };
+                    let Some(id) = item.get("id").and_then(|v| v.as_i64()) else {
+                        continue;
+                    };
+                    hits.push(SearchHit {
+                        source: "lrclib".to_owned(),
+                        id,
+                        name: get_str("name").unwrap_or_default(),
+                        artist_name: get_str("artistName").unwrap_or_default(),
+                        album_name: get_str("albumName"),
+                        duration: item.get("duration").and_then(|v| v.as_f64()),
+                        instrumental: item
+                            .get("instrumental")
+                            .and_then(|v| v.as_bool())
+                            .unwrap_or(false),
+                        plain_lyrics: get_str("plainLyrics"),
+                        synced_lyrics: get_str("syncedLyrics"),
+                    });
+                }
+            }
+            Err(error) => errors.push(format!("LRCLIB: {error}")),
+        }
+    }
+
+    if use_netease {
+        match crate::netease::search_songs(&netease_client(), &keyword).await {
+            Ok(songs) => {
+                // NetEase search returns metadata only; the lyric text is a
+                // second request per song. Fetching one at a time keeps the
+                // dialog responsive enough and avoids hammering the endpoint.
+                for song in songs {
+                    let synced = crate::netease::lyrics_for_song(&netease_client(), song.id)
+                        .await
+                        .ok()
+                        .flatten();
+                    hits.push(SearchHit {
+                        source: "netease".to_owned(),
+                        id: song.id,
+                        name: song.name,
+                        artist_name: song.artists,
+                        album_name: None,
+                        duration: song.duration_secs,
+                        instrumental: false,
+                        plain_lyrics: None,
+                        synced_lyrics: synced,
+                    });
+                }
+            }
+            Err(error) => errors.push(format!("NetEase: {error}")),
+        }
+    }
+
+    Ok(SearchOutcome { hits, errors })
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SearchOutcome {
+    hits: Vec<SearchHit>,
+    errors: Vec<String>,
+}
+
+/// Build a lyricsfile from a search hit and return it plus its database id.
+///
+/// The manual search dialog works with hits that may come from either source.
+/// Rather than teach every downstream modal about NetEase, the hit is turned
+/// into the same `PrepareLyricsfileResult` shape the LRCLIB path already
+/// produces, so preview, editing and association stay source-agnostic.
+#[tauri::command]
+async fn prepare_search_hit_lyricsfile(
+    source: String,
+    id: i64,
+    name: String,
+    artist_name: String,
+    album_name: Option<String>,
+    duration: Option<f64>,
+    app_handle: AppHandle,
+) -> Result<PrepareLyricsfileResult, String> {
+    let config = app_handle
+        .db(|db: &Connection| db::get_config(db))
+        .map_err(|err| err.to_string())?;
+
+    // LRCLIB ids are namespaced by instance URL, so delegate to the existing
+    // path that knows about the cache lookup and the database key.
+    if source == "lrclib" {
+        return prepare_lrclib_lyricsfile(id, app_handle).await;
+    }
+
+    let synced = crate::netease::lyrics_for_song(&netease_client(), id)
+        .await
+        .map_err(|err| err.to_string())?
+        .ok_or_else(|| "NETEASE_NO_LYRICS".to_owned())?;
+
+    let metadata = lyricsfile::LyricsfileTrackMetadata::new(
+        &name,
+        album_name.as_deref().unwrap_or_default(),
+        &artist_name,
+        duration.unwrap_or(0.0),
+    );
+    let lyricsfile_content = lyricsfile::build_lyricsfile(&metadata, None, Some(&synced))
+        .ok_or("Failed to build lyricsfile from NetEase lyrics")?;
+
+    let parsed = lyricsfile::parse_lyricsfile(&lyricsfile_content).map_err(|e| e.to_string())?;
+
+    // NetEase ids are written as negative numbers so they cannot collide with
+    // LRCLIB's positive ids in the same cache table.
+    let stored = app_handle
+        .db(|db: &Connection| {
+            db::upsert_lyricsfile_for_lrclib(
+                &config.lrclib_instance,
+                -id,
+                &name,
+                album_name.as_deref().unwrap_or_default(),
+                &artist_name,
+                duration.unwrap_or(0.0),
+                &lyricsfile_content,
+                db,
+            )
+        })
+        .map_err(|err| err.to_string())?;
+
+    Ok(PrepareLyricsfileResult {
+        lyricsfile_id: stored,
+        lyricsfile: lyricsfile_content,
+        plain_lyrics: parsed.plain_lyrics.unwrap_or_default(),
+        synced_lyrics: parsed.synced_lyrics.unwrap_or_default(),
+        is_instrumental: parsed.is_instrumental,
+        exists_in_db: false,
+    })
+}
+
 /// Result of preparing a lyricsfile from LRCLIB
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -1295,50 +1468,6 @@ async fn publish_lyrics(
     app_handle
         .emit("publish-lyrics-progress", &progress)
         .unwrap();
-    Ok(())
-}
-
-#[tauri::command]
-async fn flag_lyrics(
-    track_id: i64,
-    flag_reason: String,
-    app_handle: AppHandle,
-) -> Result<(), String> {
-    let config = app_handle
-        .db(|db: &Connection| db::get_config(db))
-        .map_err(|err| err.to_string())?;
-
-    let mut progress = FlagLyricsProgress {
-        request_challenge: "Pending".to_owned(),
-        solve_challenge: "Pending".to_owned(),
-        flag_lyrics: "Pending".to_owned(),
-    };
-    progress.request_challenge = "In Progress".to_owned();
-    app_handle.emit("flag-lyrics-progress", &progress).unwrap();
-    let challenge_response = lrclib::request_challenge::request(&config.lrclib_instance)
-        .await
-        .map_err(|err| err.to_string())?;
-    progress.request_challenge = "Done".to_owned();
-    progress.solve_challenge = "In Progress".to_owned();
-    app_handle.emit("flag-lyrics-progress", &progress).unwrap();
-    let nonce = lrclib::challenge_solver::solve_challenge(
-        &challenge_response.prefix,
-        &challenge_response.target,
-    );
-    progress.solve_challenge = "Done".to_owned();
-    progress.flag_lyrics = "In Progress".to_owned();
-    app_handle.emit("flag-lyrics-progress", &progress).unwrap();
-    let publish_token = format!("{}:{}", challenge_response.prefix, nonce);
-    lrclib::flag::request(
-        track_id,
-        &flag_reason,
-        &publish_token,
-        &config.lrclib_instance,
-    )
-    .await
-    .map_err(|err| err.to_string())?;
-    progress.flag_lyrics = "Done".to_owned();
-    app_handle.emit("flag-lyrics-progress", &progress).unwrap();
     Ok(())
 }
 
@@ -1967,12 +2096,12 @@ async fn main() {
             retrieve_lyrics,
             retrieve_lyrics_by_id,
             search_lyrics,
+            search_lyrics_multi,
             save_lyrics,
             publish_lyrics,
             export_lyrics,
             export_track_lyrics,
             get_track_ids_with_lyrics,
-            flag_lyrics,
             play_track,
             select_track,
             sync_cover,
@@ -1993,6 +2122,7 @@ async fn main() {
             get_audio_metadata,
             prepare_search_query,
             prepare_lrclib_lyricsfile,
+            prepare_search_hit_lyricsfile,
             refresh_lrclib_lyricsfile,
             read_text_file,
             segment_words,
