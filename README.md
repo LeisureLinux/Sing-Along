@@ -189,3 +189,19 @@ this fork changed. The About dialog in the app carries the same credit.
 ## Contact
 
 Email: [albertxu@freelamp.com](mailto:albertxu@freelamp.com)
+
+## Support
+
+Sing-Along is free, with no subscription and nothing held back behind a payment.
+If it earned that, a tip is welcome — not expected.
+
+<img src="src/assets/donate-qr.png" alt="WeChat payment QR code" width="220">
+
+**Thanks for your donation!**<br>
+**感谢您的赞赏！**
+
+The code is a WeChat 收款码. Both lines are here because the payment app is
+Chinese: an English reader still needs to recognise what the image is, and a
+Chinese reader should not have to work it out from a translation.
+
+The same code appears under 赞赏 in the app's About dialog.
