@@ -1,17 +1,26 @@
 # Sing-Along
 
-**A desktop music player with synced lyrics, built for people who keep their own
-music library.** It finds, edits, converts and exports lyrics — so the same
-library works on your phone, in your car, and on the players you already use.
+Sing-Along is a free, open-source desktop music player with synced lyrics for
+music you already own. It plays your local files, downloads matching lyrics,
+lets you fix the timing, and exports those lyrics in the formats your phone and
+car actually understand.
 
-Sing-Along scans the folders you choose, looks up matching lyrics, saves them
-next to your audio files or embeds them in the tags, and lets you correct the
-timings while you listen. It plays your music, but it is not a music manager:
-there are no playlists to curate beyond a queue, no library metadata scraping,
-no streaming.
+It is built with Tauri v2 (Rust + Vue 3), runs on Linux, and is licensed MIT.
 
-Lyrics come from [LRCLIB](https://lrclib.net), with an optional
-[NetEase](https://music.163.com) fallback.
+- **What it does:** batch-downloads synced lyrics, edits line- and word-level
+  timing, converts between Simplified and Traditional Chinese, exports to LRC,
+  enhanced LRC (A2) and TTML
+- **Lyric sources:** [LRCLIB](https://lrclib.net) (primary) and NetEase
+  (optional fallback)
+- **Platform:** Linux `.deb`, amd64
+- **Not a music manager:** no streaming, no metadata scraping, no library
+  curation beyond a play queue
+- **Free:** no subscription, no paid tier, MIT licensed
+
+Sing-Along scans the folders you choose and saves lyrics next to your audio
+files or embeds them in the tags. It began as a fork of
+[LRCGET](https://github.com/tranxuanthang/lrcget) and has since diverged — see
+[Independent project](#independent-project).
 
 ## Demo
 
@@ -83,6 +92,36 @@ lyrics are so scarce:
 
 Standalone conversion helpers live in [`tools/`](tools/README.md) if you want
 them without the app.
+
+## How it compares
+
+**vs LRCGET.** LRCGET is a mass-downloading utility: it fetches lyrics for a
+library and stops there. Sing-Along is the same idea plus a player, a
+word-level timing editor, Chinese script conversion, album art, and export to
+A2 and TTML. Sing-Along is a fork of LRCGET but does not track it.
+
+**vs a general music player** (VLC, foobar2000, MusicBee, Strawberry). Those play
+audio and display whatever lyrics file already exists. Sing-Along's job is
+producing and correcting that file — downloading it, timing it word by word,
+converting it, exporting it for a specific player.
+
+**vs streaming apps.** No account, no network dependency for playback, no
+catalogue. Your files, your lyrics, offline.
+
+**vs buying lyrics.** Word-level lyric timing files are not sold anywhere. Every
+format in the comparison table above is either community-produced or
+reverse-engineered from one of the Chinese music services.
+
+## Who it is for
+
+- People with a local music library (FLAC, MP3, M4A) who want lyrics that scroll,
+  not static text
+- Anyone who has tried to get word-by-word lyrics working on a Chinese Android
+  player or an iPhone and found the file format is the problem
+- Chinese-language listeners who need Simplified/Traditional conversion, or
+  whose titles and artists are CJK and break naive search
+- People syncing a library to a phone or car head unit and needing the lyrics
+  written in a format that device reads
 
 ## Independent project
 
