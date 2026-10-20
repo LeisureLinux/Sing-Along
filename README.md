@@ -17,17 +17,7 @@ Lyrics come from [LRCLIB](https://lrclib.net), with an optional
 
 Lyrics scrolling in time with the playing track, then the library list behind it:
 
-[![Watch the demo](demo/sing-along-demo-poster.jpg)](demo/sing-along-demo.mp4)
-
 ![Sing-Along demo](demo/sing-along-demo.webp)
-
-The animated preview loops the first ~14 seconds. Click the still above to watch
-the full clip with sound ([`demo/sing-along-demo.mp4`](demo/sing-along-demo.mp4),
-36 s).
-
-GitHub strips `<video>` tags from READMEs and only inlines video uploaded through
-its own editor, so the animation is a WebP — which GitHub serves as an image and
-plays automatically — and the MP4 is a normal link rather than an embed.
 
 ## What it does
 
@@ -186,10 +176,6 @@ copyright notice and the MIT permission notice are retained in
 [LICENSE](LICENSE); see [NOTICE](NOTICE) for full attribution and a list of what
 this fork changed. The About dialog in the app carries the same credit.
 
-## Contact
-
-Email: [albertxu@freelamp.com](mailto:albertxu@freelamp.com)
-
 ## Support
 
 Sing-Along is free, with no subscription and nothing held back behind a payment.
@@ -199,9 +185,3 @@ If it earned that, a tip is welcome — not expected.
 
 **Thanks for your donation!**<br>
 **感谢您的赞赏！**
-
-The code is a WeChat 收款码. Both lines are here because the payment app is
-Chinese: an English reader still needs to recognise what the image is, and a
-Chinese reader should not have to work it out from a translation.
-
-The same code appears under 赞赏 in the app's About dialog.
