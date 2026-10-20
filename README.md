@@ -78,20 +78,21 @@ copyright notice and the MIT permission notice are retained in
 [LICENSE](LICENSE); see [NOTICE](NOTICE) for full attribution and a list of
 what this fork changed. The About dialog in the app carries the same credit.
 
-## Screenshots
+## Demo
 
-![01.png](screenshots/01.png)
+Lyrics scrolling in time with the playing track, then the library list behind it:
 
-<details>
-<summary>Click to expand more screenshots</summary>
+[![Watch the demo](demo/sing-along-demo-poster.jpg)](demo/sing-along-demo.mp4)
 
-![02.png](screenshots/02.png)
+![Sing-Along demo](demo/sing-along-demo.webp)
 
-![03.png](screenshots/03.png)
+The animated preview loops the first ~14 seconds. Click the still above to watch
+the full clip with sound ([`demo/sing-along-demo.mp4`](demo/sing-along-demo.mp4),
+36 s).
 
-![04.png](screenshots/04.png)
-
-</details>
+GitHub strips `<video>` tags from READMEs and only inlines video uploaded through
+its own editor, so the animation is a WebP — which GitHub serves as an image and
+plays automatically — and the MP4 is a normal link rather than an embed.
 
 ## Troubleshooting
 
