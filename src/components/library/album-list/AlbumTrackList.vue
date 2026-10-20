@@ -1,11 +1,12 @@
 <template>
   <div ref="parentRef" class="secondary-page">
     <div :style="{ height: `${totalSize}px`, width: '100%', position: 'relative' }">
-      <div class="mb-4">
-        <button class="button button-normal transition rounded-full p-4" @click="$emit('back')">
-          <ArrowLeft />
-        </button>
-      </div>
+      <div ref="headerRef">
+        <div class="mb-4">
+          <button class="button button-normal transition rounded-full p-4" @click="$emit('back')">
+            <ArrowLeft />
+          </button>
+        </div>
 
       <!-- Album header: large cover, then the identifying text. The cover keeps
            a fixed footprint when missing so the track table below does not jump
@@ -54,10 +55,14 @@
           </div>
         </div>
       </div>
+      </div>
 
       <div class="w-full">
         <div class="w-full flex">
-          <div class="text-xs text-neutral-800/70 font-bold flex w-full dark:text-neutral-500">
+          <div
+            ref="tableHeaderRef"
+            class="text-xs text-neutral-800/70 font-bold flex w-full dark:text-neutral-500"
+          >
             <div class="text-right flex-none w-[5%] p-1 pr-2">#</div>
             <div class="text-left flex-none w-[60%] p-1">{{ $t('track.track') }}</div>
             <!-- Adjusted width percentage -->
@@ -101,7 +106,7 @@ import ArrowLeft from '~icons/mdi/arrow-left'
 import AlbumIcon from '~icons/mdi/album'
 import DownloadMultiple from '~icons/mdi/download-multiple'
 import { useVirtualizer } from '@tanstack/vue-virtual'
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import TrackItem from '../track-list/TrackItem.vue'
 import { useDownloadTrigger } from '@/composables/download-options.js'
@@ -112,6 +117,28 @@ const emit = defineEmits(['back', 'playTrack', 'playWithQueue', 'downloadLyrics'
 const trackIds = ref([])
 const parentRef = ref(null)
 const coverSrc = ref(null)
+const headerRef = ref(null)
+const tableHeaderRef = ref(null)
+
+// The virtual rows are absolutely positioned, so the header above them has to
+// be accounted for explicitly or the first track renders on top of it. Measured
+// rather than a constant: the header height changes with the cover, the theme's
+// font metrics and whether the title wraps, and a stale constant is exactly what
+// caused the tracks to cover the album header.
+const headerHeight = ref(0)
+
+const measureHeader = () => {
+  const header = headerRef.value
+  const tableHeader = tableHeaderRef.value
+  if (!header || !tableHeader) return
+  const top = header.getBoundingClientRect().top
+  const bottom = tableHeader.getBoundingClientRect().bottom
+  headerHeight.value = Math.max(0, Math.round(bottom - top))
+}
+
+watch([headerRef, tableHeaderRef, () => props.album?.id], () => nextTick(measureHeader), {
+  immediate: true,
+})
 
 const rowVirtualizer = useVirtualizer(
   computed(() => ({
@@ -119,7 +146,7 @@ const rowVirtualizer = useVirtualizer(
     getScrollElement: () => parentRef.value,
     estimateSize: () => 52,
     overscan: 5,
-    paddingStart: 175,
+    paddingStart: headerHeight.value,
     getItemKey: index => trackIds.value[index],
   }))
 )
@@ -165,6 +192,8 @@ const loadCover = async albumId => {
 onMounted(async () => {
   trackIds.value = await invoke('get_album_track_ids', { albumId: props.album.id })
   await loadCover(props.album.id)
+  await nextTick()
+  measureHeader()
 })
 
 watch(
