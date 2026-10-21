@@ -208,6 +208,70 @@ they need those present at runtime. A static build is not possible: distribution
 ship no static WebKitGTK, and WebKitGTK loads GIO modules and font backends at
 runtime even when everything else is linked in.
 
+## Installation issues
+
+These builds are not code-signed. Buying a certificate does not fix most of what
+you will see, so here is what each warning means and what to do.
+
+### Windows
+
+Running the `.exe` or `.msi` shows **"Windows protected your PC"** with an
+"Unknown publisher" line. That is SmartScreen: Microsoft has no record of who
+built this file. It is not a virus scan result, and the same warning appears for
+any small project's installer that has not accumulated download history.
+
+To proceed: **More info → Run anyway**. Windows remembers the choice for that
+file.
+
+A standard (OV) code-signing certificate would remove the "Unknown publisher"
+line but **not** the SmartScreen prompt — that clears only after a certificate
+accumulates download reputation over weeks or months. An EV certificate clears it
+immediately, but its key must live on a hardware token, which cannot be used from
+a GitHub Actions runner. Neither is worth the cost for this project yet, so the
+honest answer is: the warning is expected, and "Run anyway" is the correct
+response.
+
+If you would rather not run an unsigned binary, build it yourself:
+
+```shell
+npm install
+npm run tauri build
+```
+
+### macOS
+
+Opening the `.dmg` gives one of:
+
+> **"Sing-Along" is damaged and can't be opened. You should move it to the Trash.**
+
+> **"Sing-Along" cannot be opened because the developer cannot be verified.**
+
+Both mean the app is unsigned and has not been notarised by Apple. The first
+message is misleading — the file is not damaged, macOS simply refuses to run
+software it cannot check. On macOS 15 and later, control-clicking → Open no
+longer bypasses this for unsigned apps.
+
+To run it anyway: open **System Settings → Privacy & Security**, scroll down, and
+click **Open Anyway** next to the blocked app. You will be asked for your password.
+
+If the "damaged" message appears and no "Open Anyway" button is offered, the
+download may have been quarantined:
+
+```shell
+xattr -d com.apple.quarantine /Applications/Sing-Along.app
+```
+
+Removing the signature properly requires an Apple Developer account ($99/year)
+and notarisation, which can be automated in CI. That is not in place yet.
+
+The `.dmg` is Apple Silicon only (M1 and later). Intel Macs are not built.
+
+### Verifying a download
+
+Assets are served over HTTPS from GitHub, which is the only integrity guarantee
+offered right now — no checksums or signatures are published. If that matters for
+your setup, build from source (see [Development](#development)).
+
 ## Development
 
 Stack: [Tauri](https://tauri.app) v2 — Rust backend, Vue 3 frontend, SQLite.
