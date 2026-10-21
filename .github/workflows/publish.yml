@@ -36,7 +36,11 @@ jobs:
           - platform: 'ubuntu-22.04'
             args: '--bundles deb,rpm,appimage'
           - platform: 'windows-latest'
-            args: '--bundles nsis,msi'
+            # NSIS only. The .msi exists for GPO/Intune deployment, and this
+            # project has no managed-deployment audience; dropping it removes a
+            # 15 MB asset per release. The installer offers per-user (no admin
+            # rights needed) or per-machine at install time.
+            args: '--bundles nsis'
           # Not a GUI platform: this runner exists only to build the static
           # arm64 CLI. Cross-compiling it from x86_64 would need a musl-targeted
           # aarch64 compiler, which Debian does not package — an ARM runner has
@@ -106,6 +110,16 @@ jobs:
         if: ${{ !matrix.cli_only }}
         working-directory: src-tauri
         run: cargo test
+
+      # `cargo test` builds with the default features only (gui + cli). The
+      # standalone CLI is compiled with `--no-default-features --features cli`,
+      # a different cfg combination — a reference to a function that only exists
+      # under the GUI build passes the tests and fails there. v2.9.9 shipped
+      # nothing because of exactly that.
+      - name: check the cli-only build compiles
+        if: ${{ !matrix.cli_only }}
+        working-directory: src-tauri
+        run: cargo check --no-default-features --features cli
 
       # Pinned to v1 rather than the v0 floating tag: `releaseAssetNamePattern`
       # does not exist in v0's action.yml, and an unknown input is ignored with
@@ -221,7 +235,9 @@ jobs:
 
             - **Linux**: `.deb` (Debian/Ubuntu), `.rpm` (Fedora/openSUSE), or the
               `.AppImage` which needs no installation.
-            - **Windows**: `-setup.exe` to install, `.msi` for managed deployment.
+            - **Windows**: `-setup.exe` to install. It asks whether to install
+              for the current user (no administrator rights needed) or for all
+              users.
             - **macOS**: the `.dmg` is Apple Silicon only (M1 and later).
 
             The Linux, Windows and macOS installers are not code-signed, so the

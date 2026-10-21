@@ -129,6 +129,12 @@ pub async fn run(args: &[String]) -> Option<i32> {
     Some(code)
 }
 
+/// Print the usage text, for callers that need it outside `run` (a CLI-only
+/// build with no subcommand has no window to open, so it shows this instead).
+pub fn print_usage() {
+    print!("{USAGE}");
+}
+
 fn report(result: Result<()>) -> i32 {
     match result {
         Ok(()) => 0,

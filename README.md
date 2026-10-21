@@ -258,7 +258,8 @@ sudo dnf install ./sing-along-x.y.z-1.x86_64.rpm # Fedora
 chmod +x sing-along_x.y.z_amd64.AppImage && ./sing-along_x.y.z_amd64.AppImage
 ```
 
-**Windows** — `-setup.exe` installs it; the `.msi` is for managed deployment.
+**Windows** — `-setup.exe` installs it. It asks whether to install for the
+current user (no administrator rights needed) or for all users on the machine.
 
 **macOS** — the `.dmg` is Apple Silicon only (M1 and later).
 
@@ -356,9 +357,13 @@ cargo features that `tauri build` does not enable. Verify with
 in the default feature set.
 
 `bundle.targets` in `tauri.conf.json` lists what a plain `npm run tauri build`
-produces: `deb`, `rpm`, `appimage`, `nsis`, `msi` and `dmg`. Each platform only
-builds the ones it can — a Linux run skips the Windows and macOS targets — so the
-list is a declaration of intent rather than a single-machine build plan.
+produces: `deb`, `rpm`, `appimage`, `nsis` and `dmg`. Each platform only builds
+the ones it can — a Linux run skips the Windows and macOS targets — so the list is
+a declaration of intent rather than a single-machine build plan.
+
+`msi` is deliberately absent. It exists for GPO/Intune deployment, which needs
+per-machine installation and therefore administrator rights; the NSIS installer
+offers per-user or per-machine at install time and covers both cases.
 
 ## License and attribution
 
