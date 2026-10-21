@@ -157,6 +157,19 @@ sing-along status ~/Music                    # what a folder is missing
 sing-along formats                           # list export targets
 ```
 
+This is the same binary you installed: run it with no arguments and the player
+opens, add a subcommand and it works headless.
+
+For a machine where the player cannot be installed — a container, a NAS, a
+minimal server — every release also carries **`singalong-cli`**, the same command
+line linked statically with no GTK, WebKit or ALSA at all.
+
+```shell
+curl -LO https://github.com/LeisureLinux/Sing-Along/releases/latest/download/singalong-cli
+chmod +x singalong-cli
+./singalong-cli status ~/Music
+```
+
 `man sing-along` documents all of it, including why the format has to match the
 player: [Steve](https://apps.apple.com/app/id6751122850) on iOS reads word timing
 only from TTML, [Gramophone](https://github.com/FoedusProgramme/Gramophone) and

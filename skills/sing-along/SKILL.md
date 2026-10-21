@@ -15,12 +15,48 @@ headless. Everything below is the headless mode.
 - Converting a library between lyric formats
 - Checking what a library is missing before deciding what to do
 
+## Getting the binary
+
+There are two ways to get the command line, and both run the same code:
+
+**Already installed the player?** Use it — `sing-along` from the `.deb`, `.rpm`,
+`.AppImage`, `.dmg` or `.exe` accepts the same subcommands. No second download.
+
+**Nothing installed?** Get **`singalong-cli`**, a single statically linked file
+with no dependencies at all:
+
+```bash
+curl -LO https://github.com/LeisureLinux/Sing-Along/releases/latest/download/singalong-cli
+chmod +x singalong-cli
+./singalong-cli --version
+```
+
+This is the file to use for a headless or scripted environment. It needs no
+GTK, WebKit or ALSA installed.
+
+Both binaries accept `fetch`, `export`, `status`, `formats` and `--version`.
+Running either with no subcommand differs: the installed player opens its window,
+while `singalong-cli` prints usage and exits 2.
+
+**Do not extract the binary out of the `.deb`, `.rpm` or `.AppImage`.** Those
+contain the GUI, which links against WebKitGTK, GTK 3 and ALSA. Such a binary runs
+only on a machine that already has them, and fails elsewhere with "cannot open
+shared object file" — while appearing to work on the machine it was tested on.
+The `.AppImage` is self-contained only when run as an AppImage (its `AppRun`
+points `LD_LIBRARY_PATH` at the bundled libraries); running the binary from
+inside it gives you the broken case.
+
 ## Check the tool is there
 
 ```bash
-sing-along --help        # prints usage; exits non-zero if the CLI is missing
+sing-along --version     # prints e.g. "sing-along 2.9.4"
+sing-along --help        # prints usage
 sing-along formats       # lists export targets
 ```
+
+If `--version` prints nothing and a window opens instead, the installed build
+predates the CLI. If the command is not found at all, Sing-Along is not
+installed.
 
 If `sing-along` launches a window instead of printing help, the installed
 version predates the CLI. Install 2.9.0 or newer.

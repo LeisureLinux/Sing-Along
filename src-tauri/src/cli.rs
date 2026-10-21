@@ -28,6 +28,7 @@ USAGE:
     sing-along export <path>...      Write lyrics in a player's format
     sing-along status <path>...      Report what lyrics a path already has
     sing-along formats               List supported export targets
+    sing-along --version             Print the version
     sing-along --help                This text
 
 FETCH OPTIONS:
@@ -65,10 +66,27 @@ const PLAYERS: &[(&str, ExportFormat, &str)] = &[
     ("txt", ExportFormat::Txt, "Plain text"),
 ];
 
+/// Entry point for a standalone CLI binary.
+///
+/// Builds its own runtime: the CLI binary has no `#[tokio::main]`, and the GUI
+/// (which already runs one) calls `run` from inside it instead.
+pub fn run_blocking(args: &[String]) -> Option<i32> {
+    let runtime = match tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+    {
+        Ok(runtime) => runtime,
+        Err(err) => {
+            eprintln!("could not start the async runtime: {err}");
+            return Some(1);
+        }
+    };
+    runtime.block_on(run(args))
+}
+
 /// Entry point. Returns `None` when the GUI should start instead.
 ///
-/// Async because the fetch path has to await the lyric service, and `main` is
-/// already a tokio runtime — blocking on those futures from inside it panics.
+/// Async because the fetch path has to await the lyric service.
 pub async fn run(args: &[String]) -> Option<i32> {
     let Some(first) = args.get(1) else {
         return None;
@@ -77,6 +95,20 @@ pub async fn run(args: &[String]) -> Option<i32> {
     let code = match first.as_str() {
         "--help" | "-h" | "help" => {
             print!("{USAGE}");
+            0
+        }
+        // Plain `sing-along --version` output, so a script can read it without
+        // parsing the usage text. Same shape as `--version` from other tools:
+        // the program name, a space, the version.
+        "--version" | "-V" | "version" => {
+            // Program name from argv[0], so the GUI binary and the standalone
+            // CLI each report the name they were actually invoked as.
+            let name = args
+                .first()
+                .and_then(|arg| std::path::Path::new(arg).file_stem())
+                .and_then(|stem| stem.to_str())
+                .unwrap_or("sing-along");
+            println!("{name} {}", env!("CARGO_PKG_VERSION"));
             0
         }
         "formats" => {
@@ -298,7 +330,7 @@ async fn fetch(args: &[String]) -> Result<()> {
             }
         };
 
-        let resolved = match crate::resolve_lrclib_lyrics_payload(hit) {
+        let resolved = match crate::cli_support::resolve_lrclib_lyrics_payload(hit) {
             Ok(resolved) => resolved,
             Err(err) => {
                 missing += 1;

@@ -19,6 +19,12 @@ export default defineConfig({
   server: {
     port: 1420,
     strictPort: true,
+    // `src-tauri/target` holds build output Vite has no reason to watch. It grew
+    // past the inotify limit once a second (musl) target was added, and the
+    // watcher then died with ENOSPC before the dev server came up.
+    watch: {
+      ignored: ['**/src-tauri/**', '**/demo/**'],
+    },
   },
   // to make use of `TAURI_DEBUG` and other env variables
   // https://tauri.studio/v1/api/config#buildconfig.beforedevcommand

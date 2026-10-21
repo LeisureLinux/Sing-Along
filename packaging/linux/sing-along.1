@@ -3,14 +3,20 @@
 sing-along \- synced lyrics for your own music files
 .SH SYNOPSIS
 .B sing-along
-.RI [ command ]
+.I command
 .RI [ options ]
 .RI [ path ...]
 .SH DESCRIPTION
 .B sing-along
 is a desktop music player with synced lyrics. Run with no arguments it opens the
-player window. Run with a command it works headless, which is what scripts and
+player window; run with a command it works headless, which is what scripts and
 coding agents use.
+.PP
+The standalone, statically linked build of the same command line is published as
+.BR singalong-cli .
+It behaves identically and needs no GTK, WebKit or ALSA installed, which makes it
+the one to use in a container or on a machine where the player cannot be
+installed.
 .PP
 Lyrics are fetched from LRCLIB, with an optional NetEase fallback, and written as
 a sidecar file next to the audio.
@@ -33,6 +39,9 @@ missing.
 .TP
 .B formats
 List the players \fBexport\fR understands.
+.TP
+.B version
+Print the version and exit. Also available as \fB\-\-version\fR and \fB\-V\fR.
 .SH OPTIONS
 .SS fetch
 .TP
@@ -92,19 +101,19 @@ Unknown command or malformed arguments.
 Fetch missing lyrics for a library, converting to Simplified Chinese:
 .PP
 .RS 4
-sing-along fetch ~/Music --script simplified
+singalong-cli fetch ~/Music --script simplified
 .RE
 .PP
 Export for an iPhone, previewing first:
 .PP
 .RS 4
-sing-along export ~/Music --for steve --dry-run
+singalong-cli export ~/Music --for steve --dry-run
 .RE
 .PP
 Check what a folder is missing:
 .PP
 .RS 4
-sing-along status ~/Music
+singalong-cli status ~/Music
 .RE
 .SH SKILLS
 A skill file describing the recommended workflow for a coding agent ships at

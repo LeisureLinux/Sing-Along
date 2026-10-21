@@ -7,26 +7,46 @@ license = "MIT"
 repository = "https://github.com/LeisureLinux/Sing-Along"
 edition = "2021"
 rust-version = "1.81"
+# Two bin targets share one source; without this `cargo run` (which `tauri dev`
+# uses) refuses to guess.
+default-run = "sing-along"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+# Two binaries from one source. Declaring them explicitly (rather than relying on
+# the implicit `src/main.rs` target) is what lets `required-features` separate
+# them: a `cli` build gets only `singalong-cli`, the default build only
+# `sing-along`.
+[[bin]]
+name = "sing-along"
+path = "src/main.rs"
+required-features = ["gui"]
+
+[[bin]]
+name = "singalong-cli"
+path = "src/main.rs"
+required-features = ["cli"]
+
 [build-dependencies]
-tauri-build = { version = "2.5.6", features = [] }
+tauri-build = { version = "2.5.6", features = [], optional = true }
 
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
-tauri = { version = "2.10.1", features = ["protocol-asset", "tray-icon"] }
+tauri = { version = "2.10.1", features = ["protocol-asset", "tray-icon"], optional = true }
 globwalk = "0.9.1"
-reqwest = { version = "0.12.7", features = ["json"] }
+# `rustls-tls` unconditionally: the CLI is built for `x86_64-unknown-linux-musl`
+# and linked statically, which is impossible against OpenSSL. The GUI gets the
+# same backend for consistency rather than maintaining two TLS stacks.
+reqwest = { version = "0.12.7", default-features = false, features = ["json", "rustls-tls", "charset", "http2", "macos-system-configuration"] }
 lofty = "0.24.0"
 anyhow = "1.0.89"
 thiserror = "1.0"
 rusqlite = { version = "0.32.1", features = ["bundled"] }
-rusqlite_migration = { version = "1.3.1", features = ["from-directory"] }
-include_dir = "0.7.4"
-secular = { version="1.0.1", features= ["bmp", "normalization"] }
+rusqlite_migration = { version = "1.3.1", features = ["from-directory"], optional = true }
+include_dir = { version = "0.7.4", optional = true }
+secular = { version = "1.0.1", features = ["bmp", "normalization"] }
 collapse = "0.1.2"
 rayon = "1.10.0"
 indoc = "2"
@@ -34,8 +54,8 @@ tokio = { version = "1.40", features = ["full" ] }
 tokio-test = "0.4"
 ring = "0.17.8"
 data-encoding = "2.4.0"
-kira = "0.12.0"
-symphonia = { version = "0.5.4", features = ["all"] }
+kira = { version = "0.12.0", optional = true }
+symphonia = { version = "0.5.4", features = ["all"], optional = true }
 regex = "1.10.4"
 strsim = "0.11"
 # Only the Chinese segmentation is enabled.
@@ -52,34 +72,51 @@ strsim = "0.11"
 # both dictionaries and the build-time download.
 charabia = { version = "0.9.9", default-features = false, features = ["chinese"] }
 xxhash-rust = { version = "0.8", features = ["xxh3"] }
-tauri-plugin-os = "2.3.2"
-tauri-plugin-shell = "2.3.5"
-tauri-plugin-dialog = "2.7.0"
-tauri-plugin-clipboard-manager = "2.3.2"
+tauri-plugin-os = { version = "2.3.2", optional = true }
+tauri-plugin-shell = { version = "2.3.5", optional = true }
+tauri-plugin-dialog = { version = "2.7.0", optional = true }
+tauri-plugin-clipboard-manager = { version = "2.3.2", optional = true }
 # W3C WebDriver server for agent-driven inspection (optional, see AGENTS.md).
 # Optional rather than behind `[target.'cfg(debug_assertions)'.dependencies]`:
 # Cargo does not honour `debug_assertions` there, it only warns, so the plugin
 # used to be compiled into release builds as well.
 tauri-plugin-webdriver = { version = "0.2", optional = true }
-tauri-plugin-single-instance = "2.4.5"
+tauri-plugin-single-instance = { version = "2.4.5", optional = true }
 
 [features]
 # by default Tauri runs in production mode
 # when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
-default = [ "custom-protocol" ]
+default = [ "custom-protocol", "gui" ]
+# `gui` is the shipped application. `cli` builds the same code without Tauri,
+# GTK or WebKit, so the result links statically and runs on a machine with no
+# system libraries -- that is what `singalong-cli` ships as.
+#
+# They are mutually exclusive in practice: the GUI needs a display, the CLI must
+# not link one.
+# `gui` implies `cli`: someone who installed the player should be able to run
+# `sing-along fetch ~/Music` without downloading a second binary. The standalone
+# `singalong-cli` exists for machines that cannot install the player at all.
+gui = ["cli", "dep:tauri", "dep:tauri-build", "dep:tauri-plugin-dialog", "dep:tauri-plugin-shell", "dep:tauri-plugin-global-shortcut", "dep:tauri-plugin-os", "dep:tauri-plugin-clipboard-manager", "dep:tauri-plugin-single-instance", "dep:kira", "dep:symphonia", "dep:rusqlite_migration", "dep:include_dir"]
+# Headless only. Empty on purpose: everything the CLI needs is a plain
+# dependency, so leaving out `gui` is what strips Tauri, GTK, WebKit and the
+# audio stack.
+cli = []
 # this feature is used used for production builds where `devPath` points to the filesystem
 # DO NOT remove this
-custom-protocol = [ "tauri/custom-protocol" ]
+custom-protocol = [ "tauri?/custom-protocol" ]
 # Development-only capabilities. Neither is part of the shipped feature set, so a
 # release build carries no devtools API and no WebDriver server.
-devtools = [ "tauri/devtools" ]
+devtools = [ "tauri?/devtools" ]
 webdriver = [ "dep:tauri-plugin-webdriver" ]
 # `tauri dev` does NOT enable this on its own -- it only passes
 # `--no-default-features` -- so development builds must ask for it explicitly:
 #   npm run tauri:dev          -> --features dev,devtools
 #   npx tauri dev --features dev
 # Without one of those the WebDriver bridge is absent even in a debug build.
-dev = [ "webdriver" ]
+# `tauri dev` passes `--no-default-features`, which drops `gui` (it is in
+# `default`), so the development feature has to pull it back in or the dev build
+# has no window at all.
+dev = [ "webdriver", "gui" ]
 
 [profile.dev.package.kira]
 opt-level = 3
@@ -106,4 +143,4 @@ opt-level = 3
 opt-level = 3
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-tauri-plugin-global-shortcut = "2.3.1"
+tauri-plugin-global-shortcut = { version = "2.3.1", optional = true }
