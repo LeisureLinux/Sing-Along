@@ -82,9 +82,11 @@ only one of them (TTML) is an actual standard:
 | YRC / QRC / KRC       | ✅          | ✅          | NetEase / QQ Music / Kugou (the last two are **encrypted**) |
 | TTML                  | ✅          | ✅          | W3C (started as DFXP in 2003)                               |
 
-So the same library has to be exported twice if you use two players: enhanced
-LRC for players that read the A2 extension (Gramophone, Fluxio), and TTML for
-players whose word highlighting comes only from TTML (Steve on iOS).
+So the same library has to be exported twice if you use two players: enhanced LRC
+for players that read the A2 extension
+([Gramophone](https://github.com/FoedusProgramme/Gramophone), Fluxio), and TTML
+for players whose word highlighting comes only from TTML
+([Steve](https://apps.apple.com/app/id6751122850) on iOS).
 
 Background, with sources, on how these formats came to exist, who owns each one,
 why two of them are encrypted, and why free offline players with word-level
@@ -156,9 +158,10 @@ sing-along formats                           # list export targets
 ```
 
 `man sing-along` documents all of it, including why the format has to match the
-player: Steve on iOS reads word timing only from TTML, Gramophone and Fluxio only
-from enhanced LRC, and sending one to the other shows the timestamps as lyric
-text.
+player: [Steve](https://apps.apple.com/app/id6751122850) on iOS reads word timing
+only from TTML, [Gramophone](https://github.com/FoedusProgramme/Gramophone) and
+Fluxio only from enhanced LRC, and sending one to the other shows the timestamps
+as lyric text.
 
 ## Using it from an AI agent
 

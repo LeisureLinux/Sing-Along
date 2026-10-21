@@ -46,8 +46,8 @@ word-level lyric formats are not portable.
 
 | Player | `--for` | Format | Notes |
 | ------ | ------- | ------ | ----- |
-| Steve (iOS/iPadOS) | `steve` | TTML | Word highlighting only from TTML. Its LRC reader is line-level and does **not** strip tags — sending A2 shows the timestamps as lyric text. |
-| Gramophone (Android) | `gramophone` | Enhanced LRC / A2 | Reads the A2 `<mm:ss.xx>` extension. |
+| [Steve](https://apps.apple.com/app/id6751122850) (iOS/iPadOS) | `steve` | TTML | Word highlighting only from TTML. Its LRC reader is line-level and does **not** strip tags — sending A2 shows the timestamps as lyric text. |
+| [Gramophone](https://github.com/FoedusProgramme/Gramophone) (Android) | `gramophone` | Enhanced LRC / A2 | Reads the A2 `<mm:ss.xx>` extension. |
 | Fluxio (Android) | `fluxio` | Enhanced LRC / A2 | Same as Gramophone. |
 | Any line-level player | `lrc` | plain `.lrc` | No word timing. |
 | Plain text | `txt` | `.txt` | |
