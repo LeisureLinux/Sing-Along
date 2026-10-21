@@ -268,19 +268,21 @@ jobs:
         env:
           RUSTFLAGS: -C target-feature=+crt-static
 
-      # Windows builds here rather than in the step above, because the installer
-      # has to be signed before it reaches the release page. `tauri-action`
-      # builds and publishes in one motion, so it is replaced by the CLI
-      # invocation it wraps.
+      # Windows builds with the CLI rather than `tauri-action` when signing is
+      # configured: that action builds and publishes in one motion, which would
+      # put the unsigned installer on the release page before SignPath could
+      # sign it. Without signing configured there is nothing to wait for, so the
+      # normal path is used — a fork, or this repository before SignPath
+      # approval, still releases.
       - name: build the windows installer (unsigned)
-        if: matrix.platform == 'windows-latest'
+        if: matrix.platform == 'windows-latest' && vars.SIGNPATH_ENABLED == 'true'
         run: npx tauri build --bundles nsis
         env:
           # Signing happens in the `sign-windows` job; this must not try.
           TAURI_SIGNING_PRIVATE_KEY: ''
 
       - name: upload windows artifacts for signing
-        if: matrix.platform == 'windows-latest'
+        if: matrix.platform == 'windows-latest' && vars.SIGNPATH_ENABLED == 'true'
         id: upload-unsigned
         uses: actions/upload-artifact@v4
         with:
@@ -297,7 +299,7 @@ jobs:
           path: src-tauri/singalong-cli-windows-amd64.exe
 
       - uses: tauri-apps/tauri-action@v1
-        if: ${{ !matrix.cli_only && matrix.platform != 'windows-latest' }}
+        if: ${{ !matrix.cli_only && (matrix.platform != 'windows-latest' || vars.SIGNPATH_ENABLED != 'true') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
