@@ -64,9 +64,10 @@ fn main() {
         if let Some(code) = cli::run_blocking(&args) {
             std::process::exit(code);
         }
-        // No subcommand and no window: say so rather than exiting silently,
-        // which looks like the binary is broken.
-        eprintln!("This build has no window. Run `singalong-cli --help`.");
+        // No subcommand and no window to open: print the usage rather than
+        // explaining that a window is missing, which is noise to someone who
+        // downloaded a command-line tool on purpose.
+        cli::print_usage();
         std::process::exit(2);
     }
 

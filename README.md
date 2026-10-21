@@ -32,8 +32,6 @@ files or embeds them in the tags. It began as a fork of
 
 ## Demo
 
-Lyrics scrolling in time with the playing track, then the library list behind it:
-
 ![Sing-Along demo](demo/sing-along-demo.webp)
 
 ## What it does
@@ -210,9 +208,9 @@ cp /usr/share/sing-along/skills/sing-along/SKILL.md ~/.claude/skills/sing-along/
 
 Typical requests it covers:
 
-- "帮我把这个目录下的音乐文件的歌词补充完整"
-- "把这些歌词导出成 Steve 能用的格式"
-- "检查一下这个文件夹缺哪些歌词"
+- "Fill in the lyrics for the music files in this folder"
+- "Export these lyrics in a format Steve can read"
+- "Check what lyrics this folder is missing"
 
 ### Instructions to paste into an agent
 

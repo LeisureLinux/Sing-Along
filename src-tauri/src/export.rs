@@ -173,7 +173,7 @@ fn export_lrc(
             return Ok(ExportResult {
                 format: ExportFormat::Lrc,
                 path: None,
-                status: ExportStatus::Skipped("no synced lyrics available".to_string()),
+                status: ExportStatus::Skipped("no timed lyrics to export".to_string()),
             });
         }
     };
@@ -226,7 +226,7 @@ fn export_word_synced(
             return Ok(ExportResult {
                 format,
                 path: None,
-                status: ExportStatus::Skipped("no synced lyrics available".to_string()),
+                status: ExportStatus::Skipped("no timed lyrics to export".to_string()),
             })
         }
     };

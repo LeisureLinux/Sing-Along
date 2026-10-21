@@ -10,16 +10,16 @@
     <name>Albert Xu</name>
   </developer>
   <update_contact>albertxu_AT_freelamp.com</update_contact>
-  <summary>Find and edit synced lyrics</summary>
+  <summary>Lyric sync for your offline music library</summary>
   <description>
-    <p>Find and edit synced lyrics for your offline music library.</p>
-    <p>Sing-Along scans the music folders you choose, looks up matching synced lyrics, and saves them alongside your audio files.</p>
+    <p>Fetch, edit, convert and export lyrics for your offline music library.</p>
+    <p>Sing-Along scans the music folders you choose, looks up matching lyrics, and saves them alongside your audio files.</p>
     <p>Lyrics are provided by the LRCLIB service. Sing-Along is an independent project and is not an official LRCLIB client.</p>
   </description>
   <screenshots>
     <screenshot type="default">
       <image>https://github.com/albertxu/sing-along/raw/main/screenshots/01.png</image>
-      <caption>Music playing with synced lyrics</caption>
+      <caption>Music playing with lyrics following along</caption>
     </screenshot>
     <screenshot>
       <image>https://github.com/albertxu/sing-along/raw/main/screenshots/02.png</image>

@@ -862,9 +862,9 @@ async fn download_lyrics(
     let message = if resolved.is_instrumental {
         "Marked track as instrumental"
     } else if !resolved.synced_lyrics.is_empty() {
-        "Synced lyrics downloaded"
+        "Lyrics synced"
     } else if !resolved.plain_lyrics.is_empty() {
-        "Plain lyrics downloaded"
+        "Plain lyrics saved"
     } else {
         return Err(LRCLIB_TRACK_NOT_FOUND.to_owned());
     };
@@ -1038,9 +1038,9 @@ async fn apply_lyrics(
     if resolved.is_instrumental {
         Ok("Marked track as instrumental".to_owned())
     } else if !resolved.synced_lyrics.is_empty() {
-        Ok("Synced lyrics downloaded".to_owned())
+        Ok("Lyrics synced".to_owned())
     } else if !resolved.plain_lyrics.is_empty() {
-        Ok("Plain lyrics downloaded".to_owned())
+        Ok("Plain lyrics saved".to_owned())
     } else {
         Err(LRCLIB_TRACK_NOT_FOUND.to_owned())
     }
@@ -2647,13 +2647,13 @@ mod auto_export_tests {
         );
         assert!(result[0].path.is_none());
         let result = download_export_message(
-            "Plain lyrics downloaded",
+            "Plain lyrics saved",
             &track,
             &content,
             &[Embedded],
             || true,
         );
-        assert!(result.starts_with("Plain lyrics downloaded; Embedded export skipped: unsupported"));
+        assert!(result.starts_with("Plain lyrics saved; Embedded export skipped: unsupported"));
         assert_eq!(std::fs::read(&path).unwrap(), bytes);
 
         // Check the current gate for each operation, even within one batch snapshot.
@@ -2669,13 +2669,13 @@ mod auto_export_tests {
         assert!(matches!(result[1].status, ExportStatus::Skipped(_)));
         let before = std::fs::read(&track.file_path).unwrap();
         let result = download_export_message(
-            "Plain lyrics downloaded",
+            "Plain lyrics saved",
             &track,
             &content,
             &[Embedded],
             || false,
         );
-        assert!(result.starts_with("Plain lyrics downloaded; Embedded export skipped: experimental"));
+        assert!(result.starts_with("Plain lyrics saved; Embedded export skipped: experimental"));
         assert_eq!(std::fs::read(&track.file_path).unwrap(), before);
         std::fs::remove_dir_all(directory).unwrap();
     }
@@ -2752,10 +2752,10 @@ mod auto_export_tests {
         let formats = [crate::export::ExportFormat::Txt, crate::export::ExportFormat::Lrc];
         std::fs::write(directory.join("song.lrc"), "old lyrics").unwrap();
         let result =
-            download_export_message("Synced lyrics downloaded", &track, &content, &formats, || true);
+            download_export_message("Lyrics synced", &track, &content, &formats, || true);
         assert_eq!(
             result,
-            "Synced lyrics downloaded; TXT export completed; LRC export completed"
+            "Lyrics synced; TXT export completed; LRC export completed"
         );
         assert!(!directory.join("song.txt").exists());
         assert!(std::fs::read_to_string(directory.join("song.lrc"))
@@ -2768,15 +2768,15 @@ mod auto_export_tests {
             None,
         )
         .unwrap();
-        let result = download_export_message("Plain lyrics downloaded", &track, &plain, &formats, || true);
-        assert_eq!(result, "Plain lyrics downloaded; TXT export completed; LRC export skipped: no synced lyrics available");
+        let result = download_export_message("Plain lyrics saved", &track, &plain, &formats, || true);
+        assert_eq!(result, "Plain lyrics saved; TXT export completed; LRC export skipped: no timed lyrics to export");
         assert!(directory.join("song.txt").exists());
         // A directory at the LRC target deterministically fails writing, even when tests run as root.
         std::fs::create_dir(directory.join("song.lrc")).unwrap();
         let result =
-            download_export_message("Synced lyrics downloaded", &track, &content, &formats, || true);
+            download_export_message("Lyrics synced", &track, &content, &formats, || true);
         assert!(result
-            .starts_with("Synced lyrics downloaded; TXT export completed; LRC export failed:"));
+            .starts_with("Lyrics synced; TXT export completed; LRC export failed:"));
         assert!(!directory.join("song.txt").exists()); // Existing destructive semantics are retained.
         let result = download_export_message("Lyrics downloaded", &track, "[invalid", &formats, || true);
         assert!(result.starts_with("Lyrics downloaded; export failed:"));

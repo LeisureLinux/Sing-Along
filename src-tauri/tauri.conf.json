@@ -59,7 +59,7 @@
       "signingIdentity": "-"
     },
     "resources": [],
-    "shortDescription": "Utility for mass-downloading LRC synced lyrics for your offline music library.",
+    "shortDescription": "Lyric sync for your offline music library: fetch, edit, convert and export.",
     "targets": [
       "deb",
       "rpm",

@@ -20,7 +20,7 @@ use crate::persistent_entities::PersistentTrack;
 use crate::scanner::metadata::TrackMetadata;
 
 const USAGE: &str = "\
-sing-along — synced lyrics for your own music files
+sing-along — lyric sync for your offline musics
 
 USAGE:
     sing-along                       Open the player
@@ -489,7 +489,7 @@ fn status(args: &[String]) -> Result<()> {
         }
     }
 
-    println!("\n{synced} with synced lyrics, {plain} plain only, {none} without");
+    println!("\n{synced} synced, {plain} plain only, {none} without lyrics");
     Ok(())
 }
 
