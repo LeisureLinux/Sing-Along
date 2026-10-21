@@ -26,6 +26,8 @@ jobs:
   # the first class in under a second.
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: check the workflow file
@@ -64,8 +66,6 @@ jobs:
     needs: prepare-release
     permissions:
       contents: write
-    outputs:
-      windows-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
     strategy:
       fail-fast: false
       matrix:
@@ -406,11 +406,20 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/download-artifact@v4
-        id: download
-        with:
-          name: windows-unsigned
-          path: unsigned
+      # The artifact id is looked up by name rather than taken from the build
+      # job's outputs: `build` is a matrix, and a matrix job's outputs are the
+      # values of whichever leg finished last — for the non-Windows legs the
+      # upload step is skipped, so the output would be empty.
+      - name: find the artifact
+        id: find
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          id=$(gh api "repos/${{ github.repository }}/actions/artifacts?name=windows-unsigned" \
+                 --jq '.artifacts[0].id')
+          test -n "$id"
+          echo "artifact-id=$id" >> "$GITHUB_OUTPUT"
 
       - name: sign the installer and CLI
         uses: signpath/github-action-submit-signing-request@v2
@@ -422,7 +431,7 @@ jobs:
           artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
           # The id of the uploaded artifact, not a path: SignPath fetches the file
           # from GitHub itself, so what it signs is byte-for-byte what was built.
-          github-artifact-id: ${{ needs.build.outputs.windows-artifact-id }}
+          github-artifact-id: ${{ steps.find.outputs.artifact-id }}
           wait-for-completion: true
           output-artifact-directory: signed
 
@@ -437,7 +446,7 @@ jobs:
   # build job, and rebuilding that flow would be a change with no benefit. The
   # point is that the installer reaching the release page has already been signed.
   publish-windows:
-    needs: [prepare-release, sign-windows]
+    needs: sign-windows
     if: always() && github.ref_type == 'tag' && vars.SIGNPATH_ENABLED == 'true'
     runs-on: ubuntu-latest
     permissions:
