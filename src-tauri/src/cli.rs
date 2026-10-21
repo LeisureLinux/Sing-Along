@@ -647,28 +647,42 @@ fn package_owns(path: &Path) -> bool {
     false
 }
 
+/// Whether the directory holding `path` can be written to, which is what
+/// replacing a file requires — the file itself may be read-only while the
+/// directory allows a rename over it.
+///
+/// Unix uses `access(2)` rather than mode bits: the bits alone cannot answer for
+/// group ownership, supplementary groups or ACLs, and guessing wrong either
+/// refuses a write the user could make or attempts one they cannot. Windows has
+/// no equivalent call, so it asks the filesystem by trying to create a file.
+#[cfg(unix)]
+fn can_write_beside(path: &Path) -> Option<bool> {
+    let dir = path.parent()?;
+    let dir_c = std::ffi::CString::new(dir.as_os_str().as_encoded_bytes()).ok()?;
+    // W_OK = 2
+    Some(unsafe { libc_access(dir_c.as_ptr(), 2) == 0 })
+}
+
+#[cfg(not(unix))]
+fn can_write_beside(path: &Path) -> Option<bool> {
+    let dir = path.parent()?;
+    let probe = dir.join(".sing-along-write-probe");
+    match std::fs::File::create(&probe) {
+        Ok(_) => {
+            let _ = std::fs::remove_file(&probe);
+            Some(true)
+        }
+        Err(_) => Some(false),
+    }
+}
+
 /// `access(2)` without pulling in the `libc` crate for one call.
+#[cfg(unix)]
 unsafe fn libc_access(path: *const std::ffi::c_char, mode: i32) -> i32 {
     extern "C" {
         fn access(path: *const std::ffi::c_char, mode: i32) -> i32;
     }
     access(path, mode)
-}
-
-/// Whether the directory holding `path` can be written to, which is what
-/// replacing a file requires — the file itself may be read-only while the
-/// directory allows a rename over it.
-///
-/// Uses `access(2)` rather than reading mode bits: the bits alone do not answer
-/// the question for group ownership, supplementary groups or ACLs, and getting
-/// that wrong would either refuse a write the user could make or attempt one they
-/// cannot.
-fn can_write_beside(path: &Path) -> Option<bool> {
-    let dir = path.parent()?;
-    let dir_c = std::ffi::CString::new(dir.as_os_str().as_encoded_bytes()).ok()?;
-    // W_OK = 2
-    let writable = unsafe { libc_access(dir_c.as_ptr(), 2) == 0 };
-    Some(writable)
 }
 
 /// Download `url` and replace `target` atomically.
@@ -697,6 +711,8 @@ async fn replace_binary(client: &reqwest::Client, url: &str, target: &Path) -> R
     ));
 
     std::fs::write(&temp, &bytes).with_context(|| format!("writing {}", temp.display()))?;
+    // Executable bit is a Unix concept; on Windows the file is runnable as-is.
+    #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         std::fs::set_permissions(&temp, std::fs::Permissions::from_mode(0o755))?;
@@ -971,6 +987,7 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_read_only_directory_is_detected() {
         use std::os::unix::fs::PermissionsExt;

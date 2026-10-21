@@ -37,17 +37,36 @@ under a second, and none of it is visible from `cargo test`.
 in a default-shell step) pass locally and fail in CI.
 
 ```bash
-# one-time setup if shellcheck is missing
-curl -sL -o /tmp/sc.tar.xz \
-  https://github.com/koalaman/shellcheck/releases/download/v0.10.0/shellcheck-v0.10.0.linux.x86_64.tar.xz
-tar xf /tmp/sc.tar.xz -C /tmp && install -m755 /tmp/shellcheck-v0.10.0/shellcheck ~/.local/bin/
+# one-time setup
+sudo apt install shellcheck   # Debian/Ubuntu package name; also on Homebrew
 
 # before every tag
-PATH="$HOME/.local/bin:$PATH" actionlint .github/workflows/publish.yml
+actionlint .github/workflows/publish.yml
+```
+
+If `actionlint` itself is missing:
+
+```bash
+curl -sL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash | bash
 ```
 
 The workflow itself also has a `lint` job as the first step, so CI catches it —
 but that costs a full run to learn something a local second would have told you.
+
+## Check the CLI builds on Windows too
+
+`cli.rs` is compiled for every platform, and Unix-only APIs (`std::os::unix`,
+`Permissions::from_mode`, `access(2)`) exist only on Unix. A `cargo test` on Linux
+will not notice. Before pushing:
+
+```bash
+cd src-tauri
+cargo check --no-default-features --features cli
+cargo check --no-default-features --features cli --target x86_64-pc-windows-gnu
+```
+
+`x86_64-pc-windows-gnu` is enough to catch a missing `#[cfg(unix)]`; it does not
+need the MSVC toolchain or a Windows machine.
 
 ## Releasing: never without explicit approval
 

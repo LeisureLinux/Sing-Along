@@ -169,7 +169,13 @@ jobs:
       - name: check the cli-only build compiles
         if: ${{ !matrix.cli_only }}
         working-directory: src-tauri
-        run: cargo check --no-default-features --features cli
+        run: |
+          cargo check --no-default-features --features cli
+          # `cli.rs` is shared with Windows, and Unix-only APIs there compile
+          # fine on Linux while breaking the Windows job. Checking the Windows
+          # target here (no MSVC toolchain needed) catches that in seconds.
+          rustup target add x86_64-pc-windows-gnu
+          cargo check --no-default-features --features cli --target x86_64-pc-windows-gnu
 
       # Pinned to v1 rather than the v0 floating tag: `releaseAssetNamePattern`
       # does not exist in v0's action.yml, and an unknown input is ignored with
