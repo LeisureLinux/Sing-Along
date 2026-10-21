@@ -25,6 +25,30 @@ cd src-tauri && cargo test                      # expect all passing
 backend tests, and both suites are fast enough (< 3 s combined) that skipping
 them costs more in follow-up fixes than running them.
 
+## Lint the workflow before pushing a tag
+
+`actionlint` catches the whole class of mistake that has broken the last several
+releases in this repo — duplicated YAML keys, PowerShell syntax in a bash step,
+references to steps or outputs that do not exist. All of it is visible locally in
+under a second, and none of it is visible from `cargo test`.
+
+`actionlint` also runs `shellcheck` on every `run:` block, but only if
+`shellcheck` is on PATH. Without it, shell-level errors (a stray backtick, `copy`
+in a default-shell step) pass locally and fail in CI.
+
+```bash
+# one-time setup if shellcheck is missing
+curl -sL -o /tmp/sc.tar.xz \
+  https://github.com/koalaman/shellcheck/releases/download/v0.10.0/shellcheck-v0.10.0.linux.x86_64.tar.xz
+tar xf /tmp/sc.tar.xz -C /tmp && install -m755 /tmp/shellcheck-v0.10.0/shellcheck ~/.local/bin/
+
+# before every tag
+PATH="$HOME/.local/bin:$PATH" actionlint .github/workflows/publish.yml
+```
+
+The workflow itself also has a `lint` job as the first step, so CI catches it —
+but that costs a full run to learn something a local second would have told you.
+
 ## Releasing: never without explicit approval
 
 **Do not tag, push a version tag, or trigger the release workflow unless the user

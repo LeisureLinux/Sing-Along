@@ -252,10 +252,16 @@ jobs:
       # as self-contained as a Windows binary gets.
       - name: build cli (windows)
         if: matrix.platform == 'windows-latest'
+        # `shell: bash` rather than PowerShell: `copy` and backtick line
+        # continuations are PowerShell only, and a workflow that mixes them with
+        # bash conventions in every other step cannot be linted. Git for Windows
+        # provides bash on the runner.
+        shell: bash
         run: |
-          cargo build --release --no-default-features --features cli `
+          cargo build --release --no-default-features --features cli \
             --target x86_64-pc-windows-msvc --bin singalong-cli
-          copy target\x86_64-pc-windows-msvc\release\singalong-cli.exe singalong-cli-windows-amd64.exe
+          cp target/x86_64-pc-windows-msvc/release/singalong-cli.exe \
+            singalong-cli-windows-amd64.exe
         working-directory: src-tauri
         env:
           RUSTFLAGS: -C target-feature=+crt-static
@@ -374,7 +380,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ls -l dist
-          # The release is created by `tauri-action` inside a GUI job. If every
+          # The release is created by tauri-action inside a GUI job. If every
           # GUI job failed while the CLI builds succeeded, there is nothing to
           # attach to yet — create it here rather than failing on a missing tag.
           if ! gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
