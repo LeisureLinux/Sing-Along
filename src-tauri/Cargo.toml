@@ -1,6 +1,6 @@
 [package]
 name = "sing-along"
-version = "2.9.12"
+version = "2.9.13"
 description = "Sing-Along: download and edit synced lyrics for your offline music library."
 authors = ["Albert Xu"]
 license = "MIT"
