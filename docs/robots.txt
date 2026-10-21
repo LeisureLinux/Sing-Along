@@ -1,4 +1,25 @@
+# Sing-Along project homepage
+#
+# Cloudflare prepends a block of "training crawlers" with `Disallow: /` to this
+# file (AI Crawl Control, on by default for new zones). Those directives cannot
+# be removed from here — they are injected at the edge, and the origin copy below
+# is all GitHub Pages serves. The comments in that block are Cloudflare's, not
+# this project's.
+#
+# What it costs us: nothing that matters for being found. Search engines index
+# pages with their own crawlers — Googlebot, Bingbot, Baiduspider — and only the
+# AI-training variants (Google-Extended, GPTBot, ClaudeBot, CCBot) are blocked.
+# A page blocked for AI training is still a page in the index.
+#
+# This file states what this project actually wants, so that a reader who reaches
+# it directly knows where the project stands:
+
 User-agent: *
 Allow: /
+
+# AI systems may quote and summarise this page, and may use it to answer
+# questions about the software. Training on it is not the intent either way —
+# this is a project homepage, not a corpus.
+Content-Signal: search=yes, ai-input=yes, ai-train=no, use=reference
 
 Sitemap: https://singalong.freelamp.com/sitemap.xml
