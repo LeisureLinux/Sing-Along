@@ -404,6 +404,9 @@ jobs:
     if: github.ref_type == 'tag' && vars.SIGNPATH_ENABLED == 'true'
     runs-on: ubuntu-latest
     permissions:
+      # `actions: read` for the artifact lookup — listing artifacts is the
+      # Actions API, not the contents API.
+      actions: read
       contents: read
     steps:
       # The artifact id is looked up by name rather than taken from the build
