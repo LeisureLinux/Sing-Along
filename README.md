@@ -1,11 +1,19 @@
 # Sing-Along
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/LeisureLinux/Sing-Along?style=flat-square&label=release)](https://github.com/LeisureLinux/Sing-Along/releases/latest)
+[![Rust](https://img.shields.io/badge/Rust-000000?style=flat-square&logo=rust&logoColor=white)](https://www.rust-lang.org)
+[![Tauri](https://img.shields.io/badge/Tauri-24C8D8?style=flat-square&logo=tauri&logoColor=white)](https://tauri.app)
+[![Platforms](https://img.shields.io/badge/Linux_·_Windows_·_macOS-333333?style=flat-square)](#install)
+[![Languages](https://img.shields.io/badge/i18n-17_languages-3fb950?style=flat-square)](#what-it-does)
+
 Sing-Along is a free, open-source desktop music player with synced lyrics for
 music you already own. It plays your local files, downloads matching lyrics,
 lets you fix the timing, and exports those lyrics in the formats your phone and
 car actually understand.
 
-It is built with Tauri v2 (Rust + Vue 3), runs on Linux, and is licensed MIT.
+It is built with Tauri v2 (Rust + Vue 3), runs on Linux, Windows and macOS, and is
+licensed MIT. [`llms.txt`](llms.txt) summarises the project for AI agents.
 
 - **What it does:** batch-downloads synced lyrics, edits line- and word-level
   timing, converts between Simplified and Traditional Chinese, exports to LRC,

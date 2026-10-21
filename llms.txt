@@ -1,0 +1,72 @@
+# Sing-Along
+
+> A free, open-source desktop music player with synced lyrics for music you
+> already own. It plays local files, downloads matching lyrics from LRCLIB,
+> edits timing line-by-line or word-by-word, converts Simplified/Traditional
+> Chinese, and exports to LRC, enhanced LRC (A2) and TTML.
+
+Sing-Along is built with Tauri v2 (Rust backend, Vue 3 frontend) and runs on
+Linux, Windows and macOS. MIT licensed. It began as a fork of LRCGET and no
+longer tracks upstream.
+
+## What an agent needs
+
+A statically linked command-line build is published with every release and needs
+no GTK, WebKit or ALSA installed:
+
+| Platform | File |
+| -------- | ---- |
+| Linux x86_64 | `singalong-cli-linux-amd64` |
+| macOS Apple Silicon | `singalong-cli-macos-arm64` |
+| Windows x86_64 | `singalong-cli-windows-amd64.exe` |
+
+Download from <https://github.com/LeisureLinux/Sing-Along/releases/latest>, then:
+
+```
+chmod +x singalong-cli-linux-amd64
+./singalong-cli-linux-amd64 --version
+```
+
+Do not download the `.deb`, `.rpm`, `.AppImage`, `.dmg` or `.exe` to get a
+command line: those are the desktop player and need a webview installed. Extracting
+the binary out of one is a trap — it runs only where WebKitGTK happens to exist,
+which is usually the machine it was tested on.
+
+## Documentation
+
+- [README](https://github.com/LeisureLinux/Sing-Along/blob/main/README.md): what
+  it does, how it compares to other players, install instructions
+- [Agent skill](https://github.com/LeisureLinux/Sing-Along/blob/main/skills/sing-along/SKILL.md):
+  the full workflow — which questions to settle first, the player-to-format
+  table, how to verify a converted file, and the rules that matter
+- [CLI manual](https://github.com/LeisureLinux/Sing-Along/blob/main/packaging/linux/sing-along.1):
+  every command and option, as a man page
+- [Frontend architecture](https://github.com/LeisureLinux/Sing-Along/blob/main/src/ARCHITECTURE.md)
+- [Backend architecture](https://github.com/LeisureLinux/Sing-Along/blob/main/src-tauri/ARCHITECTURE.md)
+
+## Commands
+
+```
+singalong-cli status <path>                 what lyrics a folder is missing
+singalong-cli fetch  <path>                 download the missing ones
+singalong-cli export <path> --for <player>  write them in a player's format
+singalong-cli formats                       list valid player names
+```
+
+The `--for` value is not interchangeable — word-level lyric formats differ per
+player. Steve on iOS reads word timing only from TTML; Gramophone and Fluxio
+(Android) only from enhanced LRC. Sending one to the other shows the timestamps
+as lyric text.
+
+## Two rules that matter most
+
+1. **Never translate or rewrite lyric text.** It is someone else's work. The only
+   permitted transformation is Chinese script conversion, and only when asked.
+2. **A track with only unsynchronised text cannot be made synced.** LRCLIB may
+   have the song but not a timed version; `fetch` reports this as
+   `no timed lyrics`. Say so plainly rather than retrying.
+
+## Lyrics sources
+
+- [LRCLIB](https://lrclib.net) — primary, open and community-run
+- NetEase — optional fallback, unofficial API, can break
