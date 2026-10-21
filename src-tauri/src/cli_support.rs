@@ -90,3 +90,33 @@ pub fn resolve_lrclib_lyrics_payload(
         crate::lrclib::get::Response::None => Err(LRCLIB_TRACK_NOT_FOUND.to_owned()),
     }
 }
+
+/// Compare dotted versions without pulling in a semver crate.
+///
+/// Only needs to answer "is the release newer than what is running", so a
+/// numeric comparison of the first three components is enough. A pre-release
+/// suffix is ignored: this project does not publish them.
+pub fn is_newer_version(latest: &str, current: &str) -> bool {
+    let parse = |value: &str| -> Vec<u64> {
+        value
+            .split('.')
+            .map(|part| {
+                part.chars()
+                    .take_while(|c| c.is_ascii_digit())
+                    .collect::<String>()
+            })
+            .map(|part| part.parse().unwrap_or(0))
+            .collect()
+    };
+
+    let latest = parse(latest);
+    let current = parse(current);
+    for index in 0..latest.len().max(current.len()) {
+        let a = latest.get(index).copied().unwrap_or(0);
+        let b = current.get(index).copied().unwrap_or(0);
+        if a != b {
+            return a > b;
+        }
+    }
+    false
+}

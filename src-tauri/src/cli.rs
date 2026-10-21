@@ -28,6 +28,7 @@ USAGE:
     sing-along export <path>...      Write lyrics in a player's format
     sing-along status <path>...      Report what lyrics a path already has
     sing-along formats               List supported export targets
+    sing-along update                Check for a newer release
     sing-along --version             Print the version
     sing-along --help                This text
 
@@ -41,7 +42,13 @@ EXPORT OPTIONS:
     --format <a2|lrc|ttml|txt>      Explicit format instead of --for
     --dry-run                       Show what would be written
 
+UPDATE OPTIONS:
+    --check                         Report only; same as running `update` alone
+    --print-url                     Print the download URL and nothing else
+
 EXAMPLES:
+    sing-along update
+    sing-along update --check
     sing-along fetch ~/Music
     sing-along fetch ~/Music --script simplified --overwrite
     sing-along export ~/Music --for gramophone
@@ -118,6 +125,7 @@ pub async fn run(args: &[String]) -> Option<i32> {
         "fetch" => report(fetch(&args[2..]).await),
         "export" => report(export_command(&args[2..])),
         "status" => report(status(&args[2..])),
+        "update" => report(update(&args[2..]).await),
         // An unknown first word is more likely a mistyped command than a wish to
         // open a window, so say so instead of launching the GUI.
         other => {
@@ -460,6 +468,88 @@ fn export_command(args: &[String]) -> Result<()> {
         println!("Run `sing-along fetch <path>` first to download the missing ones.");
     }
     Ok(())
+}
+
+/// `sing-along update [--check] [--print-url]`
+///
+/// Reports whether a newer release exists. It deliberately does not replace its
+/// own binary: a statically linked CLI has no idea where it was installed from —
+/// a package manager, a `curl` into `~/bin`, a container image — and overwriting
+/// a file owned by `dpkg` would leave the system inconsistent. The honest service
+/// is to say what is new and where to get it.
+async fn update(args: &[String]) -> Result<()> {
+    let (_paths, flags) = parse_args(args);
+    let print_url_only = flags.contains_key("print-url");
+
+    let proxy = proxy_for(&flags);
+    let client = crate::http::client_with_agent(&proxy, 15, "sing-along-cli")?;
+
+    let response = client
+        .get("https://api.github.com/repos/LeisureLinux/Sing-Along/releases/latest")
+        .header("accept", "application/vnd.github+json")
+        .send()
+        .await
+        .context("could not reach the GitHub API")?;
+
+    if !response.status().is_success() {
+        bail!("GitHub API returned {}", response.status());
+    }
+
+    let body: serde_json::Value = response.json().await?;
+    let tag = body
+        .get("tag_name")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow!("release has no tag_name"))?;
+    let page = body
+        .get("html_url")
+        .and_then(|v| v.as_str())
+        .unwrap_or("https://github.com/LeisureLinux/Sing-Along/releases/latest");
+    // `assets_url` is the API endpoint; the browser download path is derived from
+    // the tag, which is stable and needs no second request.
+    let download_base = format!(
+        "https://github.com/LeisureLinux/Sing-Along/releases/download/{tag}"
+    );
+
+    let latest = tag.trim_start_matches('v');
+    let current = env!("CARGO_PKG_VERSION");
+
+    if print_url_only {
+        println!("{page}");
+        return Ok(());
+    }
+
+    if !crate::cli_support::is_newer_version(latest, current) {
+        println!("sing-along {current} is the latest release.");
+        return Ok(());
+    }
+
+    println!("A newer release is available: {latest} (you have {current})");
+    println!();
+
+    // The asset name carries the platform, so point at the exact file rather
+    // than the release page: a script following this does not have to guess.
+    let asset = match std::env::consts::OS {
+        "linux" => Some(format!("singalong-cli-linux-{}", arch_name())),
+        "macos" => Some("singalong-cli-macos-arm64".to_owned()),
+        "windows" => Some("singalong-cli-windows-amd64.exe".to_owned()),
+        _ => None,
+    };
+
+    if let Some(asset) = asset {
+        println!("  curl -LO {download_base}/{asset}");
+        println!();
+    }
+    println!("Release page: {page}");
+    Ok(())
+}
+
+/// `amd64` / `arm64`, matching the names used on the release page.
+fn arch_name() -> &'static str {
+    match std::env::consts::ARCH {
+        "x86_64" => "amd64",
+        "aarch64" => "arm64",
+        other => other,
+    }
 }
 
 /// `sing-along status <path>...`

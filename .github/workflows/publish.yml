@@ -11,7 +11,43 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Created once, before any build starts.
+  #
+  # `tauri-action` creates the release if it is missing, and every matrix job
+  # checks independently — so two of them can both find it absent and race to
+  # create it. The loser fails with `already_exists`, taking its assets with it
+  # (v2.9.11 lost the macOS dmg that way). Creating it up front makes the
+  # question moot: each job finds it and only uploads.
+  prepare-release:
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: create the release if it does not exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "release ${{ github.ref_name }} already exists"
+            exit 0
+          fi
+          printf '%s\n' \
+            "The installers and the standalone command line are below." \
+            "" \
+            "For an AI agent or a script, download one of the singalong-cli-* files." \
+            "" \
+            "Changelog: https://github.com/LeisureLinux/Sing-Along/commits/main" \
+            > notes.md
+          gh release create "${{ github.ref_name }}" \
+            --repo "${{ github.repository }}" \
+            --title "sing-along ${{ github.ref_name }}" \
+            --notes-file notes.md
+
   build:
+    needs: prepare-release
+    permissions:
+      contents: write
     permissions:
       contents: write
     strategy:

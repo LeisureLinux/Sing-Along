@@ -14,7 +14,8 @@ use crate::playlist::{PlaybackDecision, RepeatMode};
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use crate::cli_support::{
-    resolve_lrclib_lyrics_payload, ResolvedLyricsPayload, LRCLIB_TRACK_NOT_FOUND,
+    is_newer_version, resolve_lrclib_lyrics_payload, ResolvedLyricsPayload,
+    LRCLIB_TRACK_NOT_FOUND,
 };
 use crate::state::{AppState, Notify, NotifyType, ServiceAccess};
 use tauri::{AppHandle, Emitter, Manager, State};
@@ -622,36 +623,6 @@ async fn mark_version_announced(
             .map(|_| ())
         })
         .map_err(|err| err.to_string())
-}
-
-/// Compare dotted versions without pulling in a semver crate.
-///
-/// Only needs to answer "is the release newer than what is running", so a
-/// numeric comparison of the first three components is enough. A pre-release
-/// suffix is ignored: this project does not publish them.
-fn is_newer_version(latest: &str, current: &str) -> bool {
-    let parse = |value: &str| -> Vec<u64> {
-        value
-            .split('.')
-            .map(|part| {
-                part.chars()
-                    .take_while(|c| c.is_ascii_digit())
-                    .collect::<String>()
-            })
-            .map(|part| part.parse().unwrap_or(0))
-            .collect()
-    };
-
-    let latest = parse(latest);
-    let current = parse(current);
-    for index in 0..latest.len().max(current.len()) {
-        let a = latest.get(index).copied().unwrap_or(0);
-        let b = current.get(index).copied().unwrap_or(0);
-        if a != b {
-            return a > b;
-        }
-    }
-    false
 }
 
 /// Absolute path of an album's cached cover, or `None` when it has none.
@@ -2561,7 +2532,7 @@ mod tray_toggle_tests {
 
 #[cfg(test)]
 mod version_tests {
-    use super::is_newer_version;
+    use crate::cli_support::is_newer_version;
 
     #[test]
     fn a_later_version_is_newer() {
