@@ -40,6 +40,7 @@ import WindowClose from '~icons/mdi/window-close'
 import ChooseDirectory from './components/ChooseDirectory.vue'
 import Library from './components/Library.vue'
 import { ref, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { invoke } from '@tauri-apps/api/core'
@@ -101,6 +102,8 @@ const onScanComplete = () => {
   shouldScan.value = false
 }
 
+const { t } = useI18n()
+
 onMounted(async () => {
   init.value = await invoke('get_init')
   loading.value = false
@@ -109,7 +112,28 @@ onMounted(async () => {
   downloadNext()
   exportNext()
   await startNotifications()
+  checkForUpdates()
 })
+
+// A single startup check, off by default in the sense that the user can turn it
+// off in About. Silent when there is nothing to say: an app that reports "you
+// are up to date" on every launch is noise, and one that reports a network
+// failure on boot is worse.
+const checkForUpdates = async () => {
+  try {
+    const update = await invoke('check_update_on_startup')
+    if (!update) return
+
+    toast(
+      `${t('about.updateAvailableVersion', { version: update.version })} ${update.url}`,
+      { type: 'info', timeout: 12000 }
+    )
+    // Recorded so the same release is not announced again on the next launch.
+    await invoke('mark_version_announced', { version: update.version })
+  } catch (error) {
+    console.info('Startup update check skipped:', error)
+  }
+}
 
 const loadGlobalState = async () => {
   const config = await invoke('get_config')

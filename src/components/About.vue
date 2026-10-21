@@ -5,35 +5,49 @@
         <label class="group-label mb-2">{{ $t('about.update') }}</label>
 
         <div class="text-sm">
-          <div class="mb-1">
+          <div class="mb-2">
             {{ $t('about.currentVersion') }}: <span class="font-bold">{{ version }}</span>
           </div>
-          <template v-if="!isCheckingForUpdate && newestVersion">
-            <div class="mb-1">
-              {{ $t('about.newestVersion') }}: <span class="font-bold">{{ newestVersion }}</span>
-            </div>
-            <div
-              v-if="isUpdateAvailable"
-              class="font-bold text-yellow-600 flex flex-wrap gap-1 items-center"
+
+          <!-- Nothing is fetched until the dialog is opened and the user either
+               has the setting on or presses the button. Opening About must not
+               by itself make a network call. -->
+          <div class="flex flex-wrap items-center gap-2 mb-2">
+            <button
+              class="button button-normal px-3 py-1 text-xs rounded-full inline-flex items-center gap-1"
+              :disabled="isCheckingForUpdate"
+              @click="checkNow"
             >
+              <Loading v-if="isCheckingForUpdate" class="animate-spin text-sm" />
+              <Refresh v-else class="text-sm" />
+              {{ isCheckingForUpdate ? $t('about.checking') : $t('about.checkNow') }}
+            </button>
+
+            <label class="flex items-center gap-1 cursor-pointer select-none">
+              <CheckboxButton
+                id="update-check-on-startup"
+                :model-value="updateCheckEnabled"
+                name="update-check-on-startup"
+                @update:model-value="setUpdateCheckEnabled"
+              />
+              <span class="text-xs">{{ $t('about.checkOnStartup') }}</span>
+            </label>
+          </div>
+
+          <template v-if="!isCheckingForUpdate && checked">
+            <div v-if="isUpdateAvailable" class="font-bold text-yellow-600 flex flex-wrap gap-1 items-center">
               <Alert class="text-lg" />
-              {{ $t('about.updateAvailable') }}
-              <span
-                ><a :href="newestReleaseUrl" class="link" target="_blank" @click="downloadUpdate">{{
-                  $t('about.releasePage')
-                }}</a
-                >!</span
-              >
+              <span>{{ $t('about.updateAvailableVersion', { version: newestVersion }) }}</span>
+              <a :href="newestReleaseUrl" class="link" target="_blank" @click="downloadUpdate">{{
+                $t('about.releasePage')
+              }}</a>
             </div>
-            <div v-else class="font-bold text-green-600 flex flex-wrap gap-1 items-center">
+            <div v-else-if="newestVersion" class="font-bold text-green-600 flex flex-wrap gap-1 items-center">
               <CheckCircle class="text-lg" />
               {{ $t('about.upToDate') }}
             </div>
+            <div v-else>{{ $t('about.updateFailed') }}</div>
           </template>
-          <div v-else-if="!isCheckingForUpdate && !newestVersion">
-            {{ $t('about.updateFailed') }}
-          </div>
-          <div v-else>{{ $t('about.checking') }}</div>
         </div>
       </div>
 
@@ -133,6 +147,10 @@ sing-along status ~/Music</pre>
 <script setup>
 import Alert from '~icons/mdi/alert'
 import CheckCircle from '~icons/mdi/check-circle'
+import Loading from '~icons/mdi/loading'
+import Refresh from '~icons/mdi/refresh'
+import CheckboxButton from '@/components/common/CheckboxButton.vue'
+import { invoke } from '@tauri-apps/api/core'
 import { ref, computed } from 'vue'
 import { getVersion } from '@tauri-apps/api/app'
 import semver from 'semver'
@@ -150,7 +168,10 @@ const isUpdateAvailable = computed(() => {
   }
   return semver.gt(newestVersion.value, version.value)
 })
-const isCheckingForUpdate = ref(true)
+// Starts false: nothing is being checked until the user presses the button.
+// Defaulting to true made the dialog render the "checking" state on open, which
+// read as an automatic fetch that the user had not asked for.
+const isCheckingForUpdate = ref(false)
 
 async function getLatestReleaseInfo() {
   const repo = 'LeisureLinux/Sing-Along'
@@ -167,17 +188,60 @@ async function getLatestReleaseInfo() {
   }
 }
 
-const openedHandler = async () => {
-  version.value = await getVersion()
+// Whether the user has asked for a check in this session. Distinguishes "not
+// checked yet" from "checked and found nothing".
+const checked = ref(false)
+const updateCheckEnabled = ref(true)
+
+const runCheck = async () => {
   isCheckingForUpdate.value = true
+  newestVersion.value = null
   try {
-    const latestReleaseInfo = await getLatestReleaseInfo()
-    newestVersion.value = latestReleaseInfo.version
-    newestReleaseUrl.value = latestReleaseInfo.releaseUrl
+    const latest = await getLatestReleaseInfo()
+    newestVersion.value = latest.version
+    newestReleaseUrl.value = latest.releaseUrl
   } catch (error) {
-    console.error(error)
+    // A failed check is normal (offline, rate-limited) and already shows as
+    // "could not check" — logging it as an error would suggest a bug.
+    console.info('Update check failed:', error)
+    newestVersion.value = null
   } finally {
     isCheckingForUpdate.value = false
+    checked.value = true
+  }
+}
+
+const checkNow = () => runCheck()
+
+const setUpdateCheckEnabled = async enabled => {
+  updateCheckEnabled.value = enabled
+  const config = await invoke('get_config')
+  await invoke('set_config', {
+    skipTracksWithSyncedLyrics: config.skip_tracks_with_synced_lyrics,
+    skipTracksWithPlainLyrics: config.skip_tracks_with_plain_lyrics,
+    showLineCount: config.show_line_count,
+    tryEmbedLyrics: config.try_embed_lyrics,
+    themeMode: config.theme_mode,
+    lrclibInstance: config.lrclib_instance,
+    volume: config.volume,
+    syncCover: config.sync_cover,
+    proxyUrl: config.proxy_url ?? '',
+    updateCheckEnabled: enabled,
+  })
+}
+
+// Opening About reads the stored preference but does not fetch anything on its
+// own: the previous behaviour checked GitHub every time the dialog opened, which
+// is a network call the user never asked for.
+const openedHandler = async () => {
+  version.value = await getVersion()
+  checked.value = false
+  newestVersion.value = null
+  try {
+    const config = await invoke('get_config')
+    updateCheckEnabled.value = config.update_check_enabled ?? true
+  } catch (error) {
+    console.error(error)
   }
 }
 </script>

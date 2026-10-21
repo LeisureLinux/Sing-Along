@@ -100,4 +100,8 @@ pub struct PersistentConfig {
     pub sync_cover: bool,
     /// Empty means direct connection. See migration 22.
     pub proxy_url: String,
+    /// Whether to look for a newer release on startup.
+    pub update_check_enabled: bool,
+    /// Last version the user was told about, so it is only announced once.
+    pub last_announced_version: String,
 }

@@ -196,7 +196,9 @@ pub fn get_config(db: &Connection) -> Result<PersistentConfig> {
         lyric_script,
         netease_fallback_enabled,
         sync_cover,
-        proxy_url
+        proxy_url,
+        update_check_enabled,
+        last_announced_version
       FROM config_data
       LIMIT 1
     "})?;
@@ -210,6 +212,8 @@ pub fn get_config(db: &Connection) -> Result<PersistentConfig> {
             netease_fallback_enabled: r.get("netease_fallback_enabled")?,
             sync_cover: r.get("sync_cover")?,
             proxy_url: r.get("proxy_url")?,
+            update_check_enabled: r.get("update_check_enabled")?,
+            last_announced_version: r.get("last_announced_version")?,
             skip_tracks_with_synced_lyrics: r.get("skip_tracks_with_synced_lyrics")?,
             skip_tracks_with_plain_lyrics: r.get("skip_tracks_with_plain_lyrics")?,
             show_line_count: r.get("show_line_count")?,
@@ -232,6 +236,7 @@ pub fn set_config(
     volume: f64,
     sync_cover: bool,
     proxy_url: &str,
+    update_check_enabled: bool,
     db: &Connection,
 ) -> Result<()> {
     let mut statement = db.prepare(indoc! {"
@@ -245,7 +250,8 @@ pub fn set_config(
         lrclib_instance = ?,
         volume = ?,
         sync_cover = ?,
-        proxy_url = ?
+        proxy_url = ?,
+        update_check_enabled = ?
       WHERE 1
     "})?;
     statement.execute((
@@ -258,6 +264,7 @@ pub fn set_config(
         volume,
         sync_cover,
         proxy_url,
+        update_check_enabled,
     ))?;
     Ok(())
 }
@@ -1989,7 +1996,7 @@ mod export_preferences_tests {
             .unwrap()
             .to_latest(&mut conn)
             .unwrap();
-        set_config(true, false, true, true, "dark", "https://example.test", 0.4, false, "", &conn)
+        set_config(true, false, true, true, "dark", "https://example.test", 0.4, false, "", true, &conn)
             .unwrap();
         set_export_preferences(None, Some(true), Some(true), Some(true), None, None, &conn)
             .unwrap();
@@ -2066,6 +2073,7 @@ mod export_preferences_tests {
             0.6,
             false,
             "",
+            true,
             &conn,
         )
         .unwrap();

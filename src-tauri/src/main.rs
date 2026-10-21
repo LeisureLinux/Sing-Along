@@ -262,6 +262,7 @@ async fn set_config(
     volume: f64,
     sync_cover: bool,
     proxy_url: String,
+    update_check_enabled: bool,
     app_state: State<'_, AppState>,
 ) -> Result<(), String> {
     let conn_guard = app_state.db.lock().unwrap();
@@ -276,6 +277,7 @@ async fn set_config(
         volume,
         sync_cover,
         &proxy_url,
+        update_check_enabled,
         conn,
     )
     .map_err(|err| err.to_string())?;
@@ -632,6 +634,118 @@ async fn backfill_album_covers(
     }
 
     Ok(filled)
+}
+
+/// What a startup update check found, when it found anything.
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct UpdateInfo {
+    version: String,
+    url: String,
+}
+
+/// Look for a newer release, if the user has left the check enabled.
+///
+/// Returns `None` — not an error — when the check is disabled, when the release
+/// is not newer, or when the request fails. A startup check that cannot reach
+/// GitHub must not put an error in front of someone who just opened the app; the
+/// About dialog is where a failure is worth reporting, and it checks on demand.
+#[tauri::command]
+async fn check_update_on_startup(
+    app_handle: AppHandle,
+) -> Result<Option<UpdateInfo>, String> {
+    let config = app_handle
+        .db(|db: &Connection| db::get_config(db))
+        .map_err(|err| err.to_string())?;
+
+    if !config.update_check_enabled {
+        return Ok(None);
+    }
+
+    let client = crate::http::client_with_agent(&config.proxy_url, 10, "Sing-Along")
+        .map_err(|err| err.to_string())?;
+
+    let response = client
+        .get("https://api.github.com/repos/LeisureLinux/Sing-Along/releases/latest")
+        .header("accept", "application/vnd.github+json")
+        .send()
+        .await
+        .map_err(|err| err.to_string())?;
+
+    if !response.status().is_success() {
+        return Ok(None);
+    }
+
+    let body: serde_json::Value = response.json().await.map_err(|err| err.to_string())?;
+    let Some(tag) = body.get("tag_name").and_then(|v| v.as_str()) else {
+        return Ok(None);
+    };
+    let Some(url) = body.get("html_url").and_then(|v| v.as_str()) else {
+        return Ok(None);
+    };
+
+    let latest = tag.trim_start_matches('v').to_owned();
+    if !is_newer_version(&latest, env!("CARGO_PKG_VERSION")) {
+        return Ok(None);
+    }
+
+    // Only announce a given release once. Without this the user sees the same
+    // notice on every launch until they upgrade, which trains them to ignore it.
+    if config.last_announced_version == latest {
+        return Ok(None);
+    }
+
+    Ok(Some(UpdateInfo {
+        version: latest,
+        url: url.to_owned(),
+    }))
+}
+
+/// Record that the user has been told about `version`, so it is not repeated.
+#[tauri::command]
+async fn mark_version_announced(
+    version: String,
+    app_handle: AppHandle,
+) -> Result<(), String> {
+    app_handle
+        .db(|db: &Connection| {
+            db.execute(
+                "UPDATE config_data SET last_announced_version = ?1 WHERE 1",
+                rusqlite::params![version],
+            )
+            .map(|_| ())
+        })
+        .map_err(|err| err.to_string())
+}
+
+/// Compare dotted versions without pulling in a semver crate.
+///
+/// Only needs to answer "is the release newer than what is running", so a
+/// numeric comparison of the first three components is enough. A pre-release
+/// suffix is ignored: this project does not publish them.
+fn is_newer_version(latest: &str, current: &str) -> bool {
+    let parse = |value: &str| -> Vec<u64> {
+        value
+            .split('.')
+            .map(|part| {
+                part.chars()
+                    .take_while(|c| c.is_ascii_digit())
+                    .collect::<String>()
+            })
+            .map(|part| part.parse().unwrap_or(0))
+            .collect()
+    };
+
+    let latest = parse(latest);
+    let current = parse(current);
+    for index in 0..latest.len().max(current.len()) {
+        let a = latest.get(index).copied().unwrap_or(0);
+        let b = current.get(index).copied().unwrap_or(0);
+        if a != b {
+            return a > b;
+        }
+    }
+    false
 }
 
 /// Absolute path of an album's cached cover, or `None` when it has none.
@@ -2199,14 +2313,16 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
             _ => {}
         })
         .on_tray_icon_event(|tray, event| {
-            // Left click toggles: the usual gesture for "give me my window back".
+            // Left click toggles the window, like clicking a taskbar entry.
+            // Only on release: the press event would fire first and hide the
+            // window the user is trying to reveal.
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
                 button_state: MouseButtonState::Up,
                 ..
             } = event
             {
-                show_main_window(tray.app_handle());
+                toggle_main_window(tray.app_handle());
             }
         })
         .build(app)?;
@@ -2217,6 +2333,29 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
 /// Bring the main window back from the tray.
 fn show_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
+    }
+}
+
+/// Show the window if it is hidden or not focused, hide it otherwise.
+///
+/// "Visible" alone is not enough to decide: a window that is visible but behind
+/// another one should come forward when the tray icon is clicked, not disappear.
+/// Only a window that is already visible *and* focused counts as "open".
+fn toggle_main_window(app: &AppHandle) {
+    let Some(window) = app.get_webview_window("main") else {
+        return;
+    };
+
+    let visible = window.is_visible().unwrap_or(false);
+    let focused = window.is_focused().unwrap_or(false);
+    let minimized = window.is_minimized().unwrap_or(false);
+
+    if toggle_should_hide(visible, focused, minimized) {
+        let _ = window.hide();
+    } else {
         let _ = window.show();
         let _ = window.unminimize();
         let _ = window.set_focus();
@@ -2280,6 +2419,8 @@ async fn main() {
             get_album_ids,
             get_album,
             get_album_cover,
+            check_update_on_startup,
+            mark_version_announced,
             backfill_album_covers,
             get_artists,
             get_artist_ids,
@@ -2471,6 +2612,74 @@ async fn main() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+/// The decision `toggle_main_window` makes, extracted so it can be tested
+/// without a window.
+///
+/// Returns true when the tray click should hide the window.
+fn toggle_should_hide(visible: bool, focused: bool, minimized: bool) -> bool {
+    visible && focused && !minimized
+}
+
+#[cfg(test)]
+mod tray_toggle_tests {
+    use super::toggle_should_hide;
+
+    #[test]
+    fn a_focused_window_is_hidden() {
+        assert!(toggle_should_hide(true, true, false));
+    }
+
+    #[test]
+    fn a_visible_but_unfocused_window_comes_forward() {
+        // Clicking the tray icon while the window is behind another one should
+        // raise it, not make it disappear.
+        assert!(!toggle_should_hide(true, false, false));
+    }
+
+    #[test]
+    fn a_minimized_window_is_restored() {
+        assert!(!toggle_should_hide(true, true, true));
+        assert!(!toggle_should_hide(false, false, true));
+    }
+
+    #[test]
+    fn a_hidden_window_is_shown() {
+        assert!(!toggle_should_hide(false, false, false));
+    }
+}
+
+#[cfg(test)]
+mod version_tests {
+    use super::is_newer_version;
+
+    #[test]
+    fn a_later_version_is_newer() {
+        assert!(is_newer_version("2.10.0", "2.9.3"));
+        assert!(is_newer_version("3.0.0", "2.99.99"));
+        assert!(is_newer_version("2.9.4", "2.9.3"));
+    }
+
+    #[test]
+    fn the_same_or_older_version_is_not() {
+        assert!(!is_newer_version("2.9.3", "2.9.3"));
+        assert!(!is_newer_version("2.9.2", "2.9.3"));
+        assert!(!is_newer_version("1.99.99", "2.0.0"));
+    }
+
+    #[test]
+    fn compares_numerically_not_lexically() {
+        // The classic string-compare bug: "2.10" sorts before "2.9" as text.
+        assert!(is_newer_version("2.10.0", "2.9.0"));
+        assert!(!is_newer_version("2.9.0", "2.10.0"));
+    }
+
+    #[test]
+    fn missing_components_count_as_zero() {
+        assert!(is_newer_version("2.9.4", "2.9"));
+        assert!(!is_newer_version("2.9", "2.9.0"));
+    }
 }
 
 #[cfg(test)]
