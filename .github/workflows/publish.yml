@@ -152,6 +152,12 @@ jobs:
             singalong-cli-linux-amd64
         working-directory: src-tauri
 
+      - uses: actions/upload-artifact@v4
+        if: matrix.platform == 'ubuntu-22.04'
+        with:
+          name: cli-linux-amd64
+          path: src-tauri/singalong-cli-linux-amd64
+
       - name: build cli (linux arm64, static)
         if: matrix.platform == 'ubuntu-24.04-arm'
         run: |
@@ -164,6 +170,12 @@ jobs:
             singalong-cli-linux-arm64
         working-directory: src-tauri
 
+      - uses: actions/upload-artifact@v4
+        if: matrix.platform == 'ubuntu-24.04-arm'
+        with:
+          name: cli-linux-arm64
+          path: src-tauri/singalong-cli-linux-arm64
+
       # macOS cannot be linked statically, but the CLI is still worth shipping
       # separately: it is the binary an agent downloads, and it is a fraction of
       # the .dmg. It links the system frameworks like any macOS binary.
@@ -175,6 +187,12 @@ jobs:
           cp target/aarch64-apple-darwin/release/singalong-cli \
             singalong-cli-macos-arm64
         working-directory: src-tauri
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.platform == 'macos-latest'
+        with:
+          name: cli-macos-arm64
+          path: src-tauri/singalong-cli-macos-arm64
 
       # Windows has no fully static linking, but `+crt-static` removes the
       # dependency that actually bites: the Visual C++ runtime
@@ -191,6 +209,12 @@ jobs:
         working-directory: src-tauri
         env:
           RUSTFLAGS: -C target-feature=+crt-static
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.platform == 'windows-latest'
+        with:
+          name: cli-windows-amd64
+          path: src-tauri/singalong-cli-windows-amd64.exe
 
       - uses: tauri-apps/tauri-action@v1
         if: ${{ !matrix.cli_only }}
@@ -276,30 +300,37 @@ jobs:
       # Attached separately: `tauri-action` only uploads what it built itself,
       # and its naming pattern would produce `sing-along_...` rather than the
       # standalone name this binary ships under.
-      - name: attach cli (linux amd64)
-        if: matrix.platform == 'ubuntu-22.04' && github.ref_type == 'tag'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" singalong-cli-linux-amd64 --clobber
-        working-directory: src-tauri
 
-      - name: attach cli (linux arm64)
-        if: matrix.platform == 'ubuntu-24.04-arm' && github.ref_type == 'tag'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" singalong-cli-linux-arm64 --clobber
-        working-directory: src-tauri
+  # A single job attaches every standalone CLI, after all builds have finished.
+  #
+  # Doing it per platform raced: the arm64 job builds only a CLI, so it finishes
+  # long before the three GUI jobs have created the release, and
+  # `gh release upload` then fails with "release not found". v2.9.10 lost its
+  # arm64 asset to exactly that. Waiting here — where the release already exists
+  # because tauri-action created it — removes the ordering problem entirely.
+  collect-cli:
+    if: github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cli-*
+          merge-multiple: true
+          path: dist
 
-      - name: attach cli (macos)
-        if: matrix.platform == 'macos-latest' && github.ref_type == 'tag'
+      - name: attach the standalone CLIs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" singalong-cli-macos-arm64 --clobber
-        working-directory: src-tauri
-
-      - name: attach cli (windows)
-        if: matrix.platform == 'windows-latest' && github.ref_type == 'tag'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" singalong-cli-windows-amd64.exe --clobber
-        working-directory: src-tauri
+        run: |
+          ls -l dist
+          # The release is created by `tauri-action` inside a GUI job. If every
+          # GUI job failed while the CLI builds succeeded, there is nothing to
+          # attach to yet — create it here rather than failing on a missing tag.
+          if ! gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release create "${{ github.ref_name }}" \
+              --repo "${{ github.repository }}" \
+              --title "sing-along ${{ github.ref_name }}" \
+              --notes "See the assets below."
+          fi
+          gh release upload "${{ github.ref_name }}" dist/* --clobber --repo "${{ github.repository }}"
