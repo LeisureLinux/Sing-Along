@@ -62,11 +62,12 @@ will not notice. Before pushing:
 ```bash
 cd src-tauri
 cargo check --no-default-features --features cli
-cargo check --no-default-features --features cli --target x86_64-pc-windows-gnu
+grep -n "os::unix" src/cli.rs   # every hit must be inside #[cfg(unix)]
 ```
 
-`x86_64-pc-windows-gnu` is enough to catch a missing `#[cfg(unix)]`; it does not
-need the MSVC toolchain or a Windows machine.
+A cross-target check (`--target x86_64-pc-windows-gnu`) also works but needs
+`gcc-mingw-w64-x86-64` for `ring`'s C code, which is not on the runners. The grep
+catches the actual mistake — an ungated Unix API — without that dependency.
 
 ## Releasing: never without explicit approval
 

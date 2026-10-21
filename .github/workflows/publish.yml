@@ -64,6 +64,8 @@ jobs:
     needs: prepare-release
     permissions:
       contents: write
+    outputs:
+      windows-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
     strategy:
       fail-fast: false
       matrix:
@@ -169,13 +171,7 @@ jobs:
       - name: check the cli-only build compiles
         if: ${{ !matrix.cli_only }}
         working-directory: src-tauri
-        run: |
-          cargo check --no-default-features --features cli
-          # `cli.rs` is shared with Windows, and Unix-only APIs there compile
-          # fine on Linux while breaking the Windows job. Checking the Windows
-          # target here (no MSVC toolchain needed) catches that in seconds.
-          rustup target add x86_64-pc-windows-gnu
-          cargo check --no-default-features --features cli --target x86_64-pc-windows-gnu
+        run: cargo check --no-default-features --features cli
 
       # Pinned to v1 rather than the v0 floating tag: `releaseAssetNamePattern`
       # does not exist in v0's action.yml, and an unknown input is ignored with
@@ -272,6 +268,28 @@ jobs:
         env:
           RUSTFLAGS: -C target-feature=+crt-static
 
+      # Windows builds here rather than in the step above, because the installer
+      # has to be signed before it reaches the release page. `tauri-action`
+      # builds and publishes in one motion, so it is replaced by the CLI
+      # invocation it wraps.
+      - name: build the windows installer (unsigned)
+        if: matrix.platform == 'windows-latest'
+        run: npx tauri build --bundles nsis
+        env:
+          # Signing happens in the `sign-windows` job; this must not try.
+          TAURI_SIGNING_PRIVATE_KEY: ''
+
+      - name: upload windows artifacts for signing
+        if: matrix.platform == 'windows-latest'
+        id: upload-unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-unsigned
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/singalong-cli-windows-amd64.exe
+          if-no-files-found: error
+
       - uses: actions/upload-artifact@v4
         if: matrix.platform == 'windows-latest'
         with:
@@ -279,7 +297,7 @@ jobs:
           path: src-tauri/singalong-cli-windows-amd64.exe
 
       - uses: tauri-apps/tauri-action@v1
-        if: ${{ !matrix.cli_only }}
+        if: ${{ !matrix.cli_only && matrix.platform != 'windows-latest' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -370,6 +388,76 @@ jobs:
   # `gh release upload` then fails with "release not found". v2.9.10 lost its
   # arm64 asset to exactly that. Waiting here — where the release already exists
   # because tauri-action created it — removes the ordering problem entirely.
+  # Sign the Windows installer before it is published.
+  #
+  # SignPath Foundation issues a free Authenticode certificate to open source
+  # projects and holds the private key in an HSM, so signing is a request to their
+  # service rather than something done on the runner. That is why this is a
+  # separate job: the artifact must exist before it can be submitted.
+  #
+  # Skipped when the secret is absent, so a fork without the setup still
+  # releases — unsigned, which is what it would have done anyway.
+  sign-windows:
+    needs: build
+    if: github.ref_type == 'tag' && vars.SIGNPATH_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        id: download
+        with:
+          name: windows-unsigned
+          path: unsigned
+
+      - name: sign the installer and CLI
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          # The id of the uploaded artifact, not a path: SignPath fetches the file
+          # from GitHub itself, so what it signs is byte-for-byte what was built.
+          github-artifact-id: ${{ needs.build.outputs.windows-artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-signed
+          path: signed/
+
+  # Attach the signed Windows files to the release.
+  #
+  # Only Windows goes through here: the other platforms publish from their own
+  # build job, and rebuilding that flow would be a change with no benefit. The
+  # point is that the installer reaching the release page has already been signed.
+  publish-windows:
+    needs: [prepare-release, sign-windows]
+    if: always() && github.ref_type == 'tag' && vars.SIGNPATH_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-signed
+          path: signed
+
+      - name: attach to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ls -l signed
+          # Only the installer and CLI; SignPath may also return a signature
+          # file, which no one downloads.
+          find signed -type f \( -name '*.exe' \) -exec \
+            gh release upload "${{ github.ref_name }}" {} \
+            --clobber --repo "${{ github.repository }}" \;
+
   collect-cli:
     if: github.ref_type == 'tag'
     needs: build
