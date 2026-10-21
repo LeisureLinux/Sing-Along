@@ -37,6 +37,13 @@ jobs:
             args: '--bundles deb,rpm,appimage'
           - platform: 'windows-latest'
             args: '--bundles nsis,msi'
+          # Not a GUI platform: this runner exists only to build the static
+          # arm64 CLI. Cross-compiling it from x86_64 would need a musl-targeted
+          # aarch64 compiler, which Debian does not package — an ARM runner has
+          # one natively.
+          - platform: 'ubuntu-24.04-arm'
+            args: ''
+            cli_only: true
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -52,7 +59,10 @@ jobs:
         with:
           # Only the target actually being built: an extra Rust target costs a
           # download and gains nothing on the other platforms.
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
+          targets: >-
+            ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin'
+             || matrix.platform == 'ubuntu-24.04-arm' && 'aarch64-unknown-linux-musl'
+             || '' }}
 
       # The upstream workflow pinned libwebkit2gtk to a specific version that
       # only existed on one runner image; that breaks as soon as the image moves.
@@ -78,18 +88,22 @@ jobs:
       # for the same reason. The lockfile still pins versions, just without the
       # strict all-or-nothing check.
       - name: install frontend dependencies
+        if: ${{ !matrix.cli_only }}
         run: npm install
 
       - name: run frontend tests
+        if: ${{ !matrix.cli_only }}
         run: npm test
 
       # `dist/` must exist before any backend build: tauri.conf.json points
       # `frontendDist` at it, and tauri-build fails the crate when the path is
       # missing. So the frontend is built first and the Rust tests run after.
       - name: build frontend
+        if: ${{ !matrix.cli_only }}
         run: npm run build
 
       - name: run backend tests
+        if: ${{ !matrix.cli_only }}
         working-directory: src-tauri
         run: cargo test
 
@@ -125,13 +139,13 @@ jobs:
         working-directory: src-tauri
 
       - name: build cli (linux arm64, static)
-        if: matrix.platform == 'ubuntu-22.04'
+        if: matrix.platform == 'ubuntu-24.04-arm'
         run: |
-          cargo install cross --git https://github.com/cross-rs/cross
-          cross build --release --no-default-features --features cli \
+          sudo apt-get install -y musl-tools
+          rustup target add aarch64-unknown-linux-musl
+          cargo build --release --no-default-features --features cli \
             --target aarch64-unknown-linux-musl --bin singalong-cli
-          aarch64-linux-gnu-strip \
-            target/aarch64-unknown-linux-musl/release/singalong-cli || true
+          strip target/aarch64-unknown-linux-musl/release/singalong-cli
           cp target/aarch64-unknown-linux-musl/release/singalong-cli \
             singalong-cli-linux-arm64
         working-directory: src-tauri
@@ -165,6 +179,7 @@ jobs:
           RUSTFLAGS: -C target-feature=+crt-static
 
       - uses: tauri-apps/tauri-action@v1
+        if: ${{ !matrix.cli_only }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -245,13 +260,18 @@ jobs:
       # Attached separately: `tauri-action` only uploads what it built itself,
       # and its naming pattern would produce `sing-along_...` rather than the
       # standalone name this binary ships under.
-      - name: attach cli (linux)
+      - name: attach cli (linux amd64)
         if: matrix.platform == 'ubuntu-22.04' && github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload "${{ github.ref_name }}" \
-            singalong-cli-linux-amd64 singalong-cli-linux-arm64 --clobber
+        run: gh release upload "${{ github.ref_name }}" singalong-cli-linux-amd64 --clobber
+        working-directory: src-tauri
+
+      - name: attach cli (linux arm64)
+        if: matrix.platform == 'ubuntu-24.04-arm' && github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" singalong-cli-linux-arm64 --clobber
         working-directory: src-tauri
 
       - name: attach cli (macos)
