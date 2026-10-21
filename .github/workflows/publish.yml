@@ -106,12 +106,28 @@ jobs:
       - name: build static cli (linux)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
+          # `ring` compiles C and needs a musl-targeted compiler; the runner has
+          # the musl *target* for rustc but not this, and the build fails with
+          # `failed to find tool "x86_64-linux-musl-gcc"`.
+          sudo apt-get install -y musl-tools
           rustup target add x86_64-unknown-linux-musl
           cargo build --release --no-default-features --features cli \
             --target x86_64-unknown-linux-musl --bin singalong-cli
           strip target/x86_64-unknown-linux-musl/release/singalong-cli
           cp target/x86_64-unknown-linux-musl/release/singalong-cli \
-            singalong-cli
+            singalong-cli-linux-amd64
+        working-directory: src-tauri
+
+      # macOS cannot be linked statically, but the CLI is still worth shipping
+      # separately: it is the binary an agent downloads, and it is a fraction of
+      # the .dmg. It links the system frameworks like any macOS binary.
+      - name: build cli (macos)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          cargo build --release --no-default-features --features cli \
+            --target aarch64-apple-darwin --bin singalong-cli
+          cp target/aarch64-apple-darwin/release/singalong-cli \
+            singalong-cli-macos-arm64
         working-directory: src-tauri
 
       - name: build static cli (windows)
@@ -134,17 +150,44 @@ jobs:
           tagName: ${{ github.ref_type == 'tag' && github.ref_name || 'v__VERSION__' }}
           releaseName: 'sing-along v__VERSION__'
           releaseBody: |
-            Synced lyrics tool for your own music files.
+            Synced lyrics for your own music files.
+
+            ### For an AI agent or a script
+
+            Download **one** file, `chmod +x`, and run it. No install, no
+            dependencies:
+
+            | Your platform | File |
+            | --- | --- |
+            | Linux x86_64 | `singalong-cli-linux-amd64` |
+            | macOS (Apple Silicon) | `singalong-cli-macos-arm64` |
+            | Windows x86_64 | `singalong-cli-windows-amd64.exe` |
+
+            These are the command line only — they never open a window, and the
+            Linux build is statically linked so it runs on a machine with no GTK
+            or WebKit at all.
+
+            ```
+            singalong-cli-linux-amd64 status ~/Music
+            singalong-cli-linux-amd64 fetch ~/Music
+            singalong-cli-linux-amd64 export ~/Music --for steve
+            ```
+
+            Do **not** download the `.deb`, `.rpm` or `.AppImage` to get a CLI:
+            those are the desktop player, which needs WebKitGTK installed to run.
+            Its binary does accept the same subcommands once installed.
+
+            ### For a person
 
             - **Linux**: `.deb` (Debian/Ubuntu), `.rpm` (Fedora/openSUSE), or the
-              `.AppImage` which runs on most distributions.
+              `.AppImage` which needs no installation.
             - **Windows**: `-setup.exe` to install, `.msi` for managed deployment.
             - **macOS**: the `.dmg` is Apple Silicon only (M1 and later).
 
-            Install on Debian/Ubuntu with
-            `sudo apt install ./sing-along___VERSION___amd64.deb`.
+            The Linux, Windows and macOS installers are not code-signed, so the
+            system will warn on first launch — see
+            https://github.com/LeisureLinux/Sing-Along#if-the-installer-is-blocked
 
-            Full changelog: https://github.com/LeisureLinux/Sing-Along/commits/main
           # Published straight away rather than left as a draft. The tests run
           # before bundling, so a release only exists if the build was green; the
           # earlier "draft" setting meant a successful build still needed a manual
@@ -181,12 +224,19 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04' && github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" singalong-cli --clobber
+        run: gh release upload "${{ github.ref_name }}" singalong-cli-linux-amd64 --clobber
+        working-directory: src-tauri
+
+      - name: attach cli (macos)
+        if: matrix.platform == 'macos-latest' && github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" singalong-cli-macos-arm64 --clobber
         working-directory: src-tauri
 
       - name: attach static cli (windows)
         if: matrix.platform == 'windows-latest' && github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" singalong-cli.exe --clobber
+        run: gh release upload "${{ github.ref_name }}" singalong-cli-windows-amd64.exe --clobber
         working-directory: src-tauri

@@ -161,13 +161,19 @@ This is the same binary you installed: run it with no arguments and the player
 opens, add a subcommand and it works headless.
 
 For a machine where the player cannot be installed — a container, a NAS, a
-minimal server — every release also carries **`singalong-cli`**, the same command
-line linked statically with no GTK, WebKit or ALSA at all.
+minimal server — every release also carries a standalone binary. Pick one file,
+`chmod +x`, run it. Nothing else to install:
+
+| Platform | File |
+| --- | --- |
+| Linux x86_64 | `singalong-cli-linux-amd64` (statically linked) |
+| macOS Apple Silicon | `singalong-cli-macos-arm64` |
+| Windows x86_64 | `singalong-cli-windows-amd64.exe` |
 
 ```shell
-curl -LO https://github.com/LeisureLinux/Sing-Along/releases/latest/download/singalong-cli
-chmod +x singalong-cli
-./singalong-cli status ~/Music
+curl -LO https://github.com/LeisureLinux/Sing-Along/releases/latest/download/singalong-cli-linux-amd64
+chmod +x singalong-cli-linux-amd64
+./singalong-cli-linux-amd64 status ~/Music
 ```
 
 `man sing-along` documents all of it, including why the format has to match the
@@ -199,6 +205,36 @@ Typical requests it covers:
 - "帮我把这个目录下的音乐文件的歌词补充完整"
 - "把这些歌词导出成 Steve 能用的格式"
 - "检查一下这个文件夹缺哪些歌词"
+
+### Instructions to paste into an agent
+
+If you are an agent asked to set this up, this is the whole procedure:
+
+```text
+1. Download the standalone binary for your platform from the latest release:
+     Linux x86_64     singalong-cli-linux-amd64   (statically linked)
+     macOS arm64      singalong-cli-macos-arm64
+     Windows x86_64   singalong-cli-windows-amd64.exe
+   Do not download the .deb/.rpm/.AppImage/.dmg/.exe: those are the desktop
+   player and need a webview installed to run.
+
+2. chmod +x it, and confirm it runs:
+     ./singalong-cli-linux-amd64 --version
+
+3. Read the skill, which explains how to choose the right lyric format:
+     https://raw.githubusercontent.com/LeisureLinux/Sing-Along/main/skills/sing-along/SKILL.md
+
+4. Then follow it. The commands are:
+     <bin> status <dir>                 what lyrics a folder is missing
+     <bin> fetch  <dir>                 download the missing ones
+     <bin> export <dir> --for <player>  write them in a player's format
+     <bin> formats                      list valid player names
+
+Two rules from the skill that matter most:
+  - Never translate or rewrite lyric text.
+  - If fetch reports "no timed lyrics", LRCLIB only has unsynchronised text for
+    that track. Say so; do not retry.
+```
 
 ## Install
 
