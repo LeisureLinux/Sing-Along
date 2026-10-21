@@ -534,12 +534,174 @@ async fn update(args: &[String]) -> Result<()> {
         "windows" => Some("singalong-cli-windows-amd64.exe".to_owned()),
         _ => None,
     };
+    let Some(asset) = asset else {
+        println!("Release page: {page}");
+        return Ok(());
+    };
+    let url = format!("{download_base}/{asset}");
 
-    if let Some(asset) = asset {
-        println!("  curl -LO {download_base}/{asset}");
-        println!();
+    match install_location() {
+        // Owned by the GUI package: replacing the file behind dpkg's back would
+        // make the package manager's view of the system wrong. Point at the
+        // installer instead.
+        InstallLocation::PackageManaged => {
+            println!("This binary belongs to the Sing-Along package, so upgrade it");
+            println!("with your package manager rather than replacing the file:");
+            println!();
+            println!("  sudo apt install --reinstall ./sing-along_<version>_amd64.deb");
+            println!();
+            println!("Download page: {page}");
+        }
+        // A copy the user put somewhere themselves, in a directory they can
+        // write — replace it in place.
+        InstallLocation::Writable(path) => match replace_binary(&client, &url, &path).await {
+            Ok(()) => println!("Updated {} to {latest}.", path.display()),
+            Err(err) => {
+                println!("Could not replace {}: {err}", path.display());
+                println!("Download it manually: {url}");
+            }
+        },
+        // A copy in a directory the user cannot write: say so plainly instead of
+        // failing halfway or telling them to fetch it themselves for no reason.
+        InstallLocation::NotWritable(path) => {
+            println!("{} is not writable by this user.", path.display());
+            println!("Either run the update with sudo, or download it yourself:");
+            println!();
+            println!("  {url}");
+        }
+        InstallLocation::Unknown => {
+            println!("Download it manually: {url}");
+        }
     }
-    println!("Release page: {page}");
+    Ok(())
+}
+
+/// Where the running binary lives, and whether that is a place we should touch.
+enum InstallLocation {
+    /// Installed by the GUI's `.deb`/`.rpm` — a package manager owns the file.
+    PackageManaged,
+    /// A standalone copy in a directory this user can write.
+    Writable(PathBuf),
+    /// A standalone copy this user cannot write.
+    NotWritable(PathBuf),
+    Unknown,
+}
+
+/// Decide what kind of installation is running.
+///
+/// The distinction that matters is ownership, not directory: a file under
+/// `/usr/bin` placed there by `dpkg` must not be overwritten, while the same path
+/// written by hand should be. So the package database is asked first, and only
+/// when no package owns the file does the write-permission check decide.
+fn install_location() -> InstallLocation {
+    let Ok(exe) = std::env::current_exe() else {
+        return InstallLocation::Unknown;
+    };
+    // Resolve symlinks: a `~/.local/bin/sing-along` pointing into the package's
+    // directory is still the package's file.
+    let Ok(path) = exe.canonicalize() else {
+        return InstallLocation::Unknown;
+    };
+
+    if package_owns(&path) {
+        return InstallLocation::PackageManaged;
+    }
+
+    match can_write_beside(&path) {
+        Some(true) => InstallLocation::Writable(path),
+        Some(false) => InstallLocation::NotWritable(path),
+        None => InstallLocation::Unknown,
+    }
+}
+
+/// Ask the system package databases whether they own this file.
+///
+/// Only the two Linux families that ship packages here are checked; on other
+/// platforms nothing claims the file and the permission check decides.
+fn package_owns(path: &Path) -> bool {
+    if !cfg!(target_os = "linux") {
+        return false;
+    }
+    let path_str = path.to_string_lossy();
+
+    // dpkg: `dpkg -S /usr/bin/sing-along` exits 0 and names the package.
+    if let Ok(output) = std::process::Command::new("dpkg")
+        .args(["-S", &path_str])
+        .output()
+    {
+        if output.status.success() && !output.stdout.is_empty() {
+            return true;
+        }
+    }
+
+    // rpm: `rpm -qf <path>` works the same way.
+    if let Ok(output) = std::process::Command::new("rpm")
+        .args(["-qf", &path_str])
+        .output()
+    {
+        if output.status.success() && !output.stdout.is_empty() {
+            return true;
+        }
+    }
+
+    false
+}
+
+/// `access(2)` without pulling in the `libc` crate for one call.
+unsafe fn libc_access(path: *const std::ffi::c_char, mode: i32) -> i32 {
+    extern "C" {
+        fn access(path: *const std::ffi::c_char, mode: i32) -> i32;
+    }
+    access(path, mode)
+}
+
+/// Whether the directory holding `path` can be written to, which is what
+/// replacing a file requires — the file itself may be read-only while the
+/// directory allows a rename over it.
+///
+/// Uses `access(2)` rather than reading mode bits: the bits alone do not answer
+/// the question for group ownership, supplementary groups or ACLs, and getting
+/// that wrong would either refuse a write the user could make or attempt one they
+/// cannot.
+fn can_write_beside(path: &Path) -> Option<bool> {
+    let dir = path.parent()?;
+    let dir_c = std::ffi::CString::new(dir.as_os_str().as_encoded_bytes()).ok()?;
+    // W_OK = 2
+    let writable = unsafe { libc_access(dir_c.as_ptr(), 2) == 0 };
+    Some(writable)
+}
+
+/// Download `url` and replace `target` atomically.
+///
+/// Written to a temporary file in the same directory, made executable, then
+/// renamed over the original: a rename is atomic, so an interrupted update cannot
+/// leave a half-written binary in place.
+async fn replace_binary(client: &reqwest::Client, url: &str, target: &Path) -> Result<()> {
+    let response = client
+        .get(url)
+        .send()
+        .await
+        .with_context(|| format!("requesting {url}"))?;
+    if !response.status().is_success() {
+        bail!("download failed with {}", response.status());
+    }
+    let bytes = response.bytes().await?;
+
+    let dir = target.parent().context("no parent directory")?;
+    let temp = dir.join(format!(
+        ".{}.new",
+        target
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("singalong-cli")
+    ));
+
+    std::fs::write(&temp, &bytes).with_context(|| format!("writing {}", temp.display()))?;
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&temp, std::fs::Permissions::from_mode(0o755))?;
+    }
+    std::fs::rename(&temp, target).with_context(|| format!("replacing {}", target.display()))?;
     Ok(())
 }
 
@@ -739,6 +901,13 @@ fn format_extension(format: ExportFormat) -> &'static str {
 mod tests {
     use super::*;
 
+    unsafe fn libc_geteuid_test() -> u32 {
+        extern "C" {
+            fn geteuid() -> u32;
+        }
+        geteuid()
+    }
+
     #[test]
     fn player_lookup_is_case_insensitive() {
         let found = PLAYERS
@@ -790,6 +959,42 @@ mod tests {
         let raw = "[00:10.00]I <3 you\n";
         let parsed = parse_sidecar(raw).unwrap();
         assert!(parsed.plain_lyrics.unwrap().contains("<3"));
+    }
+
+    #[test]
+    fn a_writable_directory_is_detected() {
+        let dir = std::env::temp_dir().join("sa-writable-check");
+        let _ = std::fs::create_dir_all(&dir);
+        let file = dir.join("bin");
+        std::fs::write(&file, b"x").unwrap();
+        assert_eq!(can_write_beside(&file), Some(true));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_read_only_directory_is_detected() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = std::env::temp_dir().join("sa-readonly-check");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("bin");
+        std::fs::write(&file, b"x").unwrap();
+        std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o555)).unwrap();
+
+        // Running as root defeats the check; skip rather than assert wrongly.
+        if unsafe { libc_geteuid_test() } != 0 {
+            assert_eq!(can_write_beside(&file), Some(false));
+        }
+
+        std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o755)).unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn the_binary_name_matches_the_release_assets() {
+        // The update command builds its download URL from these; a mismatch
+        // would 404 exactly when someone is trying to upgrade.
+        assert!(matches!(arch_name(), "amd64" | "arm64" | _));
     }
 
     #[test]

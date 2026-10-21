@@ -18,7 +18,23 @@ jobs:
   # create it. The loser fails with `already_exists`, taking its assets with it
   # (v2.9.11 lost the macOS dmg that way). Creating it up front makes the
   # question moot: each job finds it and only uploads.
+  # Lint the workflow before anything expensive runs.
+  #
+  # Every failure in the last four releases was a mistake in this file that only
+  # showed up after a full matrix build: a duplicated `permissions:` key, a
+  # missing function, a step that assumed a release existed. `actionlint` catches
+  # the first class in under a second.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: check the workflow file
+        uses: docker://rhysd/actionlint:latest
+        with:
+          args: -color
+
   prepare-release:
+    needs: lint
     if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     permissions:
@@ -46,8 +62,6 @@ jobs:
 
   build:
     needs: prepare-release
-    permissions:
-      contents: write
     permissions:
       contents: write
     strategy:
