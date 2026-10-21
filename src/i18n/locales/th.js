@@ -95,6 +95,8 @@ export default {
     syncedTracks: 'เฉพาะเพลงที่ยังไม่มีเนื้อเพลงซิงค์',
     plainTracks: 'เฉพาะเพลงที่ยังไม่มีเนื้อเพลงธรรมดา',
     instrumentalTracks: 'เพลงบรรเลง',
+    syncStatus: 'สถานะซิงค์',
+    syncStatusHint: 'สลับ: ทั้งหมด / ที่ยังไม่ซิงค์',
     pendingOnly: 'รอซิงค์',
     pendingHint: 'แสดงเฉพาะเพลงที่ยังไม่มีเนื้อเพลงซิงค์',
     noLyricsTracks: 'เพลงที่ยังไม่มีเนื้อเพลงเลย',

@@ -98,6 +98,8 @@ export default {
     syncedTracks: 'Tylko utwory bez zsynchronizowanego tekstu',
     plainTracks: 'Tylko utwory bez zwykłego tekstu',
     instrumentalTracks: 'Utwory instrumentalne',
+    syncStatus: 'Synchronizacja',
+    syncStatusHint: 'Przełącz: wszystkie / tylko niezsynchronizowane',
     pendingOnly: 'Do synchronizacji',
     pendingHint: 'Pokazuj tylko utwory bez zsynchronizowanego tekstu',
     noLyricsTracks: 'Utwory bez żadnego tekstu',

@@ -95,6 +95,8 @@ export default {
     syncedTracks: 'Nur Titel ohne synchronen Songtext',
     plainTracks: 'Nur Titel ohne unsynchronisierten Songtext',
     instrumentalTracks: 'Instrumentale Titel',
+    syncStatus: 'Sync-Status',
+    syncStatusHint: 'Umschalten: alle / nur unsynchronisiert',
     pendingOnly: 'Ausstehend',
     pendingHint: 'Nur Titel ohne synchronen Songtext anzeigen',
     noLyricsTracks: 'Titel ganz ohne Songtext',

@@ -95,6 +95,8 @@ export default {
     syncedTracks: 'Apenas faixas sem letra sincronizada',
     plainTracks: 'Apenas faixas sem letra não sincronizada',
     instrumentalTracks: 'Faixas instrumentais',
+    syncStatus: 'Sincronia',
+    syncStatusHint: 'Alternar: todas / apenas sem sincronia',
     pendingOnly: 'Pendentes',
     pendingHint: 'Mostrar apenas faixas sem letra sincronizada',
     noLyricsTracks: 'Faixas sem nenhuma letra',

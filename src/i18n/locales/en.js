@@ -98,6 +98,8 @@ export default {
     syncedTracks: 'Only tracks without synced lyrics',
     plainTracks: 'Only tracks without plain lyrics',
     instrumentalTracks: 'Instrumental tracks',
+    syncStatus: 'Sync Status',
+    syncStatusHint: 'Toggle: all tracks / only those without synced lyrics',
     pendingOnly: 'Pending sync',
     pendingHint: 'Show only tracks without synced lyrics',
     noLyricsTracks: 'Tracks without any lyrics',

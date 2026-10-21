@@ -97,6 +97,8 @@ export default {
     syncedTracks: '同期歌詞がない曲のみ',
     plainTracks: 'テキスト歌詞がない曲のみ',
     instrumentalTracks: 'インスト曲',
+    syncStatus: '同期状態',
+    syncStatusHint: '切り替え：すべて / 未同期のみ',
     pendingOnly: '未同期',
     pendingHint: '同期歌詞がない曲だけを表示',
     noLyricsTracks: '歌詞がまったくない曲',

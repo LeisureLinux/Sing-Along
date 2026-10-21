@@ -4,10 +4,31 @@
       <div class="w-full">
         <div class="w-full flex">
           <div class="text-xs text-neutral-500 font-bold flex w-full dark:text-neutral-500">
-            <div class="text-left flex-none w-[65%] p-1">{{ $t('track.track') }}</div>
+            <div class="text-left flex-none w-[63%] p-1">{{ $t('track.track') }}</div>
             <!-- Adjusted width percentage -->
             <div class="text-right flex-none w-[10%] p-1">{{ $t('track.duration') }}</div>
-            <div class="text-center flex-none w-[10%] p-1">{{ $t('track.lyrics') }}</div>
+            <!-- The lyric-status column doubles as the filter. Kept in the row
+                 header rather than the toolbar so the control sits with the data
+                 it filters and cannot push the header's menu button off-screen. -->
+            <div class="text-center flex-none w-[12%] p-1">
+              <!-- Filled in the theme colour when idle, because a column header
+                   that is just text does not read as something you can press.
+                   Once the filter is on it goes quiet and shows the active state
+                   instead, so the table reads normally while still saying that a
+                   subset is being shown. -->
+              <button
+                class="uppercase font-bold cursor-pointer select-none rounded px-1.5 py-0.5 transition text-[0.65rem] w-full truncate"
+                :class="
+                  pendingOnly
+                    ? 'bg-hoa-1400 text-white hover:bg-hoa-1500'
+                    : 'bg-hoa-1100 text-white hover:bg-hoa-1200'
+                "
+                :title="$t('filters.syncStatusHint')"
+                @click.stop.prevent="togglePendingOnly"
+              >
+                {{ pendingOnly ? $t('filters.pendingOnly') : $t('filters.syncStatus') }}
+              </button>
+            </div>
             <div class="text-right flex-none w-[15%] p-1" />
           </div>
         </div>
@@ -64,7 +85,18 @@ const rowVirtualizer = useVirtualizer(
   }))
 )
 
-const { searchValue, filters } = useSearchLibrary()
+const { searchValue, setSearch, filters } = useSearchLibrary()
+
+// "Pending" means the track has no synced lyrics yet. The library filter is
+// phrased the other way round ("include tracks that already have synced
+// lyrics"), so pending is its negation. Derived from the shared filter rather
+// than a local flag, so the dropdown and this header stay in step.
+const pendingOnly = computed(() => !filters.value.syncedLyricsTracks)
+
+const togglePendingOnly = () => {
+  const next = { ...filters.value, syncedLyricsTracks: pendingOnly.value }
+  setSearch(searchValue.value, next)
+}
 
 const virtualRows = computed(() => rowVirtualizer.value.getVirtualItems())
 

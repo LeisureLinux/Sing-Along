@@ -2233,7 +2233,15 @@ async fn main() {
         std::process::exit(code);
     }
 
+    // Must be registered before anything else: when a second instance starts,
+    // this plugin's callback fires in the *first* instance and the second exits.
+    // Without it two copies share one SQLite file and one tray icon each.
     let builder = tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            // A second launch is the user asking for the window. Bring the
+            // existing one forward rather than starting a parallel copy.
+            show_main_window(app);
+        }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())

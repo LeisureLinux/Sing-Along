@@ -99,6 +99,8 @@ export default {
     syncedTracks: 'Лише без синхронізованого тексту',
     plainTracks: 'Лише без звичайного тексту',
     instrumentalTracks: 'Інструментальні композиції',
+    syncStatus: 'Синхронізація',
+    syncStatusHint: 'Перемкнути: усі / лише несинхронізовані',
     pendingOnly: 'Очікують синхронізації',
     pendingHint: 'Показувати лише без синхронізованого тексту',
     noLyricsTracks: 'Композиції зовсім без тексту',

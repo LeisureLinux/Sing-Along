@@ -61,6 +61,7 @@ tauri-plugin-clipboard-manager = "2.3.2"
 # Cargo does not honour `debug_assertions` there, it only warns, so the plugin
 # used to be compiled into release builds as well.
 tauri-plugin-webdriver = { version = "0.2", optional = true }
+tauri-plugin-single-instance = "2.4.5"
 
 [features]
 # by default Tauri runs in production mode

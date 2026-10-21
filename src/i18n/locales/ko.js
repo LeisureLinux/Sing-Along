@@ -95,6 +95,8 @@ export default {
     syncedTracks: '동기화 가사가 없는 곡만',
     plainTracks: '일반 가사가 없는 곡만',
     instrumentalTracks: '연주곡',
+    syncStatus: '동기화 상태',
+    syncStatusHint: '전환: 전체 / 미동기화만',
     pendingOnly: '동기화 대기',
     pendingHint: '동기화된 가사가 없는 곡만 표시',
     noLyricsTracks: '가사가 전혀 없는 곡',

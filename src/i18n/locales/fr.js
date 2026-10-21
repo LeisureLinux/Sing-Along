@@ -95,6 +95,8 @@ export default {
     syncedTracks: 'Uniquement les pistes sans paroles synchronisées',
     plainTracks: 'Uniquement les pistes sans paroles simples',
     instrumentalTracks: 'Pistes instrumentales',
+    syncStatus: 'État',
+    syncStatusHint: 'Basculer : tout / non synchronisé',
     pendingOnly: 'À synchroniser',
     pendingHint: 'Afficher seulement les pistes sans paroles synchronisées',
     noLyricsTracks: 'Pistes sans aucune parole',

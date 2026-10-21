@@ -95,6 +95,8 @@ export default {
     syncedTracks: 'Hanya lagu tanpa lirik tersinkron',
     plainTracks: 'Hanya lagu tanpa lirik biasa',
     instrumentalTracks: 'Lagu instrumental',
+    syncStatus: 'Status sinkron',
+    syncStatusHint: 'Alihkan: semua / belum tersinkron',
     pendingOnly: 'Menunggu',
     pendingHint: 'Hanya tampilkan lagu tanpa lirik tersinkron',
     noLyricsTracks: 'Lagu tanpa lirik sama sekali',

@@ -99,6 +99,8 @@ export default {
     syncedTracks: 'Yalnızca eşitlenmiş sözü olmayanlar',
     plainTracks: 'Yalnızca düz sözü olmayanlar',
     instrumentalTracks: 'Enstrümantal parçalar',
+    syncStatus: 'Eşitleme',
+    syncStatusHint: 'Değiştir: tümü / yalnızca eşitlenmemiş',
     pendingOnly: 'Bekleyen',
     pendingHint: 'Yalnızca eşitlenmiş sözü olmayanları göster',
     noLyricsTracks: 'Hiç şarkı sözü olmayan parçalar',

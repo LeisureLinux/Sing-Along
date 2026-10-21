@@ -28,6 +28,32 @@ pub fn initialize_database(app_handle: &AppHandle) -> Result<Connection, rusqlit
 
     let mut db = Connection::open(sqlite_path)?;
 
+    // Exclusive access for the lifetime of this connection.
+    //
+    // Two processes sharing this file is not survivable: SQLite serialises
+    // writes but each process holds its own cache, so one can migrate the schema
+    // or delete rows the other still believes exist. The single-instance plugin
+    // already stops a second GUI from starting, but it keys on the process, not
+    // the data — a stale lock from a crash, or a copy in another path, would slip
+    // past it. Taking an exclusive lock means the second process fails here, at
+    // the only place that actually matters.
+    match db.pragma_update(None, "locking_mode", "EXCLUSIVE") {
+        Ok(()) => {}
+        Err(err) => {
+            eprintln!("[DB Init] could not set exclusive locking: {err}");
+        }
+    }
+
+    // Prove the lock is ours. `BEGIN EXCLUSIVE` takes a write lock immediately
+    // and fails with SQLITE_BUSY when another process holds the database; a read
+    // like `quick_check` would instead block until the busy timeout expired and
+    // then report success.
+    db.busy_timeout(std::time::Duration::from_millis(500))?;
+    if let Err(err) = db.execute_batch("BEGIN EXCLUSIVE; COMMIT;") {
+        eprintln!("[DB Init] database is locked by another process: {err}");
+        return Err(err);
+    }
+
     db.pragma_update(None, "journal_mode", "WAL")?;
 
     let current_version: i64 = db

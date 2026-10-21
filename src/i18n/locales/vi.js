@@ -95,6 +95,8 @@ export default {
     syncedTracks: 'Chỉ bài chưa có lời đồng bộ',
     plainTracks: 'Chỉ bài chưa có lời thường',
     instrumentalTracks: 'Bài không lời',
+    syncStatus: 'Trạng thái',
+    syncStatusHint: 'Chuyển: tất cả / chưa đồng bộ',
     pendingOnly: 'Chờ đồng bộ',
     pendingHint: 'Chỉ hiện bài chưa có lời đồng bộ',
     noLyricsTracks: 'Bài chưa có lời nào',

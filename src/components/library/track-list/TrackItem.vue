@@ -20,7 +20,7 @@
     <!-- Track title, album, and artist -->
     <div
       class="flex-none flex p-1"
-      :class="{ 'w-[65%]': !isShowTrackNumber, 'w-[60%]': isShowTrackNumber }"
+      :class="{ 'w-[63%]': !isShowTrackNumber, 'w-[58%]': isShowTrackNumber }"
       @click="startTrack"
     >
       <div v-if="track">

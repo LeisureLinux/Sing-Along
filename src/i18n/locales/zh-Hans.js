@@ -91,6 +91,8 @@ export default {
     syncedTracks: '仅缺少同步歌词的歌曲',
     plainTracks: '仅缺少纯文本歌词的歌曲',
     instrumentalTracks: '纯音乐歌曲',
+    syncStatus: '同步状态',
+    syncStatusHint: '切换：全部歌曲 / 仅未同步',
     pendingOnly: '待同步',
     pendingHint: '只显示还没有同步歌词的歌曲',
     noLyricsTracks: '完全没有歌词的歌曲',
