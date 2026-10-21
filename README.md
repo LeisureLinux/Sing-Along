@@ -186,15 +186,27 @@ Typical requests it covers:
 
 ## Install
 
-Releases currently ship **one asset: a Linux amd64 `.deb`**:
+See [the latest release](https://github.com/LeisureLinux/Sing-Along/releases/latest)
+for the current version's files.
+
+**Linux** — `.deb` for Debian and Ubuntu, `.rpm` for Fedora and openSUSE, or the
+`.AppImage` if neither applies. The AppImage needs no installation; mark it
+executable and run it.
 
 ```shell
-wget https://github.com/LeisureLinux/Sing-Along/releases/latest/download/sing-along_2.6.3_amd64.deb
-sudo apt install ./sing-along_2.6.3_amd64.deb
+sudo apt install ./sing-along_x.y.z_amd64.deb    # Debian / Ubuntu
+sudo dnf install ./sing-along-x.y.z-1.x86_64.rpm # Fedora
+chmod +x sing-along_x.y.z_amd64.AppImage && ./sing-along_x.y.z_amd64.AppImage
 ```
 
-macOS and Windows bundles are switched off until 3.x (see [Building](#building)).
-If you are on another platform or distribution, build from source.
+**Windows** — `-setup.exe` installs it; the `.msi` is for managed deployment.
+
+**macOS** — the `.dmg` is Apple Silicon only (M1 and later).
+
+The Linux builds are dynamically linked against WebKitGTK, GTK 3 and ALSA, so
+they need those present at runtime. A static build is not possible: distributions
+ship no static WebKitGTK, and WebKitGTK loads GIO modules and font backends at
+runtime even when everything else is linked in.
 
 ## Development
 
@@ -248,9 +260,10 @@ cargo features that `tauri build` does not enable. Verify with
 `cargo tree -i tauri-plugin-webdriver`, which cannot resolve the package at all
 in the default feature set.
 
-Only `deb` is enabled in `tauri.conf.json` (`bundle.targets`), so a plain build
-produces that and nothing else. Adding `rpm`, `appimage`, `dmg`, `nsis` or `msi`
-there is what re-enables them.
+`bundle.targets` in `tauri.conf.json` lists what a plain `npm run tauri build`
+produces: `deb`, `rpm`, `appimage`, `nsis`, `msi` and `dmg`. Each platform only
+builds the ones it can — a Linux run skips the Windows and macOS targets — so the
+list is a declaration of intent rather than a single-machine build plan.
 
 ## License and attribution
 

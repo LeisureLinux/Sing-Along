@@ -18,24 +18,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Linux amd64 only, and only the .deb.
+          # Each platform names exactly the installers it should ship, so the
+          # release page does not depend on what `"all"` happens to include on a
+          # given runner image.
           #
-          # macOS and Windows builds are switched off until 3.x. They cost the
-          # slowest legs of the matrix (code signing, extra runner time) for a
-          # project that is still changing shape every few releases, and the
-          # Linux .deb covers the machines this is developed and tested on.
-          # Re-add the platform rows below when 3.x ships:
-          #
-          #   - platform: 'macos-latest'
-          #     args: '--target aarch64-apple-darwin --bundles dmg'
-          #   - platform: 'windows-latest'
-          #     args: '--bundles nsis,msi'
+          # Apple Silicon only. Intel Macs are not built: Apple has stopped
+          # shipping new Intel hardware and macOS support for it is winding down,
+          # so a second macOS job doubles the slowest leg of the matrix for a
+          # shrinking audience. Add `--target x86_64-apple-darwin` here if that
+          # changes.
           #
           # Note this list alone does not control the macOS `.app.tar.gz`: the
           # updater archives are requested by `tauri-action` via
-          # `includeUpdaterJson`, not by the target list.
+          # `uploadUpdaterJson`, not by the target list.
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin --bundles dmg'
           - platform: 'ubuntu-22.04'
-            args: '--bundles deb'
+            args: '--bundles deb,rpm,appimage'
+          - platform: 'windows-latest'
+            args: '--bundles nsis,msi'
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -49,9 +50,9 @@ jobs:
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          # No extra targets: the matrix only builds the runner's own platform,
-          # so installing another one would be a download with no use.
-          targets: ''
+          # Only the target actually being built: an extra Rust target costs a
+          # download and gains nothing on the other platforms.
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
 
       # The upstream workflow pinned libwebkit2gtk to a specific version that
       # only existed on one runner image; that breaks as soon as the image moves.
@@ -108,9 +109,13 @@ jobs:
           releaseBody: |
             Synced lyrics tool for your own music files.
 
-            **Linux amd64 only** for now: download `sing-along___VERSION___amd64.deb`
-            and install with `sudo apt install ./sing-along___VERSION___amd64.deb`.
-            Other distributions and architectures ship again from 3.x onward.
+            - **Linux**: `.deb` (Debian/Ubuntu), `.rpm` (Fedora/openSUSE), or the
+              `.AppImage` which runs on most distributions.
+            - **Windows**: `-setup.exe` to install, `.msi` for managed deployment.
+            - **macOS**: the `.dmg` is Apple Silicon only (M1 and later).
+
+            Install on Debian/Ubuntu with
+            `sudo apt install ./sing-along___VERSION___amd64.deb`.
 
             Full changelog: https://github.com/LeisureLinux/Sing-Along/commits/main
           # Published straight away rather than left as a draft. The tests run
