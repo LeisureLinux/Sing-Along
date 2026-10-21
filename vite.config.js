@@ -23,7 +23,7 @@ export default defineConfig({
     // past the inotify limit once a second (musl) target was added, and the
     // watcher then died with ENOSPC before the dev server came up.
     watch: {
-      ignored: ['**/src-tauri/**', '**/demo/**'],
+      ignored: ['**/src-tauri/**', '**/demo/**', '**/docs/**'],
     },
   },
   // to make use of `TAURI_DEBUG` and other env variables

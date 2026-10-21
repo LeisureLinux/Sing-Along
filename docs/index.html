@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Sing-Along — lyric sync for your own music files</title>
+<meta name="description" content="A free, open-source desktop music player that downloads synced lyrics for the music you already own, lets you fix the timing word by word, and exports LRC, enhanced LRC (A2) and TTML for Android and iOS players. Linux, Windows and macOS. MIT licensed.">
+<link rel="canonical" href="https://singalong.freelamp.com/">
+<link rel="icon" href="icon.png" type="image/png">
+<link rel="apple-touch-icon" href="icon.png">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://singalong.freelamp.com/">
+<meta property="og:title" content="Sing-Along — lyric sync for your own music files">
+<meta property="og:description" content="Downloads synced lyrics for the music you already own, fixes the timing word by word, exports LRC, A2 and TTML. Free, MIT, Linux/Windows/macOS.">
+<meta property="og:image" content="https://singalong.freelamp.com/icon.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sing-Along — lyric sync for your own music files">
+<meta name="twitter:description" content="Downloads synced lyrics for the music you already own, fixes the timing word by word, exports LRC, A2 and TTML. Free, MIT.">
+<meta name="twitter:image" content="https://singalong.freelamp.com/icon.png">
+
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1f2328;
+    --muted: #59636e;
+    --line: #d1d9e0;
+    --accent: #0969da;
+    --card: #f6f8fa;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117;
+      --fg: #e6edf3;
+      --muted: #9198a1;
+      --line: #30363d;
+      --accent: #4493f8;
+      --card: #151b23;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+          Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header { padding: 64px 0 40px; }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .brand img { width: 64px; height: 64px; border-radius: 12px; }
+  h1 { font-size: 2.1rem; line-height: 1.2; margin: 0; letter-spacing: -0.02em; }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 1.05rem; }
+
+  .lede { font-size: 1.15rem; margin: 32px 0 24px; max-width: 68ch; }
+  .lede strong { font-weight: 600; }
+
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin: 28px 0 8px; }
+  .btn {
+    display: inline-block; padding: 11px 20px; border-radius: 8px;
+    border: 1px solid var(--line); font-weight: 600; font-size: 0.95rem;
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { text-decoration: none; filter: brightness(1.08); }
+
+  .meta { color: var(--muted); font-size: 0.88rem; margin-top: 16px; }
+
+  section { padding: 40px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 1.35rem; margin: 0 0 20px; letter-spacing: -0.01em; }
+  h3 { font-size: 1rem; margin: 28px 0 8px; }
+
+  ul.features { list-style: none; padding: 0; margin: 0; }
+  ul.features li {
+    padding: 10px 0 10px 26px; position: relative; border-bottom: 1px solid var(--line);
+  }
+  ul.features li:last-child { border-bottom: 0; }
+  ul.features li::before {
+    content: ""; position: absolute; left: 6px; top: 19px;
+    width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+  }
+  ul.features b { font-weight: 600; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.94rem; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  td code, code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9em; background: var(--card); padding: 2px 6px; border-radius: 5px;
+  }
+  pre {
+    background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto; font-size: 0.88rem;
+  }
+  pre code { background: none; padding: 0; }
+
+  .note {
+    background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0; font-size: 0.94rem;
+  }
+  .note p { margin: 0 0 8px; }
+  .note p:last-child { margin: 0; }
+
+  img.demo {
+    width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line);
+    margin: 8px 0 4px;
+  }
+
+  footer {
+    padding: 36px 0 64px; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 0.88rem;
+  }
+  footer p { margin: 0 0 8px; }
+
+  @media (max-width: 600px) {
+    header { padding: 40px 0 28px; }
+    h1 { font-size: 1.6rem; }
+    .lede { font-size: 1.05rem; }
+    .brand img { width: 48px; height: 48px; }
+  }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Sing-Along",
+  "alternateName": "Sing-Along lyric sync",
+  "applicationCategory": "MultimediaApplication",
+  "applicationSubCategory": "Music player",
+  "operatingSystem": "Linux, Windows, macOS",
+  "description": "A free, open-source desktop music player that downloads synced lyrics for the music you already own, lets you correct the timing word by word, and exports LRC, enhanced LRC (A2) and TTML for Android and iOS players.",
+  "url": "https://singalong.freelamp.com/",
+  "downloadUrl": "https://github.com/LeisureLinux/Sing-Along/releases/latest",
+  "codeRepository": "https://github.com/LeisureLinux/Sing-Along",
+  "license": "https://opensource.org/licenses/MIT",
+  "softwareVersion": "2.9.19",
+  "datePublished": "2026-10-15",
+  "programmingLanguage": ["Rust", "Vue"],
+  "author": {
+    "@type": "Person",
+    "name": "LeisureLinux",
+    "url": "https://github.com/LeisureLinux"
+  },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "isAccessibleForFree": true,
+  "keywords": "synced lyrics, lyric sync, LRC, TTML, karaoke, music player, LRCLIB, NetEase, Linux, Tauri"
+}
+</script>
+</head>
+<body>
+
+<div class="wrap">
+
+<header>
+  <div class="brand">
+    <img src="icon.png" alt="Sing-Along icon" width="64" height="64">
+    <div>
+      <h1>Sing-Along</h1>
+      <p class="tagline">Lyric sync for the music you already own</p>
+    </div>
+  </div>
+</header>
+
+<p class="lede">
+  A free desktop music player that finds <strong>timed lyrics</strong> for your
+  local files, lets you correct the timing <strong>word by word</strong>, and
+  exports them in the formats your phone and car actually read — LRC, enhanced
+  LRC (A2) and TTML.
+</p>
+
+<div class="cta">
+  <a class="btn primary" href="https://github.com/LeisureLinux/Sing-Along/releases/latest">Download</a>
+  <a class="btn" href="https://github.com/LeisureLinux/Sing-Along">Source code</a>
+</div>
+
+<p class="meta">
+  Linux · Windows · macOS &nbsp;|&nbsp; MIT licensed &nbsp;|&nbsp; 17 languages
+  &nbsp;|&nbsp; No account, no subscription, no telemetry
+</p>
+
+<section>
+  <img class="demo" src="demo.webp" alt="Sing-Along playing a track with its lyrics scrolling in time" width="1600" height="1000">
+</section>
+
+<section>
+  <h2>What it does</h2>
+  <ul class="features">
+    <li><b>Finds lyrics for a whole library.</b> Batch download with skip rules — overwrite everything, fill only the tracks missing timed lyrics, or only the tracks with no lyrics at all.</li>
+    <li><b>Two sources, chosen independently.</b> LRCLIB and NetEase can each be switched on or off; one being unreachable does not abort the run.</li>
+    <li><b>Word-level editing.</b> Drag the timing of a line, or individual words, and hear the result as you go.</li>
+    <li><b>Script conversion.</b> Simplified ↔ Traditional Chinese, applied on download or at export, never rewriting the words themselves.</li>
+    <li><b>Exports that fit the target.</b> Plain LRC, enhanced LRC (A2 word tags) and TTML — the latter is what Steve on iOS and several car head units read for word-by-word display.</li>
+    <li><b>Album art.</b> Embedded covers are read and shown, and missing ones can be filled from iTunes or Deezer and written back into the file.</li>
+    <li><b>Works on your files.</b> Lyrics are saved next to the audio or embedded in the tags you choose. Nothing is copied into a library of its own.</li>
+    <li><b>Also a command line.</b> The same binary runs headless for scripts and coding agents: <code>fetch</code>, <code>export</code>, <code>status</code>, <code>formats</code>.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Install</h2>
+  <table>
+    <thead>
+      <tr><th>Platform</th><th>File</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Debian, Ubuntu</td><td><code>sing-along_&lt;version&gt;_amd64.deb</code></td></tr>
+      <tr><td>Fedora, openSUSE</td><td><code>sing-along-&lt;version&gt;.x86_64.rpm</code></td></tr>
+      <tr><td>Any Linux</td><td><code>sing-along_&lt;version&gt;_amd64.AppImage</code></td></tr>
+      <tr><td>Windows 10/11</td><td><code>sing-along_&lt;version&gt;_x64-setup.exe</code></td></tr>
+      <tr><td>macOS (Apple Silicon)</td><td><code>sing-along_&lt;version&gt;_aarch64.dmg</code></td></tr>
+    </tbody>
+  </table>
+  <p class="meta">All of them are on the <a href="https://github.com/LeisureLinux/Sing-Along/releases/latest">releases page</a>.</p>
+
+  <h3>Command line only</h3>
+  <p>
+    One statically linked file, no install, no GTK or WebKit needed — the one to
+    use in a container or on a machine where the player itself cannot be
+    installed.
+  </p>
+  <pre><code>curl -LO https://github.com/LeisureLinux/Sing-Along/releases/latest/download/singalong-cli-linux-amd64
+chmod +x singalong-cli-linux-amd64
+./singalong-cli-linux-amd64 status ~/Music</code></pre>
+
+  <div class="note">
+    <p><strong>Windows and macOS builds are unsigned.</strong></p>
+    <p>Windows SmartScreen asks for confirmation on first run: <em>More info → Run
+    anyway</em>. On macOS, right-click the app and choose Open, or run
+    <code>xattr -dr com.apple.quarantine /Applications/Sing-Along.app</code>.</p>
+    <p>Code signing is applied for through
+    <a href="https://signpath.org/">SignPath Foundation</a>; until it is granted,
+    these prompts are expected.</p>
+  </div>
+</section>
+
+<section>
+  <h2>How it compares</h2>
+  <table>
+    <thead>
+      <tr><th></th><th>Sing-Along</th><th>Players with lyric panels</th><th>Lyric sites &amp; apps</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Works on your own files</td>
+        <td>Yes</td><td>Yes</td><td>No — streaming catalogue</td>
+      </tr>
+      <tr>
+        <td>Corrects word-level timing</td>
+        <td>Yes</td><td>Rarely, line-level at best</td><td>No</td>
+      </tr>
+      <tr>
+        <td>Exports TTML / A2 for phones and cars</td>
+        <td>Yes</td><td>No</td><td>No</td>
+      </tr>
+      <tr>
+        <td>Free, no account</td>
+        <td>Yes, MIT</td><td>Varies</td><td>Ad-supported or subscription</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Who it is for</h2>
+  <ul class="features">
+    <li>People with a local music library who want timed lyrics on every track, not just the popular ones.</li>
+    <li>Anyone whose phone player or car stereo shows lyrics only when the file carries TTML or A2 word timing.</li>
+    <li>Chinese-language listeners who need Simplified/Traditional conversion without changing the lyrics themselves.</li>
+    <li>Scripts and coding agents that need lyrics fetched or converted without a GUI — see <a href="https://github.com/LeisureLinux/Sing-Along/blob/main/skills/sing-along/SKILL.md">the skill file</a> and <a href="https://github.com/LeisureLinux/Sing-Along/blob/main/llms.txt">llms.txt</a>.</li>
+  </ul>
+</section>
+
+<footer>
+  <p>
+    Sing-Along is free software under the
+    <a href="https://github.com/LeisureLinux/Sing-Along/blob/main/LICENSE">MIT licence</a>.
+    It began as a fork of
+    <a href="https://github.com/tranxuanthang/lrcget">LRCGET</a> and has since
+    diverged.
+  </p>
+  <p>
+    Lyrics are never translated. Lyric text is shown exactly as its source
+    provides it; only the writing system can be converted, and only when asked.
+  </p>
+  <p>
+    <a href="https://github.com/LeisureLinux/Sing-Along">GitHub</a> ·
+    <a href="https://github.com/LeisureLinux/Sing-Along/releases/latest">Releases</a> ·
+    <a href="https://github.com/LeisureLinux/Sing-Along/blob/main/llms.txt">llms.txt</a>
+  </p>
+</footer>
+
+</div>
+</body>
+</html>
