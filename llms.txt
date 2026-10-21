@@ -17,6 +17,7 @@ no GTK, WebKit or ALSA installed:
 | Platform | File |
 | -------- | ---- |
 | Linux x86_64 | `singalong-cli-linux-amd64` |
+| Linux arm64 | `singalong-cli-linux-arm64` |
 | macOS Apple Silicon | `singalong-cli-macos-arm64` |
 | Windows x86_64 | `singalong-cli-windows-amd64.exe` |
 

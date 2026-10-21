@@ -103,12 +103,18 @@ jobs:
       #
       # Windows gets a static CRT build for the same reason. macOS is absent
       # deliberately: Apple does not support fully static linking.
-      - name: build cli (linux, static)
+      # Two architectures, both fully static. amd64 uses the distro's musl-tools;
+      # arm64 needs a toolchain Debian does not package, so `cross` supplies one
+      # from a container image. Doing it by hand means downloading a GCC build
+      # from a third-party mirror and pinning it, which is worse than a maintained
+      # image for the one target that needs it.
+      #
+      # `ring` compiles C, which is why a plain `rustup target add` is not enough:
+      # without a musl-targeted compiler the build stops with
+      # `failed to find tool "x86_64-linux-musl-gcc"`.
+      - name: build cli (linux amd64, static)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
-          # `ring` compiles C and needs a musl-targeted compiler; the runner has
-          # the musl *target* for rustc but not this, and the build fails with
-          # `failed to find tool "x86_64-linux-musl-gcc"`.
           sudo apt-get install -y musl-tools
           rustup target add x86_64-unknown-linux-musl
           cargo build --release --no-default-features --features cli \
@@ -116,6 +122,18 @@ jobs:
           strip target/x86_64-unknown-linux-musl/release/singalong-cli
           cp target/x86_64-unknown-linux-musl/release/singalong-cli \
             singalong-cli-linux-amd64
+        working-directory: src-tauri
+
+      - name: build cli (linux arm64, static)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          cargo install cross --git https://github.com/cross-rs/cross
+          cross build --release --no-default-features --features cli \
+            --target aarch64-unknown-linux-musl --bin singalong-cli
+          aarch64-linux-gnu-strip \
+            target/aarch64-unknown-linux-musl/release/singalong-cli || true
+          cp target/aarch64-unknown-linux-musl/release/singalong-cli \
+            singalong-cli-linux-arm64
         working-directory: src-tauri
 
       # macOS cannot be linked statically, but the CLI is still worth shipping
@@ -166,12 +184,13 @@ jobs:
             | Your platform | File |
             | --- | --- |
             | Linux x86_64 | `singalong-cli-linux-amd64` |
+            | Linux arm64 | `singalong-cli-linux-arm64` |
             | macOS (Apple Silicon) | `singalong-cli-macos-arm64` |
             | Windows x86_64 | `singalong-cli-windows-amd64.exe` |
 
-            These are the command line only — they never open a window, and the
-            Linux build is statically linked so it runs on a machine with no GTK
-            or WebKit at all.
+            These are the command line only — they never open a window, and both
+            Linux builds are statically linked so they run on a machine with no
+            GTK or WebKit at all.
 
             ```
             singalong-cli-linux-amd64 status ~/Music
@@ -230,7 +249,9 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04' && github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" singalong-cli-linux-amd64 --clobber
+        run: |
+          gh release upload "${{ github.ref_name }}" \
+            singalong-cli-linux-amd64 singalong-cli-linux-arm64 --clobber
         working-directory: src-tauri
 
       - name: attach cli (macos)

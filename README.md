@@ -173,6 +173,7 @@ minimal server — every release also carries a standalone binary. Pick one file
 | Platform | File |
 | --- | --- |
 | Linux x86_64 | `singalong-cli-linux-amd64` (statically linked) |
+| Linux arm64 | `singalong-cli-linux-arm64` (statically linked) |
 | macOS Apple Silicon | `singalong-cli-macos-arm64` |
 | Windows x86_64 | `singalong-cli-windows-amd64.exe` |
 
