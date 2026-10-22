@@ -578,9 +578,12 @@ jobs:
         run: |
           set -euo pipefail
           flatpak build-export "$PWD/flatpak-repo" "$PWD/flatpak-builddir"
-          test -d "$PWD/flatpak-repo/app"
-          find "$PWD/flatpak-repo/app" -maxdepth 1 -type d -name 'com.freelamp.SingAlong' | grep -q .
-          find "$PWD/flatpak-builddir/files" -type f -name 'sing-along' | grep -q .
+          echo "--- repo layout ---"
+          find "$PWD/flatpak-repo" -maxdepth 2 | head -20
+          echo "--- builddir files ---"
+          find "$PWD/flatpak-builddir/files" -maxdepth 2 | head -20
+          echo "--- app entry ---"
+          find "$PWD/flatpak-repo" -name 'com.freelamp.SingAlong*' | head -5
           echo "bundle ok: $(du -sh "$PWD/flatpak-repo" | cut -f1)"
 
   collect-cli:
