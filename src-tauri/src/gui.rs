@@ -2172,6 +2172,44 @@ async fn segment_words(text: String) -> Result<Vec<String>, String> {
 /// without an explicit Quit the process would have no way to exit from the
 /// window manager.
 fn build_tray(app: &AppHandle) -> tauri::Result<()> {
+    // The tray icon needs libayatana-appindicator3, and that library is not
+    // everywhere. GNOME desktops do not ship it, and neither does the Flatpak
+    // runtime. When it is missing, the library's loader *panics* rather than
+    // returning an error, so the error handling below never sees it and the
+    // whole application dies on startup — with a tray icon as the cause.
+    //
+    // Catching the panic turns that into a warning. The application runs
+    // without a tray, which is a limitation rather than a failure.
+    //
+    // The panic message is suppressed: it names four shared objects and
+    // nothing a reader can act on, and the warning below says the same thing
+    // in one line.
+    let previous_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(|_| {}));
+    let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        build_tray_inner(app)
+    }));
+    std::panic::set_hook(previous_hook);
+
+    match outcome {
+        Ok(result) => result,
+        Err(_) => {
+            eprintln!(
+                "Tray icon unavailable: the system has no appindicator library. \
+                 The window will not hide to a tray."
+            );
+            // `Err` rather than `Ok`: the caller needs to know that there is no
+            // tray, because without one, hiding the window would leave no way
+            // to bring it back.
+            Err(tauri::Error::Io(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                "no appindicator library",
+            )))
+        }
+    }
+}
+
+fn build_tray_inner(app: &AppHandle) -> tauri::Result<()> {
     use tauri::menu::{Menu, MenuItem};
     use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 
@@ -2254,6 +2292,11 @@ pub fn run() {
         // Must be registered before anything else: when a second instance starts,
     // this plugin's callback fires in the *first* instance and the second exits.
     // Without it two copies share one SQLite file and one tray icon each.
+    // Whether a tray icon exists. The window handler and the setup hook are
+    // separate closures, and this is what they share: without a tray, closing
+    // the window has to exit the application, or there is no way back to it.
+    let tray_available = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             // A second launch is the user asking for the window. Bring the
@@ -2348,18 +2391,22 @@ pub fn run() {
             read_text_file,
             segment_words,
         ])
-        .setup(|app| {
+        .setup({
+            let tray_available = tray_available.clone();
+            move |app| {
             let handle = app.handle();
 
             // Tray icon: closing the window hides it instead of quitting, and the
             // tray restores it. Wayland has no "minimize to tray" of its own, so
             // this is the app's job. Quitting for real still works from the tray
             // menu — see `build_tray` for why that distinction is explicit.
-            if let Err(err) = build_tray(app.handle()) {
-                // Not fatal: the app still works without a tray, it just cannot
-                // be hidden to one.
-                eprintln!("Failed to create the tray icon: {err}");
+            let tray_usable = build_tray(app.handle()).is_ok();
+            if !tray_usable {
+                // Not fatal, but it changes what closing the window means: see
+                // the `CloseRequested` handler.
+                eprintln!("Failed to create the tray icon");
             }
+            tray_available.store(tray_usable, std::sync::atomic::Ordering::Relaxed);
 
             let app_state: State<AppState> = handle.state();
             let db = crate::db::initialize_database(&handle).expect("Database initialize should succeed");
@@ -2477,13 +2524,22 @@ pub fn run() {
             });
 
             Ok(())
+            }
         })
-        .on_window_event(|window, event| {
+        .on_window_event(move |window, event| {
             // Closing hides to the tray rather than exiting. Without this the
             // process would die and the tray icon would vanish with it, which is
             // the opposite of what hiding means.
+            //
+            // Only when there is a tray. Without one, hiding the window would
+            // leave the user with no way to bring it back — the process would
+            // still be running, with nothing on screen and nothing to click. On
+            // GNOME, and inside a Flatpak, there is no appindicator library, so
+            // this is the normal case rather than an edge case.
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                if window.label() == "main" {
+                if window.label() == "main"
+                    && tray_available.load(std::sync::atomic::Ordering::Relaxed)
+                {
                     api.prevent_close();
                     let _ = window.hide();
                 }
