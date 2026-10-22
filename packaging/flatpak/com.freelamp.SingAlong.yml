@@ -41,21 +41,23 @@ modules:
     buildsystem: simple
     build-commands:
       # Unpack the Debian archive: `ar` holds control.tar.* and data.tar.*, and
-      # only the latter is the payload.
+      # only the latter is the payload. The extension is not fixed — dpkg-bundled
+      # archives use gz, xz or zst depending on the toolchain that made them — so
+      # the member is found by name rather than assumed.
       - ar x sing-along.deb
-      - tar -xf data.tar.xz
+      - tar -xf "$(basename data.tar.*)"
       # The payload is already laid out as usr/... so it maps onto the prefix.
       - cp -r usr/* /app/
       # Flathub requires the desktop file and the metainfo file to be named after
-      # the app id, whatever the payload calls them.
-      - install -Dm644 usr/share/applications/Sing-Along.desktop /app/share/applications/com.freelamp.SingAlong.desktop
-      - install -Dm644 usr/share/metainfo/sing-along.metainfo.xml /app/share/metainfo/com.freelamp.SingAlong.metainfo.xml
-      - install -Dm644 usr/share/man/man1/sing-along.1 /app/share/man/man1/sing-along.1
-      - install -Dm755 usr/bin/sing-along /app/bin/sing-along
+      # the app id. The payload names them after the product, so they are moved
+      # rather than copied — leaving the originals in place would ship two desktop
+      # entries for one application, which the linter rejects.
+      - mv /app/share/applications/Sing-Along.desktop /app/share/applications/com.freelamp.SingAlong.desktop
+      - mv /app/share/metainfo/sing-along.metainfo.xml /app/share/metainfo/com.freelamp.SingAlong.metainfo.xml
       # Icons keep the name the desktop file points at; renaming them would break
       # `Icon=sing-along` inside it.
     sources:
       - type: file
         url: https://github.com/LeisureLinux/Sing-Along/releases/download/v2.9.19/sing-along_2.9.19_amd64.deb
-        sha256: 2e63c8a5aa7b0945cfd9e02d9eea89c06330a0507e9eaec5161c6179da40c60b
+        sha256: 8f76a8788391d2a7d10d6f962ff53f8f8b70b6d0beb09296458696087b53a249
         dest-filename: sing-along.deb

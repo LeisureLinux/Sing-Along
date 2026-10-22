@@ -210,6 +210,15 @@ jobs:
           name: cli-linux-amd64
           path: src-tauri/singalong-cli-linux-amd64
 
+      # The Flatpak is built from this .deb rather than from source, so it has to
+      # travel between jobs.
+      - uses: actions/upload-artifact@v4
+        if: matrix.platform == 'ubuntu-22.04'
+        with:
+          name: deb-amd64
+          path: src-tauri/target/release/bundle/deb/*.deb
+          if-no-files-found: error
+
       - name: build cli (linux arm64, static)
         if: matrix.platform == 'ubuntu-24.04-arm'
         run: |
@@ -471,6 +480,82 @@ jobs:
           find signed -type f \( -name '*.exe' \) -exec \
             gh release upload "${{ github.ref_name }}" {} \
             --clobber --repo "${{ github.repository }}" \;
+
+  # Build the Flatpak. This is a build check, not a publication: Flathub builds
+  # the manifest itself from its own CI, and a bundle produced here would not be
+  # the one users install.
+  #
+  # The point is that a submission which cannot build is rejected after a review
+  # cycle measured in weeks. Building it here makes the same failure visible in
+  # minutes.
+  flatpak:
+    needs: build
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install flatpak
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak
+          flatpak remote-add --user --if-not-exists flathub \
+            https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install -y --user --noninteractive flathub \
+            org.flatpak.Builder org.gnome.Platform//49 org.gnome.Sdk//49
+
+      # The manifest points at the release asset, which a tag build has not
+      # published yet — the release is assembled at the end. So the .deb from this
+      # same run is substituted for it. `type: file` + `path` needs no network and
+      # no hash, and it is the only form flatpak-builder will use a local file in
+      # without also checking the pinned `sha256`.
+      - name: use this build's .deb
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh run download "${{ github.run_id }}" \
+            --repo "${{ github.repository }}" \
+            --name deb-amd64 --dir flatpak-dl
+          deb=$(find flatpak-dl -name '*.deb' | head -1)
+          test -n "$deb"
+          cp "$deb" packaging/flatpak/sing-along.deb
+
+      - name: point the manifest at it
+        run: |
+          python3 - <<'PY'
+          import yaml, pathlib
+          path = pathlib.Path("packaging/flatpak/com.freelamp.SingAlong.yml")
+          manifest = yaml.safe_load(path.read_text())
+          source = manifest["modules"][0]["sources"][0]
+          source.pop("url", None)
+          source.pop("sha256", None)
+          source["type"] = "file"
+          source["path"] = "sing-along.deb"
+          path.write_text(yaml.safe_dump(manifest, sort_keys=False))
+          print(path.read_text()[-400:])
+          PY
+
+      # Informational: the linter reaches out to the app id's domain to check that
+      # it resolves, and reports a failure when that request is rate-limited or the
+      # runner cannot make it. A build that succeeds is stronger evidence than this
+      # check, so a lint complaint does not stop the job.
+      - name: lint the manifest
+        continue-on-error: true
+        run: |
+          flatpak run --command=flatpak-builder-lint --share=network \
+            org.flatpak.Builder manifest \
+            packaging/flatpak/com.freelamp.SingAlong.yml
+
+      - name: build
+        run: |
+          flatpak run --share=network --command=flatpak-builder \
+            --filesystem="$PWD" org.flatpak.Builder \
+            --user --force-clean --disable-rofiles-fuse \
+            "$PWD/flatpak-builddir" \
+            "$PWD/packaging/flatpak/com.freelamp.SingAlong.yml"
 
   collect-cli:
     if: github.ref_type == 'tag'
