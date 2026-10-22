@@ -53,6 +53,36 @@ curl -sL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/downloa
 The workflow itself also has a `lint` job as the first step, so CI catches it —
 but that costs a full run to learn something a local second would have told you.
 
+## Flatpak
+
+The manifest is `packaging/flatpak/com.freelamp.SingAlong.yml`; the CI job is
+`flatpak` in `.github/workflows/publish.yml`. It builds the .deb rather than
+compiling a Tauri app inside the SDK, so it is fast.
+
+Things that cost a release each, all of which now have a note in the file:
+
+- `flatpak-builder` from the distribution, not `org.flatpak.Builder`. The
+  sandboxed builder images a fixed view of the runtime directories and cannot see
+  an SDK in the user installation.
+- `flatpak remote-add --user`, not without it. Configuring the system
+  installation is refused for a normal user.
+- The icon is named after the app id and the desktop file's `Icon=` is rewritten
+  to match. `appstreamcli compose` reports `gui-app-without-icon` otherwise, and
+  produces no metadata at all.
+- The metainfo declares `<icon>` and `<categories>`. `appstreamcli validate`
+  catches both in a second; Flathub's review does not.
+- No line continuations in a YAML block scalar: a trailing `\` survives into the
+  command as a literal backslash and a space, and the shell sees an extra
+  argument.
+- No `find | head` under `set -o pipefail`. `head` exits early, `find` takes
+  SIGPIPE, and the step fails on a bundle that is fine.
+- The check is `flatpak remote-info`. The ref is a file under `refs/heads/`, so
+  looking for a directory named after the app finds nothing.
+
+Before changing the manifest, `appstreamcli validate --no-net` on the metainfo
+and `flatpak-builder --version` take seconds. The whole build takes a few
+minutes in CI; do not spend a release on it.
+
 ## Check the CLI builds on Windows too
 
 `cli.rs` is compiled for every platform, and Unix-only APIs (`std::os::unix`,
