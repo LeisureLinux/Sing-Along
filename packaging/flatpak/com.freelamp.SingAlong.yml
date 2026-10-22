@@ -65,6 +65,6 @@ modules:
     # the point the check runs.
     sources:
       - type: file
-        url: https://github.com/LeisureLinux/Sing-Along/releases/download/v2.9.21/sing-along_2.9.21_amd64.deb
+        url: https://github.com/LeisureLinux/Sing-Along/releases/download/v2.9.22/sing-along_2.9.22_amd64.deb
         sha256: 8f76a8788391d2a7d10d6f962ff53f8f8b70b6d0beb09296458696087b53a249
         dest-filename: sing-along.deb
