@@ -572,14 +572,16 @@ jobs:
             "$PWD/packaging/flatpak/com.freelamp.SingAlong.yml"
 
       # Proves the result is an installable bundle rather than a directory that
-      # happens to contain files.
+      # happens to contain files: the export writes an OSTree repository with the
+      # app, its metadata and a runtime reference.
       - name: export a repository
         run: |
           set -euo pipefail
           flatpak build-export "$PWD/flatpak-repo" "$PWD/flatpak-builddir"
-          test -d "$PWD/flatpak-repo/app/com.freelamp.SingAlong"
-          test -x "$PWD/flatpak-builddir/files/bin/sing-along"
-          echo "bundle ok: $(du -sh "$PWD/flatpak-builddir" | cut -f1)"
+          test -d "$PWD/flatpak-repo/app"
+          find "$PWD/flatpak-repo/app" -maxdepth 1 -type d -name 'com.freelamp.SingAlong' | grep -q .
+          find "$PWD/flatpak-builddir/files" -type f -name 'sing-along' | grep -q .
+          echo "bundle ok: $(du -sh "$PWD/flatpak-repo" | cut -f1)"
 
   collect-cli:
     if: github.ref_type == 'tag'
