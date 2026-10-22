@@ -56,14 +56,11 @@ modules:
       # file's `Icon=` is changed to match. Leaving it as `sing-along` — the name
       # the .deb uses — makes appstreamcli report `gui-app-without-icon` and refuse
       # to produce any metadata at all, which fails the build at the last step.
-      - |
-        for size in 32x32 128x128 256x256@2; do
-          install -Dm644 "usr/share/icons/hicolor/${size}/apps/sing-along.png" \
-            "/app/share/icons/hicolor/${size}/apps/com.freelamp.SingAlong.png"
-          rm -f "/app/share/icons/hicolor/${size}/apps/sing-along.png"
-        done
-      - sed -i 's/^Icon=.*/Icon=com.freelamp.SingAlong/' \
-        /app/share/applications/com.freelamp.SingAlong.desktop
+      - for size in 32x32 128x128 256x256@2; do install -Dm644 "usr/share/icons/hicolor/${size}/apps/sing-along.png" "/app/share/icons/hicolor/${size}/apps/com.freelamp.SingAlong.png"; rm -f "/app/share/icons/hicolor/${size}/apps/sing-along.png"; done
+      # One line: a trailing backslash would make the YAML pass a second
+      # argument with a leading space, and sed would then look for a file named
+      # " /app/..." that does not exist.
+      - sed -i 's/^Icon=.*/Icon=com.freelamp.SingAlong/' /app/share/applications/com.freelamp.SingAlong.desktop
     # This is the source Flathub uses. It names a published release, so it goes
     # stale with every version — update the three values below when submitting an
     # update, before opening the PR.
