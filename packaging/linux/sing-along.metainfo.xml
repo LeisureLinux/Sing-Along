@@ -1,134 +1,107 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright 2026 Albert Xu; based on LRCGET, Copyright (c) 2023 tranxuanthang (MIT) -->
 <component type="desktop-application">
-  <id>app.singalong.desktop</id>
-  <launchable type="desktop-id">sing-along.desktop</launchable>
+  <id>com.freelamp.SingAlong</id>
+
+  <name>Sing-Along</name>
+  <summary>Lyric sync for your own music files</summary>
+
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
-  <name>Sing-Along</name>
-  <developer id="app.singalong">
-    <name>Albert Xu</name>
+
+  <developer id="com.freelamp">
+    <name>LeisureLinux</name>
   </developer>
   <update_contact>albertxu_AT_freelamp.com</update_contact>
-  <summary>Lyric sync for your offline music library</summary>
+
   <description>
-    <p>Fetch, edit, convert and export lyrics for your offline music library.</p>
-    <p>Sing-Along scans the music folders you choose, looks up matching lyrics, and saves them alongside your audio files.</p>
-    <p>Lyrics are provided by the LRCLIB service. Sing-Along is an independent project and is not an official LRCLIB client.</p>
+    <p>
+      Sing-Along plays the music files you already have and finds timed lyrics for
+      them, so the words scroll with the song instead of sitting in a separate window.
+    </p>
+    <p>
+      It looks up lyrics on LRCLIB, with NetEase as an optional second source, and
+      saves them next to your audio files or inside their tags. When a match is wrong
+      or missing a line, the editor lets you move a line or an individual word to the
+      right moment and hear the result as you go.
+    </p>
+    <p>Exports are aimed at the device that will show them: plain LRC, enhanced LRC with word-level tags, and TTML, which several phone players and car head units read for word-by-word display.</p>
+    <p>
+      For Chinese-language libraries, timing and text can be converted between
+      Simplified and Traditional without the lyrics themselves being altered or
+      translated.
+    </p>
+    <p>
+      The same binary also runs headless for scripts: fetch, export, status and
+      formats, with no window and no desktop session.
+    </p>
   </description>
+
+  <launchable type="desktop-id">sing-along.desktop</launchable>
+
   <screenshots>
     <screenshot type="default">
-      <image>https://github.com/albertxu/sing-along/raw/main/screenshots/01.png</image>
-      <caption>Music playing with lyrics following along</caption>
+      <image type="source">https://singalong.freelamp.com/screenshots/tracks.png</image>
+      <caption>The track list, with the sync status of every file</caption>
     </screenshot>
     <screenshot>
-      <image>https://github.com/albertxu/sing-along/raw/main/screenshots/02.png</image>
-      <caption>Music playing with expanded synced lyrics viewer and export options dropdown</caption>
+      <image type="source">https://singalong.freelamp.com/screenshots/albums.png</image>
+      <caption>Albums, with cover art read from the files themselves</caption>
     </screenshot>
     <screenshot>
-      <image>https://github.com/albertxu/sing-along/raw/main/screenshots/03.png</image>
-      <caption>Downloading lyrics</caption>
+      <image type="source">https://singalong.freelamp.com/screenshots/artists.png</image>
+      <caption>Browsing by artist</caption>
     </screenshot>
     <screenshot>
-      <image>https://github.com/albertxu/sing-along/raw/main/screenshots/04.png</image>
-      <caption>Editing lyrics</caption>
+      <image type="source">https://singalong.freelamp.com/screenshots/search.png</image>
+      <caption>Searching LRCLIB for a track that has no lyrics yet</caption>
     </screenshot>
   </screenshots>
-  <url type="homepage">https://lrclib.net/</url>
-  <url type="vcs-browser">https://github.com/albertxu/sing-along</url>
-  <url type="bugtracker">https://github.com/albertxu/sing-along/issues</url>
+
+  <url type="homepage">https://singalong.freelamp.com/</url>
+  <url type="bugtracker">https://github.com/LeisureLinux/Sing-Along/issues</url>
+  <url type="vcs-browser">https://github.com/LeisureLinux/Sing-Along</url>
+  <url type="help">https://github.com/LeisureLinux/Sing-Along/blob/main/README.md</url>
+
   <content_rating type="oars-1.1"/>
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </supports>
+
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+
+  <recommends>
+    <display_length compare="ge">768</display_length>
+  </recommends>
+
+  <keywords>
+    <keyword>lyrics</keyword>
+    <keyword>music</keyword>
+    <keyword>player</keyword>
+    <keyword>karaoke</keyword>
+    <keyword>lrc</keyword>
+    <keyword>ttml</keyword>
+  </keywords>
+
   <releases>
-    <release version="2.2.0" date="2026-09-06">
+    <release version="2.9.19" date="2026-10-21">
       <description>
-        <ul>
-          <li>Added optional automatic lyrics export after bulk downloads, with remembered download and export preferences.</li>
-          <li>Improved word-by-word syncing, multilingual word splitting, and word segment editing.</li>
-          <li>Added a configurable keyboard shortcuts menu and shortcut hints.</li>
-          <li>Added playback speed controls from 0.5x to 2x in the main player and lyrics editor.</li>
-          <li>Added multiple-line selection, bulk timestamp adjustments, and clearer line timing indicators.</li>
-          <li>Added search to Albums and Artists, full-text library search, and clickable album and artist names.</li>
-          <li>Fixed writing embedded lyrics to MP3 files, including malformed ID3v2 comment language fields.</li>
-          <li>Fixed the Download button continuing to spin after completion and an error in LRCLIB challenge verification.</li>
-        </ul>
-      </description>
-    </release>
-  <release version="2.1.0" date="2026-04-26">
-    <description>
-      <ul>
-        <li>Redesigned the app UI with a cleaner, more neutral color scheme for better contrast and visual hierarchy in both light and dark modes.</li>
-        <li>Sped up Albums and Artists list tabs by adding proper indexes in the database.</li>
-        <li>Fixed individual lyrics export error in the lyrics editor.</li>
-      </ul>
-    </description>
-  </release>
-    <release version="2.0.1" date="2026-04-24">
-      <description>
-        <ul>
-          <li>Lyrics editor no longer blocks saving when both plain and synced lyrics are empty.</li>
-          <li>Added ability to import synced lyrics from an .lrc file (via file picker) or directly from clipboard into the lyrics editor.</li>
-          <li>Removed dead code and refactored the mass lyrics exporter to use a background queue (similar to the downloader). You can now close the export modal and reopen it later via the header button to check progress.</li>
-          <li>Reduced memory overhead during mass download and export operations by limiting log buffers and removing unnecessary reactive arrays that are causing memory leaks.</li>
-        </ul>
-      </description>
-    </release>
-    <release version="2.0.0" date="2026-04-21">
-      <description>
-        <ul>
-          <li>Add support for Lyricsfile — an open, extensible lyrics format in YAML syntax</li>
-          <li>Brand new lyrics editor with word-by-word sync support</li>
-          <li>Incremental scanning support</li>
-          <li>Export lyrics is now optional</li>
-          <li>Persistent volume slider state</li>
-          <li>Update dependencies</li>
-          <li>Other minor improvements</li>
-        </ul>
-      </description>
-    </release>
-    <release version="1.0.2" date="2025-11-18">
-      <description>
-        <ul>
-          <li>Skipping synced lyrics tracks also skips instrumental tracks</li>
-          <li>Auto switch light/dark mode based on system theme</li>
-          <li>Use existing file handle for embedding lyrics</li>
-          <li>Improve performance when editing lyrics</li>
-          <li>Improve macOS icon by adding padding</li>
-          <li>Update cargo dependencies</li>
-        </ul>
-      </description>
-    </release>
-    <release version="1.0.1" date="2025-10-03">
-      <description>
-        <ul>
-          <li>Update cargo dependencies</li>
-          <li>Prevent crashes when there is no audio output device</li>
-        </ul>
-      </description>
-    </release>
-    <release version="1.0.0" date="2025-09-25">
-      <description>
-        <ul>
-          <li>Added library filtering feature</li>
-          <li>Added lyrics copy buttons to various places</li>
-          <li>Added a convienient dropdown menu in the header to refresh or manage directories</li>
-          <li>Added lyrics line count information when searching for lyrics</li>
-          <li>Changed rewind/fast forward hotkeys in lyrics editor to Alt+J and Alt+K (was Alt+Right and Alt+Left)</li>
-          <li>Fixed publishing lyrics issue in LRCLIB browser tab</li>
-        </ul>
-      </description>
-    </release>
-    <release version="0.9.3" date="2025-01-24">
-      <description>
-        <ul>
-          <li>Fix an issue that caused random lyrics to be overwritten and other unexpected behaviors when using the "Edit Lyrics" feature (fixes #181)</li>
-          <li>Fix the zoom-in/zoom-out text functionality in the "Edit Lyrics" feature</li>
-          <li>Refactor the hotkeys code in the "Edit Lyrics" component</li>
-          <li>Attempt to fix the "LRCGET is damaged and can’t be opened" issue in the macOS build by self-signing the package (fixes #86)</li>
-        </ul>
+        <p>
+          The release that made every platform build reliably: a signed Windows
+          installer pipeline, a workflow that lints itself before spending an hour
+          building, and a command line that knows whether it was installed by a
+          package manager before offering to upgrade itself.
+        </p>
       </description>
     </release>
   </releases>
+
   <provides>
-    <binary>lrcget</binary>
+    <binary>sing-along</binary>
   </provides>
 </component>

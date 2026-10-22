@@ -1,0 +1,33 @@
+# Maintainer: LeisureLinux <https://github.com/LeisureLinux>
+#
+# Binary package: downloads the published .deb and repacks it, rather than
+# building from source. Building Tauri from source on Arch needs webkit2gtk-4.1,
+# a Rust toolchain and a full node_modules install for a program users install
+# once — and the .deb is the same binary CI already tested.
+
+pkgname=sing-along-bin
+pkgver=2.9.19
+pkgrel=1
+pkgdesc='Desktop music player with lyric sync: batch-download, word-level timing, export LRC/A2/TTML'
+arch=('x86_64')
+url='https://singalong.freelamp.com/'
+license=('MIT')
+depends=('webkit2gtk-4.1' 'gtk3' 'libayatana-appindicator')
+provides=('sing-along')
+conflicts=('sing-along')
+options=('!strip' '!debug')
+
+# The release names the Debian package with the version and architecture in it,
+# so the source is a redirect to the latest tag rather than a fixed URL.
+source=("${pkgname}-${pkgver}.deb::https://github.com/LeisureLinux/Sing-Along/releases/download/v${pkgver}/sing-along_${pkgver}_amd64.deb")
+
+sha256sums=('2e63c8a5aa7b0945cfd9e02d9eea89c06330a0507e9eaec5161c6179da40c60b')
+
+package() {
+  # `dpkg-deb -x` unpacks the payload without needing a Debian system.
+  dpkg-deb -x "${srcdir}/${pkgname}-${pkgver}.deb" "${pkgdir}"
+
+  # Arch puts man pages under /usr/share/man like Debian, so nothing has to move.
+  # The only Debian-ism to remove is the doc directory layout.
+  rm -rf "${pkgdir}/usr/share/doc"
+}

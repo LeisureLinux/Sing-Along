@@ -1,5 +1,5 @@
 {
-  "identifier": "app.singalong.desktop",
+  "identifier": "com.freelamp.SingAlong",
   "bundle": {
     "icon": [
       "icons/macos/icon.icns"

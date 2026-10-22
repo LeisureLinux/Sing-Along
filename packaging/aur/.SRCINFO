@@ -1,0 +1,18 @@
+pkgbase = sing-along-bin
+	pkgdesc = Desktop music player with lyric sync: batch-download, word-level timing, export LRC/A2/TTML
+	pkgver = 2.9.19
+	pkgrel = 1
+	url = https://singalong.freelamp.com/
+	arch = x86_64
+	license = MIT
+	depends = webkit2gtk-4.1
+	depends = gtk3
+	depends = libayatana-appindicator
+	provides = sing-along
+	conflicts = sing-along
+	options = !strip
+	options = !debug
+	source = sing-along-bin-2.9.19.deb::https://github.com/LeisureLinux/Sing-Along/releases/download/v2.9.19/sing-along_2.9.19_amd64.deb
+	sha256sums = 2e63c8a5aa7b0945cfd9e02d9eea89c06330a0507e9eaec5161c6179da40c60b
+
+pkgname = sing-along-bin

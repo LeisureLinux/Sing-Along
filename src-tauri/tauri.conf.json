@@ -73,7 +73,7 @@
   },
   "productName": "Sing-Along",
   "mainBinaryName": "sing-along",
-  "identifier": "app.singalong.desktop",
+  "identifier": "com.freelamp.SingAlong",
   "plugins": {},
   "app": {
     "withGlobalTauri": false,

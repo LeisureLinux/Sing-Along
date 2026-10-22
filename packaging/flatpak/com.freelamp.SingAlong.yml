@@ -1,0 +1,61 @@
+# Flatpak manifest for Sing-Along.
+#
+# Builds the app from the published .deb instead of from source. Compiling a
+# Tauri application inside the sandbox means building webkit2gtk, a Rust toolchain
+# and the full node dependency tree in the Flatpak SDK: hours of build for a binary
+# CI has already produced and tested on this exact platform.
+#
+# The .deb is a Debian archive, not a tarball, so it is unpacked in two steps —
+# `ar` for the container, then `tar` for the payload — rather than being handed to
+# Flatpak as a source with `strip-components`, which only understands tarballs.
+
+app-id: com.freelamp.SingAlong
+runtime: org.gnome.Platform
+runtime-version: '49'
+sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: sing-along
+
+finish-args:
+  # The library is wherever the user keeps their music, and lyrics are written
+  # back next to those files or into their tags — so the app needs the same view
+  # of the filesystem the user has. `--filesystem=home` is what Flathub rejects as
+  # too broad, so the two directories that actually hold music are listed and the
+  # file chooser portal covers the rest: picking a folder through it grants access
+  # for the session without a permanent hole.
+  - --filesystem=xdg-music
+  - --filesystem=xdg-download
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  # LRCLIB and NetEase.
+  - --share=network
+  - --socket=pulseaudio
+  # Tray icon. The portals need no talk-name: the sandbox exposes them already.
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --talk-name=org.freedesktop.Notifications
+
+modules:
+  - name: sing-along
+    buildsystem: simple
+    build-commands:
+      # Unpack the Debian archive: `ar` holds control.tar.* and data.tar.*, and
+      # only the latter is the payload.
+      - ar x sing-along.deb
+      - tar -xf data.tar.xz
+      # The payload is already laid out as usr/... so it maps onto the prefix.
+      - cp -r usr/* /app/
+      # Flathub requires the desktop file and the metainfo file to be named after
+      # the app id, whatever the payload calls them.
+      - install -Dm644 usr/share/applications/Sing-Along.desktop /app/share/applications/com.freelamp.SingAlong.desktop
+      - install -Dm644 usr/share/metainfo/sing-along.metainfo.xml /app/share/metainfo/com.freelamp.SingAlong.metainfo.xml
+      - install -Dm644 usr/share/man/man1/sing-along.1 /app/share/man/man1/sing-along.1
+      - install -Dm755 usr/bin/sing-along /app/bin/sing-along
+      # Icons keep the name the desktop file points at; renaming them would break
+      # `Icon=sing-along` inside it.
+    sources:
+      - type: file
+        url: https://github.com/LeisureLinux/Sing-Along/releases/download/v2.9.19/sing-along_2.9.19_amd64.deb
+        sha256: 2e63c8a5aa7b0945cfd9e02d9eea89c06330a0507e9eaec5161c6179da40c60b
+        dest-filename: sing-along.deb

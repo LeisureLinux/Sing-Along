@@ -14,6 +14,104 @@ use tauri::{AppHandle, Manager};
 
 static MIGRATIONS_DIR: Dir = include_dir!("$CARGO_MANIFEST_DIR/migrations");
 
+/// The identifier the app used before it was renamed to `com.freelamp.SingAlong`.
+///
+/// It was inherited from LRCGET, which names its data directory after a reverse
+/// DNS name it never owned. Flathub requires that the identifier correspond to a
+/// domain the project controls, so it moved — and the data directory moved with
+/// it, because Tauri derives the directory from the identifier.
+const LEGACY_IDENTIFIER: &str = "app.singalong.desktop";
+
+/// Move the data directory from the old identifier to the new one, once.
+///
+/// Runs before the database is opened: afterwards the new path exists and the
+/// condition below can never be true again, so a fresh install does nothing and a
+/// failure can be retried on the next launch rather than leaving a half-moved
+/// directory that the app then refuses to look at.
+fn migrate_legacy_data_dir(new_dir: &std::path::Path) {
+    // Test for the database, not the directory.
+    //
+    // Tauri creates the app data directory while the app is being set up — before
+    // any command runs, because the webview's own storage lives there too. So by
+    // the time this is called the directory exists on every launch, and asking
+    // `new_dir.exists()` would skip the migration forever. The database file is
+    // what `initialize_database` is about to create, and the one thing whose
+    // absence actually means "this is a first run".
+    if new_dir.join("db.sqlite3").exists() {
+        return;
+    }
+    let Some(parent) = new_dir.parent() else {
+        return;
+    };
+    let legacy = parent.join(LEGACY_IDENTIFIER);
+    if !legacy.join("db.sqlite3").is_file() {
+        return;
+    }
+
+    // A per-entry move into the existing directory, rather than renaming it:
+    // the destination already exists, and `rename` fails when it does.
+    match move_entries(&legacy, new_dir) {
+        Ok(()) => {
+            println!(
+                "[DB Init] moved data from {} to {}",
+                legacy.display(),
+                new_dir.display()
+            );
+            // Left behind deliberately: an empty directory is the signal that the
+            // move finished, and removing it is not worth a failure path.
+        }
+        Err(err) => {
+            eprintln!(
+                "[DB Init] could not move data from {}: {err}",
+                legacy.display()
+            );
+            // Undo, so the next launch retries rather than finding a new
+            // database that looks legitimate but was never populated.
+            let _ = std::fs::remove_file(new_dir.join("db.sqlite3"));
+        }
+    }
+}
+
+/// Move every entry of `from` into `to`, overwriting nothing that is already there.
+fn move_entries(from: &std::path::Path, to: &std::path::Path) -> std::io::Result<()> {
+    for entry in std::fs::read_dir(from)? {
+        let entry = entry?;
+        let target = to.join(entry.file_name());
+        if target.exists() {
+            // The webview's own files are recreated on demand; the database and
+            // the cover cache are what must not be overwritten with an older copy.
+            continue;
+        }
+        match std::fs::rename(entry.path(), &target) {
+            Ok(()) => {}
+            Err(_) => copy_path(&entry.path(), &target)?,
+        }
+    }
+    Ok(())
+}
+
+fn copy_path(from: &std::path::Path, to: &std::path::Path) -> std::io::Result<()> {
+    if from.is_dir() {
+        copy_dir_all(from, to)
+    } else {
+        std::fs::copy(from, to).map(|_| ())
+    }
+}
+
+fn copy_dir_all(from: &std::path::Path, to: &std::path::Path) -> std::io::Result<()> {
+    std::fs::create_dir_all(to)?;
+    for entry in std::fs::read_dir(from)? {
+        let entry = entry?;
+        let target = to.join(entry.file_name());
+        if entry.file_type()?.is_dir() {
+            copy_dir_all(&entry.path(), &target)?;
+        } else {
+            std::fs::copy(entry.path(), &target)?;
+        }
+    }
+    Ok(())
+}
+
 /// Initializes the database connection, creating the .sqlite file if needed, and upgrading the
 /// database if it's out of date.
 pub fn initialize_database(app_handle: &AppHandle) -> Result<Connection, rusqlite::Error> {
@@ -21,6 +119,7 @@ pub fn initialize_database(app_handle: &AppHandle) -> Result<Connection, rusqlit
         .path()
         .app_data_dir()
         .expect("The app data directory should exist.");
+    migrate_legacy_data_dir(&app_dir);
     fs::create_dir_all(&app_dir).expect("The app data directory should be created.");
     let sqlite_path = app_dir.join("db.sqlite3");
 
@@ -2082,5 +2181,88 @@ mod export_preferences_tests {
         assert!(config.export_txt && config.export_embedded);
         assert_eq!(config.lrclib_instance, "https://other.test");
         assert_eq!(config.volume, 0.6);
+    }
+}
+
+
+#[cfg(test)]
+mod migration_tests {
+    use super::*;
+
+    /// A directory that looks like the pre-rename data directory.
+    fn fake_dir(root: &std::path::Path, name: &str, with_db: bool) -> std::path::PathBuf {
+        let dir = root.join(name);
+        std::fs::create_dir_all(&dir).unwrap();
+        if with_db {
+            std::fs::write(dir.join("db.sqlite3"), b"database").unwrap();
+        }
+        dir
+    }
+
+    #[test]
+    fn moves_the_database_into_an_existing_empty_dir() {
+        let root = std::env::temp_dir().join("sa-migrate-1");
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+
+        let legacy = fake_dir(&root, LEGACY_IDENTIFIER, true);
+        // Tauri has already made the new directory; that is the situation this
+        // has to cope with, not the tidy one where it does not exist yet.
+        let new = fake_dir(&root, "com.freelamp.SingAlong", false);
+
+        migrate_legacy_data_dir(&new);
+
+        assert_eq!(std::fs::read(new.join("db.sqlite3")).unwrap(), b"database");
+        assert!(!legacy.join("db.sqlite3").exists());
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn does_nothing_when_the_new_directory_already_has_a_database() {
+        let root = std::env::temp_dir().join("sa-migrate-2");
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+
+        fake_dir(&root, LEGACY_IDENTIFIER, true);
+        let new = fake_dir(&root, "com.freelamp.SingAlong", true);
+        std::fs::write(new.join("db.sqlite3"), b"current").unwrap();
+
+        migrate_legacy_data_dir(&new);
+
+        // The existing database wins: a second launch must not resurrect old data.
+        assert_eq!(std::fs::read(new.join("db.sqlite3")).unwrap(), b"current");
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn does_nothing_on_a_fresh_install() {
+        let root = std::env::temp_dir().join("sa-migrate-3");
+        let _ = std::fs::remove_dir_all(&root);
+        let new = fake_dir(&root, "com.freelamp.SingAlong", false);
+
+        migrate_legacy_data_dir(&new);
+
+        assert!(!new.join("db.sqlite3").exists());
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn moves_the_cover_cache_too() {
+        let root = std::env::temp_dir().join("sa-migrate-4");
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).unwrap();
+
+        let legacy = fake_dir(&root, LEGACY_IDENTIFIER, true);
+        std::fs::create_dir_all(legacy.join("covers")).unwrap();
+        std::fs::write(legacy.join("covers").join("a.jpg"), b"jpeg").unwrap();
+        let new = fake_dir(&root, "com.freelamp.SingAlong", false);
+
+        migrate_legacy_data_dir(&new);
+
+        assert_eq!(
+            std::fs::read(new.join("covers").join("a.jpg")).unwrap(),
+            b"jpeg"
+        );
+        let _ = std::fs::remove_dir_all(&root);
     }
 }
