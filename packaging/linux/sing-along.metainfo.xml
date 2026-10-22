@@ -39,6 +39,15 @@
 
   <launchable type="desktop-id">sing-along.desktop</launchable>
 
+  <!-- Flathub requires the icon to be declared here as well as in the desktop
+       file. Without it appstreamcli reports `gui-app-without-icon` and produces
+       no metadata, which fails the Flatpak build at the last step.
+
+       The path is relative to the install prefix and the file is named after the
+       app id, so the Flatpak build renames the icon to match; the .deb keeps the
+       product name and installs a different path. -->
+  <icon type="stock" width="128" height="128">com.freelamp.SingAlong</icon>
+
   <screenshots>
     <screenshot type="default">
       <image type="source">https://singalong.freelamp.com/screenshots/tracks.png</image>
@@ -78,6 +87,12 @@
   <recommends>
     <display_length compare="ge">768</display_length>
   </recommends>
+
+  <categories>
+    <category>AudioVideo</category>
+    <category>Audio</category>
+    <category>Music</category>
+  </categories>
 
   <keywords>
     <keyword>lyrics</keyword>
