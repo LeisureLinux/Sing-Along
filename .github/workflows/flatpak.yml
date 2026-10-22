@@ -1,0 +1,111 @@
+name: flatpak
+
+# A separate workflow on purpose.
+#
+# The Flatpak is the one deliverable that is not published from this repository:
+# Flathub builds it from the manifest when a submission is approved, and the
+# bundle that ends up in the store is the one Flathub produced. So what is worth
+# checking here is that the manifest still builds and still exports an installable
+# repository — the same check Flathub's own CI will run, before it is run on a
+# submission that a reviewer has already waited a week for.
+#
+# Keeping it out of the release workflow means a Flatpak problem cannot fail a
+# release, and a release problem cannot be hidden by a Flatpak problem.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release to take the .deb from (default: the latest one)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  flatpak:
+    name: build the flatpak
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # `flatpak-builder` from the distribution runs on the host, so the user
+      # installation is visible to it — no `sudo` needed and no sandbox to see
+      # past. The sandboxed builder images a fixed view of the runtime
+      # directories, and an SDK in the user installation is not in it.
+      - name: install flatpak and flatpak-builder
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          flatpak remote-add --user --if-not-exists flathub \
+            https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install -y --user --noninteractive flathub \
+            org.gnome.Platform//49 org.gnome.Sdk//49
+
+      # The manifest points at a published release asset. A tag push has not
+      # published its assets yet — the release is assembled at the end of the
+      # release workflow — so the .deb comes from the previous release unless a
+      # tag is given explicitly.
+      - name: get the .deb
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          tag="${INPUT_TAG:-}"
+          if [ -z "$tag" ]; then
+            tag=$(gh release view --repo "${{ github.repository }}" --json tagName --jq .tagName)
+          fi
+          echo "using $tag"
+          mkdir -p deb
+          gh release download "$tag" --repo "${{ github.repository }}" \
+            --pattern 'sing-along_*.deb' --dir deb
+          deb=$(find deb -name 'sing-along_*.deb' | head -1)
+          test -n "$deb"
+          cp "$deb" packaging/flatpak/sing-along.deb
+          sha256sum packaging/flatpak/sing-along.deb
+
+      # The published asset is named for a version; the manifest's source is
+      # replaced with the file at hand so the build does not depend on the
+      # version in the manifest matching the release that was downloaded.
+      - name: point the manifest at it
+        run: |
+          python3 - <<'PY'
+          import yaml, pathlib
+          path = pathlib.Path("packaging/flatpak/com.freelamp.SingAlong.yml")
+          manifest = yaml.safe_load(path.read_text())
+          source = manifest["modules"][0]["sources"][0]
+          source.pop("url", None)
+          source.pop("sha256", None)
+          source["type"] = "file"
+          source["path"] = "sing-along.deb"
+          path.write_text(yaml.safe_dump(manifest, sort_keys=False))
+          PY
+
+      - name: lint the manifest
+        continue-on-error: true
+        run: |
+          appstreamcli validate --no-net packaging/linux/sing-along.metainfo.xml
+          flatpak-builder --version
+
+      - name: build and export
+        run: |
+          set -euo pipefail
+          flatpak-builder --user --force-clean --disable-rofiles-fuse \
+            --state-dir="$PWD/.flatpak-builder" --repo="$PWD/flatpak-repo" \
+            "$PWD/flatpak-builddir" \
+            "$PWD/packaging/flatpak/com.freelamp.SingAlong.yml"
+          test -d "$PWD/flatpak-repo/app/com.freelamp.SingAlong"
+          find "$PWD/flatpak-builddir/files" -type f -name 'sing-along' | head -1
+          echo "bundle ok: $(du -sh "$PWD/flatpak-repo" | cut -f1)"
+
+      - name: upload the bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-repo
+          path: flatpak-repo
+          retention-days: 7
