@@ -509,13 +509,17 @@ jobs:
       # installs, then flatpak-builder fails with "Unable to find sdk" and no amount
       # of --user or --installation changes that. The distribution package runs on
       # the host where both installations are visible, which is what this needs.
+      # `flatpak-builder` from the distribution runs on the host, so the user
+      # installation is visible to it — no `sudo` needed and no sandbox to see past.
+      # `remote-add` without `--user` tries to configure the system installation and
+      # is refused for a normal user, which is what failed here first.
       - name: install flatpak and flatpak-builder
         run: |
           sudo apt-get update
           sudo apt-get install -y flatpak flatpak-builder
-          flatpak remote-add --if-not-exists flathub \
+          flatpak remote-add --user --if-not-exists flathub \
             https://dl.flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install -y --noninteractive flathub \
+          flatpak install -y --user --noninteractive flathub \
             org.gnome.Platform//49 org.gnome.Sdk//49
 
       # The manifest points at the release asset, which a tag build has not
