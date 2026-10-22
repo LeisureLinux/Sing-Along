@@ -493,6 +493,103 @@ jobs:
   # The point is that a submission which cannot build is rejected after a review
   # cycle measured in weeks. Building it here makes the same failure visible in
   # minutes.
+  # Build the Flatpak.
+  #
+  # Flathub builds the manifest itself when a submission is approved, and the
+  # bundle in the store is the one Flathub produced — so this is not a
+  # publication. What it is worth doing is failing here, in minutes, rather than
+  # in Flathub's review queue, when the manifest stops building.
+  #
+  # The .deb comes from this run: a tag build has not published its assets at the
+  # point this job runs, so the release is assembled at the end.
+  flatpak:
+    needs: build
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      # `flatpak-builder` from the distribution runs on the host, so the user
+      # installation is visible to it — no `sudo` needed and no sandbox to see
+      # past. The sandboxed builder images a fixed view of the runtime
+      # directories, and an SDK in the user installation is not in it.
+      - name: install flatpak and flatpak-builder
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          flatpak remote-add --user --if-not-exists flathub \
+            https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install -y --user --noninteractive flathub \
+            org.gnome.Platform//49 org.gnome.Sdk//49
+
+      - name: get the .deb
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          url=$(gh api "repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}" \
+            --jq '.assets[] | select(.name | endswith("_amd64.deb")) | .browser_download_url' \
+            || true)
+          if [ -z "$url" ]; then
+            # The release does not exist yet — it is assembled at the end of this
+            # workflow — so the .deb is taken from the build that just finished.
+            gh run download "${{ github.run_id }}" --repo "${{ github.repository }}" \
+              --name deb-amd64 --dir deb
+            deb=$(find deb -name 'sing-along_*.deb' -print -quit)
+            test -n "$deb"
+            cp "$deb" packaging/flatpak/sing-along.deb
+          else
+            curl -fsSL -o packaging/flatpak/sing-along.deb "$url"
+          fi
+          test -s packaging/flatpak/sing-along.deb
+
+      # The published asset is named for a version; the manifest's source is
+      # replaced with the file at hand so the build does not depend on the
+      # version in the manifest matching the release.
+      - name: point the manifest at it
+        run: |
+          python3 - <<'PY'
+          import yaml, pathlib
+          path = pathlib.Path("packaging/flatpak/com.freelamp.SingAlong.yml")
+          manifest = yaml.safe_load(path.read_text())
+          source = manifest["modules"][0]["sources"][0]
+          source.pop("url", None)
+          source.pop("sha256", None)
+          source["type"] = "file"
+          source["path"] = "sing-along.deb"
+          path.write_text(yaml.safe_dump(manifest, sort_keys=False))
+          PY
+
+      - name: lint the manifest
+        continue-on-error: true
+        run: |
+          appstreamcli validate --no-net packaging/linux/sing-along.metainfo.xml
+          flatpak-builder --version
+
+      - name: build and export
+        run: |
+          set -euo pipefail
+          flatpak-builder --user --force-clean --disable-rofiles-fuse \
+            --state-dir="$PWD/.flatpak-builder" --repo="$PWD/flatpak-repo" \
+            "$PWD/flatpak-builddir" \
+            "$PWD/packaging/flatpak/com.freelamp.SingAlong.yml"
+          # Let flatpak read the repository it just produced. That is the only
+          # check worth making: it is what a user does, and it fails if the
+          # refs, the metadata or the runtime reference are wrong.
+          #
+          # The ref is a file under refs/heads/, not a directory, so looking for
+          # a directory named after the app finds nothing. And `find | head`
+          # under `pipefail` fails the step: head exits after twenty lines,
+          # find takes SIGPIPE, and the pipeline reports the failure.
+          flatpak remote-add --user --if-not-exists build-check \
+            --no-gpg-verify "$PWD/flatpak-repo"
+          flatpak remote-info --user build-check com.freelamp.SingAlong
+          binary=$(find "$PWD/flatpak-builddir/files" -type f -name 'sing-along' -print -quit)
+          test -n "$binary"
+          echo "bundle ok: $(du -sh "$PWD/flatpak-repo" | cut -f1)"
+
   collect-cli:
     if: github.ref_type == 'tag'
     needs: build
