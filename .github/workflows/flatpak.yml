@@ -107,9 +107,16 @@ jobs:
           # No pipe into `head` under `pipefail`: `head` exits after the first
           # line, `find` takes SIGPIPE, and the pipeline reports failure even
           # though it printed what it was asked for.
-          echo "--- repository layout ---"
-          find "$PWD/flatpak-repo" -maxdepth 3 -type d | head -20
-          test -d "$PWD/flatpak-repo/app/com.freelamp.SingAlong"
+          # Let flatpak read the repository it just produced. That is the only
+          # check worth making: it is what a user does, and it fails if the
+          # refs, the metadata or the runtime reference are wrong.
+          #
+          # The ref is a file under refs/heads/, not a directory, so looking for
+          # a directory named after the app finds nothing. And `find | head`
+          # under `pipefail` fails the step: head exits after twenty lines,
+          # find takes SIGPIPE, and the pipeline reports the failure.
+          flatpak remote-add --user --if-not-exists build-check "$PWD/flatpak-repo"
+          flatpak remote-info --user build-check com.freelamp.SingAlong
           binary=$(find "$PWD/flatpak-builddir/files" -type f -name 'sing-along' -print -quit)
           test -n "$binary"
           echo "binary: $binary"
