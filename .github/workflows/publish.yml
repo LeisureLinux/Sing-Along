@@ -569,8 +569,11 @@ jobs:
           flatpak-builder --version
 
       - name: build and export
+        env:
+          VERSION: ${{ github.ref_name }}
         run: |
           set -euo pipefail
+          VERSION="${VERSION#v}"
           flatpak-builder --user --force-clean --disable-rofiles-fuse \
             --state-dir="$PWD/.flatpak-builder" --repo="$PWD/flatpak-repo" \
             "$PWD/flatpak-builddir" \
@@ -588,11 +591,26 @@ jobs:
           flatpak remote-info --user build-check com.freelamp.SingAlong
           binary=$(find "$PWD/flatpak-builddir/files" -type f -name 'sing-along' -print -quit)
           test -n "$binary"
+          # A single file a user can install without a remote:
+          #   flatpak install --bundle sing-along_2.9.29_amd64.flatpak
+          # The repository itself is a directory of OSTree objects, which no one
+          # can download and use; this is the form that travels.
+          flatpak build-bundle "$PWD/flatpak-repo" \
+            "$PWD/sing-along_${VERSION}_amd64.flatpak" com.freelamp.SingAlong
+          test -s "$PWD/sing-along_${VERSION}_amd64.flatpak"
           echo "bundle ok: $(du -sh "$PWD/flatpak-repo" | cut -f1)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-bundle
+          path: sing-along_*.flatpak
+          if-no-files-found: error
 
   collect-cli:
     if: github.ref_type == 'tag'
-    needs: build
+    # Waits for the Flatpak so the release is published with all ten assets at
+    # once, rather than gaining the tenth when its job happens to finish.
+    needs: [build, flatpak]
     runs-on: ubuntu-latest
     # Without this the job inherits the repository default, which is read-only
     # for `GITHUB_TOKEN` — `gh release upload` then fails with
@@ -604,6 +622,11 @@ jobs:
         with:
           pattern: cli-*
           merge-multiple: true
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: flatpak-bundle
           path: dist
 
       - name: attach the standalone CLIs
