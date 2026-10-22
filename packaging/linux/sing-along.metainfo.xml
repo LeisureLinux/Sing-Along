@@ -35,6 +35,12 @@
       The same binary also runs headless for scripts: fetch, export, status and
       formats, with no window and no desktop session.
     </p>
+    <p>
+      On desktops that provide an appindicator library, the window can be closed
+      to a tray icon and brought back from it. Where that library is absent —
+      GNOME, and the Flatpak runtime — closing the window quits the application
+      instead, so it never leaves a process running with nothing on screen.
+    </p>
   </description>
 
   <launchable type="desktop-id">sing-along.desktop</launchable>
