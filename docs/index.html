@@ -106,6 +106,18 @@
   .note p { margin: 0 0 8px; }
   .note p:last-child { margin: 0; }
 
+  .shots {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px; margin-top: 32px;
+  }
+  .shots figure { margin: 0; }
+  .shots img {
+    width: 100%; height: auto; border-radius: 8px;
+    border: 1px solid var(--line); display: block;
+  }
+  .shots figcaption {
+    color: var(--muted); font-size: 0.85rem; margin-top: 8px; line-height: 1.45;
+  }
   img.demo {
     width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line);
     margin: 8px 0 4px;
@@ -186,6 +198,25 @@
 
 <section>
   <img class="demo" src="demo.webp" alt="Sing-Along playing a track with its lyrics scrolling in time" width="1600" height="1000">
+
+  <div class="shots">
+    <figure>
+      <img src="screenshots/tracks.png" alt="The track list, showing the sync status of every file" loading="lazy" width="1440" height="900">
+      <figcaption>The track list, with the sync status of every file</figcaption>
+    </figure>
+    <figure>
+      <img src="screenshots/albums.png" alt="Albums with cover art read from the files" loading="lazy" width="1440" height="900">
+      <figcaption>Albums, with cover art read from the files themselves</figcaption>
+    </figure>
+    <figure>
+      <img src="screenshots/artists.png" alt="Browsing the library by artist" loading="lazy" width="1440" height="900">
+      <figcaption>Browsing by artist</figcaption>
+    </figure>
+    <figure>
+      <img src="screenshots/search.png" alt="Searching LRCLIB for a track that has no lyrics yet" loading="lazy" width="1440" height="900">
+      <figcaption>Searching LRCLIB for a track that has no lyrics yet</figcaption>
+    </figure>
+  </div>
 </section>
 
 <section>
