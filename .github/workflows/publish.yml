@@ -502,14 +502,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: install flatpak
+      # `flatpak-builder` from the distribution, not `org.flatpak.Builder`.
+      #
+      # The sandboxed builder runs with its own filesystem view, and a runtime
+      # installed into the user installation is invisible from inside it — the SDK
+      # installs, then flatpak-builder fails with "Unable to find sdk" and no amount
+      # of --user or --installation changes that. The distribution package runs on
+      # the host where both installations are visible, which is what this needs.
+      - name: install flatpak and flatpak-builder
         run: |
           sudo apt-get update
-          sudo apt-get install -y flatpak
-          flatpak remote-add --user --if-not-exists flathub \
+          sudo apt-get install -y flatpak flatpak-builder
+          flatpak remote-add --if-not-exists flathub \
             https://dl.flathub.org/repo/flathub.flatpakrepo
-          flatpak install -y --user --noninteractive flathub \
-            org.flatpak.Builder org.gnome.Platform//49 org.gnome.Sdk//49
+          sudo flatpak install -y --noninteractive flathub \
+            org.gnome.Platform//49 org.gnome.Sdk//49
 
       # The manifest points at the release asset, which a tag build has not
       # published yet — the release is assembled at the end. So the .deb from this
@@ -540,27 +547,35 @@ jobs:
           source["type"] = "file"
           source["path"] = "sing-along.deb"
           path.write_text(yaml.safe_dump(manifest, sort_keys=False))
-          print(path.read_text()[-400:])
           PY
 
-      # Informational: the linter reaches out to the app id's domain to check that
-      # it resolves, and reports a failure when that request is rate-limited or the
-      # runner cannot make it. A build that succeeds is stronger evidence than this
-      # check, so a lint complaint does not stop the job.
+      # Informational: the linter fetches the app id's domain to check that it
+      # resolves, and reports a failure when that request is blocked — which it was
+      # locally, for a domain that answers 200. A build that succeeds is stronger
+      # evidence than this check, so a complaint does not stop the job.
       - name: lint the manifest
         continue-on-error: true
         run: |
-          flatpak run --command=flatpak-builder-lint --share=network \
-            org.flatpak.Builder manifest \
-            packaging/flatpak/com.freelamp.SingAlong.yml
+          sudo apt-get install -y flatpak-builder
+          command -v appstreamcli && appstreamcli validate --no-net packaging/linux/sing-along.metainfo.xml
+          flatpak-builder --version
 
       - name: build
         run: |
-          flatpak run --share=network --command=flatpak-builder \
-            --filesystem="$PWD" org.flatpak.Builder \
-            --user --force-clean --disable-rofiles-fuse \
+          flatpak-builder --user --force-clean --disable-rofiles-fuse \
+            --state-dir="$PWD/.flatpak-builder" \
             "$PWD/flatpak-builddir" \
             "$PWD/packaging/flatpak/com.freelamp.SingAlong.yml"
+
+      # Proves the result is an installable bundle rather than a directory that
+      # happens to contain files.
+      - name: export a repository
+        run: |
+          set -euo pipefail
+          flatpak build-export "$PWD/flatpak-repo" "$PWD/flatpak-builddir"
+          test -d "$PWD/flatpak-repo/app/com.freelamp.SingAlong"
+          test -x "$PWD/flatpak-builddir/files/bin/sing-along"
+          echo "bundle ok: $(du -sh "$PWD/flatpak-builddir" | cut -f1)"
 
   collect-cli:
     if: github.ref_type == 'tag'
