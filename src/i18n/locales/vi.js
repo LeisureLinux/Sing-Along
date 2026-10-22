@@ -67,6 +67,12 @@ export default {
     downloadAlbumLyrics: 'Tải lời cả album',
   },
 
+  artist: {
+    tracks: 'bài',
+    trackCount: '{count} bài',
+    downloadArtistLyrics: 'Tải lời của nghệ sĩ',
+  },
+
   track: {
     duration: 'Thời lượng',
     lyrics: 'Lời',
@@ -103,6 +109,7 @@ export default {
   },
 
   config: {
+    saveFailed: 'Không thể lưu cài đặt',
     proxy: 'Máy chủ proxy',
     proxyHint: 'Để trống để kết nối trực tiếp. Áp dụng cho lời và ảnh bìa.',
     appearance: 'Giao diện',
@@ -161,6 +168,9 @@ export default {
   },
 
   editor: {
+    playLine: 'Phát',
+    resetWordTimings: 'Đặt lại',
+    resetWordTimingsTitle: 'Đặt lại thời gian của các từ về mặc định',
     syncWord: 'Đồng bộ từ',
     noPlainYet: 'Chưa có lời thường',
     noSyncedYet: 'Chưa có dòng nào được đồng bộ',

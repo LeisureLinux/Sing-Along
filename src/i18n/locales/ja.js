@@ -69,6 +69,12 @@ export default {
     downloadAlbumLyrics: 'アルバムの歌詞をダウンロード',
   },
 
+  artist: {
+    tracks: '曲',
+    trackCount: '{count} 曲',
+    downloadArtistLyrics: 'アーティストの歌詞をダウンロード',
+  },
+
   track: {
     duration: '長さ',
     lyrics: '歌詞',
@@ -105,6 +111,7 @@ export default {
   },
 
   config: {
+    saveFailed: '設定を保存できませんでした',
     proxy: 'プロキシ',
     proxyHint: '空欄なら直接接続。歌詞とカバーの取得に使います。',
     appearance: '外観',
@@ -163,6 +170,9 @@ export default {
   },
 
   editor: {
+    playLine: '再生',
+    resetWordTimings: 'リセット',
+    resetWordTimingsTitle: '単語のタイミングを初期状態に戻す',
     syncWord: '単語を同期',
     noPlainYet: 'テキスト歌詞はまだありません',
     noSyncedYet: '同期した行はまだありません',

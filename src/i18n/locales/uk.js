@@ -71,6 +71,12 @@ export default {
     downloadAlbumLyrics: 'Завантажити тексти альбому',
   },
 
+  artist: {
+    tracks: 'композицій',
+    trackCount: 'Композицій: {count}',
+    downloadArtistLyrics: 'Завантажити тексти виконавця',
+  },
+
   track: {
     duration: 'Тривалість',
     lyrics: 'Текст',
@@ -107,6 +113,7 @@ export default {
   },
 
   config: {
+    saveFailed: 'Не вдалося зберегти налаштування',
     proxy: 'Проксі-сервер',
     proxyHint: 'Залиште порожнім для прямого з’єднання. Стосується текстів і обкладинок.',
     appearance: 'Вигляд',
@@ -165,6 +172,9 @@ export default {
   },
 
   editor: {
+    playLine: 'Відтворити',
+    resetWordTimings: 'Скинути',
+    resetWordTimingsTitle: 'Скинути таймінги слів до початкового стану',
     syncWord: 'Синхронізувати слово',
     noPlainYet: 'Звичайного тексту ще немає',
     noSyncedYet: 'Синхронізованих рядків ще немає',

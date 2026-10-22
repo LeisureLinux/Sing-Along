@@ -71,6 +71,12 @@ export default {
     downloadAlbumLyrics: 'Загрузить тексты альбома',
   },
 
+  artist: {
+    tracks: 'Композиций',
+    trackCount: 'Композиций: {count}',
+    downloadArtistLyrics: 'Загрузить тексты исполнителя',
+  },
+
   track: {
     duration: 'Длительность',
     lyrics: 'Текст',
@@ -107,6 +113,7 @@ export default {
   },
 
   config: {
+    saveFailed: 'Не удалось сохранить настройки',
     proxy: 'Прокси-сервер',
     proxyHint: 'Оставьте пустым для прямого подключения. Относится к текстам и обложкам.',
     appearance: 'Оформление',
@@ -165,6 +172,9 @@ export default {
   },
 
   editor: {
+    playLine: 'Воспроизвести',
+    resetWordTimings: 'Сбросить',
+    resetWordTimingsTitle: 'Сбросить тайминги слов в исходное состояние',
     syncWord: 'Синхронизировать слово',
     noPlainYet: 'Обычного текста пока нет',
     noSyncedYet: 'Синхронизированных строк пока нет',

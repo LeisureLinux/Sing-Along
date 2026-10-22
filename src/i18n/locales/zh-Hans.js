@@ -63,6 +63,12 @@ export default {
     downloadAlbumLyrics: '下载整张专辑歌词',
   },
 
+  artist: {
+    tracks: '曲目',
+    trackCount: '{count} 首',
+    downloadArtistLyrics: '下载该歌手全部歌词',
+  },
+
   track: {
     duration: '时长',
     lyrics: '歌词',
@@ -99,6 +105,7 @@ export default {
   },
 
   config: {
+    saveFailed: '设置保存失败',
     proxy: '代理服务器',
     proxyHint: '留空则直连。用于歌词与封面服务。',
     appearance: '外观',
@@ -157,6 +164,9 @@ export default {
   },
 
   editor: {
+    playLine: '播放',
+    resetWordTimings: '重置',
+    resetWordTimingsTitle: '将词时间重置为默认状态',
     syncWord: '同步此词',
     noPlainYet: '还没有纯文本歌词',
     noSyncedYet: '还没有同步歌词行',

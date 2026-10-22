@@ -71,6 +71,12 @@ export default {
     downloadAlbumLyrics: 'Albümün şarkı sözlerini indir',
   },
 
+  artist: {
+    tracks: 'parça',
+    trackCount: '{count} parça',
+    downloadArtistLyrics: 'Sanatçının şarkı sözlerini indir',
+  },
+
   track: {
     duration: 'Süre',
     lyrics: 'Şarkı sözü',
@@ -107,6 +113,7 @@ export default {
   },
 
   config: {
+    saveFailed: 'Ayarlar kaydedilemedi',
     proxy: 'Proxy sunucusu',
     proxyHint: 'Doğrudan bağlanmak için boş bırakın. Sözler ve kapaklar için geçerli.',
     appearance: 'Görünüm',
@@ -165,6 +172,9 @@ export default {
   },
 
   editor: {
+    playLine: 'Oynat',
+    resetWordTimings: 'Sıfırla',
+    resetWordTimingsTitle: 'Kelime zamanlamalarını varsayılan duruma sıfırla',
     syncWord: 'Kelimeyi eşitle',
     noPlainYet: 'Henüz düz şarkı sözü yok',
     noSyncedYet: 'Henüz eşitlenmiş satır yok',

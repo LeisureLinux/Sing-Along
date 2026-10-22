@@ -67,6 +67,12 @@ export default {
     downloadAlbumLyrics: 'Descargar letra del álbum',
   },
 
+  artist: {
+    tracks: 'Pistas',
+    trackCount: '{count} pistas',
+    downloadArtistLyrics: 'Descargar letras del artista',
+  },
+
   track: {
     duration: 'Duración',
     lyrics: 'Letra',
@@ -103,6 +109,7 @@ export default {
   },
 
   config: {
+    saveFailed: 'No se pudo guardar la configuración',
     proxy: 'Servidor proxy',
     proxyHint: 'Vacío para conectar directamente. Se aplica a letras y portadas.',
     appearance: 'Apariencia',
@@ -161,6 +168,9 @@ export default {
   },
 
   editor: {
+    playLine: 'Reproducir',
+    resetWordTimings: 'Restablecer',
+    resetWordTimingsTitle: 'Restablecer los tiempos de las palabras al estado predeterminado',
     syncWord: 'Sincronizar palabra',
     noPlainYet: 'Todavía no hay letra sin sincronizar',
     noSyncedYet: 'Todavía no hay líneas sincronizadas',

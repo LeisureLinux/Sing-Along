@@ -121,6 +121,7 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core'
 import { ref } from 'vue'
+import { useToast } from 'vue-toastification'
 import { useGlobalState } from '../../composables/global-state'
 import { AVAILABLE_LOCALES, readLocalePreference, setLocale } from '@/i18n/index.js'
 import { usePlayer } from '@/composables/player.js'
@@ -128,6 +129,7 @@ import RadioButton from '@/components/common/RadioButton.vue'
 import CheckboxButton from '@/components/common/CheckboxButton.vue'
 
 const { setThemeMode, setLrclibInstance } = useGlobalState()
+const toast = useToast()
 
 // Language switching is applied on change, not on save, so the rest of the form
 // is already in the newly chosen language while the user continues editing.
@@ -152,25 +154,40 @@ const preserved = ref({
   skipTracksWithPlainLyrics: false,
   showLineCount: true,
   tryEmbedLyrics: false,
+  updateCheckEnabled: true,
 })
 
 const save = async () => {
-  await invoke('set_config', {
-    // Which tracks a batch should skip is chosen per download, in the download
-    // dialog — it is not a global preference, so it is not edited here. The
-    // loaded values are written back untouched.
-    skipTracksWithSyncedLyrics: preserved.value.skipTracksWithSyncedLyrics,
-    skipTracksWithPlainLyrics: preserved.value.skipTracksWithPlainLyrics,
-    showLineCount: preserved.value.showLineCount,
-    // Embedding lyrics into audio files is offered by the download dialog; this
-    // dialog does not toggle it, so keep whatever is already stored.
-    tryEmbedLyrics: preserved.value.tryEmbedLyrics,
-    themeMode: editingThemeMode.value,
-    lrclibInstance: editingLrclibInstance.value,
-    volume: volume.value,
-    syncCover: syncCover.value,
-    proxyUrl: editingProxyUrl.value,
-  })
+  // A failure here used to be silent: the await threw, the function stopped,
+  // and the dialog simply stayed open with the change not applied. Nothing on
+  // screen said that anything had gone wrong.
+  try {
+    await invoke('set_config', {
+      // Which tracks a batch should skip is chosen per download, in the download
+      // dialog — it is not a global preference, so it is not edited here. The
+      // loaded values are written back untouched.
+      skipTracksWithSyncedLyrics: preserved.value.skipTracksWithSyncedLyrics,
+      skipTracksWithPlainLyrics: preserved.value.skipTracksWithPlainLyrics,
+      showLineCount: preserved.value.showLineCount,
+      // Embedding lyrics into audio files is offered by the download dialog; this
+      // dialog does not toggle it, so keep whatever is already stored.
+      tryEmbedLyrics: preserved.value.tryEmbedLyrics,
+      themeMode: editingThemeMode.value,
+      lrclibInstance: editingLrclibInstance.value,
+      volume: volume.value,
+      syncCover: syncCover.value,
+      proxyUrl: editingProxyUrl.value,
+      // The backend's `set_config` takes every setting, not only the ones this
+      // dialog edits, so the ones it does not edit are written back untouched.
+      // Leaving this one out made the whole call fail, and with it every change
+      // in this dialog.
+      updateCheckEnabled: preserved.value.updateCheckEnabled,
+    })
+  } catch (error) {
+    console.error('Failed to save the settings:', error)
+    toast.error($t('config.saveFailed'))
+    return
+  }
   setThemeMode(editingThemeMode.value)
   setLrclibInstance(editingLrclibInstance.value)
   emit('close')
@@ -198,6 +215,7 @@ const beforeOpenHandler = async () => {
     skipTracksWithPlainLyrics: config.skip_tracks_with_plain_lyrics,
     showLineCount: config.show_line_count,
     tryEmbedLyrics: config.try_embed_lyrics,
+    updateCheckEnabled: config.update_check_enabled ?? true,
   }
   syncCover.value = config.sync_cover ?? false
   editingThemeMode.value = config.theme_mode

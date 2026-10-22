@@ -67,6 +67,12 @@ export default {
     downloadAlbumLyrics: 'Unduh lirik album',
   },
 
+  artist: {
+    tracks: 'lagu',
+    trackCount: '{count} lagu',
+    downloadArtistLyrics: 'Unduh lirik artis',
+  },
+
   track: {
     duration: 'Durasi',
     lyrics: 'Lirik',
@@ -103,6 +109,7 @@ export default {
   },
 
   config: {
+    saveFailed: 'Tidak dapat menyimpan pengaturan',
     proxy: 'Server proxy',
     proxyHint: 'Kosongkan untuk koneksi langsung. Berlaku untuk lirik dan sampul.',
     appearance: 'Tampilan',
@@ -161,6 +168,9 @@ export default {
   },
 
   editor: {
+    playLine: 'Putar',
+    resetWordTimings: 'Atur ulang',
+    resetWordTimingsTitle: 'Atur ulang waktu kata ke keadaan bawaan',
     syncWord: 'Sinkronkan kata',
     noPlainYet: 'Belum ada lirik biasa',
     noSyncedYet: 'Belum ada baris tersinkron',

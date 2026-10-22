@@ -67,6 +67,12 @@ export default {
     downloadAlbumLyrics: 'ดาวน์โหลดเนื้อเพลงทั้งอัลบั้ม',
   },
 
+  artist: {
+    tracks: 'เพลง',
+    trackCount: '{count} เพลง',
+    downloadArtistLyrics: 'ดาวน์โหลดเนื้อเพลงของศิลปิน',
+  },
+
   track: {
     duration: 'ความยาว',
     lyrics: 'เนื้อเพลง',
@@ -103,6 +109,7 @@ export default {
   },
 
   config: {
+    saveFailed: 'ไม่สามารถบันทึกการตั้งค่าได้',
     proxy: 'พร็อกซี',
     proxyHint: 'เว้นว่างเพื่อเชื่อมต่อโดยตรง ใช้กับบริการเนื้อเพลงและปก',
     appearance: 'รูปลักษณ์',
@@ -161,6 +168,9 @@ export default {
   },
 
   editor: {
+    playLine: 'เล่น',
+    resetWordTimings: 'รีเซ็ต',
+    resetWordTimingsTitle: 'รีเซ็ตเวลาของคำให้เป็นค่าเริ่มต้น',
     syncWord: 'ซิงค์คำ',
     noPlainYet: 'ยังไม่มีเนื้อเพลงธรรมดา',
     noSyncedYet: 'ยังไม่มีบรรทัดที่ซิงค์',

@@ -70,6 +70,12 @@ export default {
     downloadAlbumLyrics: 'Download album lyrics',
   },
 
+  artist: {
+    tracks: 'Tracks',
+    trackCount: '{count} tracks',
+    downloadArtistLyrics: 'Download artist lyrics',
+  },
+
   track: {
     duration: 'Duration',
     lyrics: 'Lyrics',
@@ -106,6 +112,7 @@ export default {
   },
 
   config: {
+    saveFailed: 'Could not save the settings',
     proxy: 'Proxy server',
     proxyHint: 'Leave empty to connect directly. Applies to the lyric and cover services.',
     appearance: 'Appearance',
@@ -164,6 +171,9 @@ export default {
   },
 
   editor: {
+    playLine: 'Play',
+    resetWordTimings: 'Reset',
+    resetWordTimingsTitle: 'Reset word timings to default state',
     syncWord: 'Sync word',
     noPlainYet: 'No plain lyrics yet',
     noSyncedYet: 'No synced lyric lines yet',

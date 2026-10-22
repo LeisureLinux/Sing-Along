@@ -67,6 +67,12 @@ export default {
     downloadAlbumLyrics: 'Télécharger les paroles de l’album',
   },
 
+  artist: {
+    tracks: 'Pistes',
+    trackCount: '{count} pistes',
+    downloadArtistLyrics: 'Télécharger les paroles de l’artiste',
+  },
+
   track: {
     duration: 'Durée',
     lyrics: 'Paroles',
@@ -103,6 +109,7 @@ export default {
   },
 
   config: {
+    saveFailed: 'Impossible d’enregistrer les paramètres',
     proxy: 'Serveur proxy',
     proxyHint: 'Laisser vide pour se connecter directement. S’applique aux paroles et pochettes.',
     appearance: 'Apparence',
@@ -161,6 +168,9 @@ export default {
   },
 
   editor: {
+    playLine: 'Lecture',
+    resetWordTimings: 'Réinitialiser',
+    resetWordTimingsTitle: 'Réinitialiser les temps des mots à l’état par défaut',
     syncWord: 'Synchroniser le mot',
     noPlainYet: 'Pas encore de paroles simples',
     noSyncedYet: 'Pas encore de lignes synchronisées',

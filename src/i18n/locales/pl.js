@@ -70,6 +70,12 @@ export default {
     downloadAlbumLyrics: 'Pobierz teksty albumu',
   },
 
+  artist: {
+    tracks: 'utworów',
+    trackCount: 'Utworów: {count}',
+    downloadArtistLyrics: 'Pobierz teksty wykonawcy',
+  },
+
   track: {
     duration: 'Czas',
     lyrics: 'Tekst',
@@ -106,6 +112,7 @@ export default {
   },
 
   config: {
+    saveFailed: 'Nie udało się zapisać ustawień',
     proxy: 'Serwer proxy',
     proxyHint: 'Pozostaw puste, aby łączyć się bezpośrednio. Dotyczy tekstów i okładek.',
     appearance: 'Wygląd',
@@ -164,6 +171,9 @@ export default {
   },
 
   editor: {
+    playLine: 'Odtwórz',
+    resetWordTimings: 'Resetuj',
+    resetWordTimingsTitle: 'Zresetuj czasy słów do stanu domyślnego',
     syncWord: 'Synchronizuj słowo',
     noPlainYet: 'Nie ma jeszcze zwykłego tekstu',
     noSyncedYet: 'Nie ma jeszcze zsynchronizowanych wierszy',

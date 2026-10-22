@@ -67,6 +67,12 @@ export default {
     downloadAlbumLyrics: 'Songtexte des Albums herunterladen',
   },
 
+  artist: {
+    tracks: 'Titel',
+    trackCount: '{count} Titel',
+    downloadArtistLyrics: 'Songtexte des Künstlers herunterladen',
+  },
+
   track: {
     duration: 'Dauer',
     lyrics: 'Songtext',
@@ -103,6 +109,7 @@ export default {
   },
 
   config: {
+    saveFailed: 'Einstellungen konnten nicht gespeichert werden',
     proxy: 'Proxy-Server',
     proxyHint: 'Leer lassen für direkte Verbindung. Gilt für Songtexte und Cover.',
     appearance: 'Darstellung',
@@ -161,6 +168,9 @@ export default {
   },
 
   editor: {
+    playLine: 'Abspielen',
+    resetWordTimings: 'Zurücksetzen',
+    resetWordTimingsTitle: 'Wortzeiten auf den Standardzustand zurücksetzen',
     syncWord: 'Wort synchronisieren',
     noPlainYet: 'Noch kein unsynchronisierter Songtext',
     noSyncedYet: 'Noch keine synchronisierten Zeilen',

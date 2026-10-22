@@ -19,7 +19,7 @@
             <div
               class="text-sm text-neutral-800 group-hover:text-neutral-800 transition dark:text-white"
             >
-              {{ artist.tracks_count }} tracks
+              {{ $t('artist.trackCount', { count: artist.tracks_count }) }}
             </div>
           </div>
         </div>
@@ -32,7 +32,7 @@
             <div class="text-sm">
               <DownloadMultiple />
             </div>
-            <span> Download artist lyrics </span>
+            <span>{{ $t('artist.downloadArtistLyrics') }}</span>
           </button>
         </div>
       </div>

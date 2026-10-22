@@ -67,6 +67,12 @@ export default {
     downloadAlbumLyrics: '앨범 가사 다운로드',
   },
 
+  artist: {
+    tracks: '곡',
+    trackCount: '{count}곡',
+    downloadArtistLyrics: '아티스트 가사 다운로드',
+  },
+
   track: {
     duration: '길이',
     lyrics: '가사',
@@ -103,6 +109,7 @@ export default {
   },
 
   config: {
+    saveFailed: '설정을 저장할 수 없습니다',
     proxy: '프록시 서버',
     proxyHint: '비워 두면 직접 연결합니다. 가사와 커버에 적용됩니다.',
     appearance: '모양',
@@ -161,6 +168,9 @@ export default {
   },
 
   editor: {
+    playLine: '재생',
+    resetWordTimings: '초기화',
+    resetWordTimingsTitle: '단어 타이밍을 기본 상태로 초기화',
     syncWord: '단어 동기화',
     noPlainYet: '아직 일반 가사가 없습니다',
     noSyncedYet: '아직 동기화한 줄이 없습니다',

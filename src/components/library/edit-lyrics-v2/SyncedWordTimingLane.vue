@@ -50,7 +50,7 @@
             @click="handlePlayLine"
           >
             <Play class="w-3.5 h-3.5" />
-            <span>Play</span>
+            <span>{{ $t('editor.playLine') }}</span>
           </button>
           <button
             class="button button-primary text-xs px-2 py-1 rounded flex items-center gap-1"
@@ -62,11 +62,11 @@
           </button>
           <button
             class="button button-normal text-xs px-2 py-1 rounded flex items-center gap-1"
-            title="Reset word timings to default state"
+            :title="$t('editor.resetWordTimingsTitle')"
             @click="handleResetWords"
           >
             <Close class="w-3.5 h-3.5" />
-            <span>Reset</span>
+            <span>{{ $t('editor.resetWordTimings') }}</span>
           </button>
         </div>
       </div>

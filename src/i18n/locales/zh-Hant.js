@@ -63,6 +63,12 @@ export default {
     downloadAlbumLyrics: '下載整張專輯歌詞',
   },
 
+  artist: {
+    tracks: '曲目',
+    trackCount: '{count} 首',
+    downloadArtistLyrics: '下載該歌手全部歌詞',
+  },
+
   track: {
     duration: '長度',
     lyrics: '歌詞',
@@ -99,6 +105,7 @@ export default {
   },
 
   config: {
+    saveFailed: '設定儲存失敗',
     proxy: '代理伺服器',
     proxyHint: '留空則直連。用於歌詞與封面服務。',
     appearance: '外觀',
@@ -157,6 +164,9 @@ export default {
   },
 
   editor: {
+    playLine: '播放',
+    resetWordTimings: '重設',
+    resetWordTimingsTitle: '將詞時間重設為預設狀態',
     syncWord: '同步此詞',
     noPlainYet: '還沒有純文字歌詞',
     noSyncedYet: '還沒有同步歌詞行',
