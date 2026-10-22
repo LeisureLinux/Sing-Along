@@ -115,7 +115,12 @@ jobs:
           # a directory named after the app finds nothing. And `find | head`
           # under `pipefail` fails the step: head exits after twenty lines,
           # find takes SIGPIPE, and the pipeline reports the failure.
-          flatpak remote-add --user --if-not-exists build-check "$PWD/flatpak-repo"
+          # `gpg-verify-summary=false`: the repository is not signed. Signing is
+          # Flathub's job — they hold the key and add the signature when they
+          # publish — so a local build has none, and flatpak refuses to describe
+          # a remote whose commits carry no summary signature.
+          flatpak remote-add --user --if-not-exists build-check \
+            --gpg-verify-summary=false "$PWD/flatpak-repo"
           flatpak remote-info --user build-check com.freelamp.SingAlong
           binary=$(find "$PWD/flatpak-builddir/files" -type f -name 'sing-along' -print -quit)
           test -n "$binary"
