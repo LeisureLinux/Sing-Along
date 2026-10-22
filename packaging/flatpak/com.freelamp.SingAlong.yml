@@ -56,8 +56,15 @@ modules:
       - mv /app/share/metainfo/sing-along.metainfo.xml /app/share/metainfo/com.freelamp.SingAlong.metainfo.xml
       # Icons keep the name the desktop file points at; renaming them would break
       # `Icon=sing-along` inside it.
+    # This is the source Flathub uses. It names a published release, so it goes
+    # stale with every version — update the three values below when submitting an
+    # update, before opening the PR.
+    #
+    # CI does not use them: the build job rewrites this source to point at the .deb
+    # produced by the same run, because a tag build has not published its assets at
+    # the point the check runs.
     sources:
       - type: file
-        url: https://github.com/LeisureLinux/Sing-Along/releases/download/v2.9.19/sing-along_2.9.19_amd64.deb
+        url: https://github.com/LeisureLinux/Sing-Along/releases/download/v2.9.20/sing-along_2.9.20_amd64.deb
         sha256: 8f76a8788391d2a7d10d6f962ff53f8f8b70b6d0beb09296458696087b53a249
         dest-filename: sing-along.deb
