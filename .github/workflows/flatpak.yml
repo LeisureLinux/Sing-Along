@@ -61,12 +61,17 @@ jobs:
             tag=$(gh release view --repo "${{ github.repository }}" --json tagName --jq .tagName)
           fi
           echo "using $tag"
-          mkdir -p deb
-          gh release download "$tag" --repo "${{ github.repository }}" \
-            --pattern 'sing-along_*.deb' --dir deb
-          deb=$(find deb -name 'sing-along_*.deb' | head -1)
-          test -n "$deb"
-          cp "$deb" packaging/flatpak/sing-along.deb
+          # The asset's URL is taken from the API and fetched with curl, rather
+          # than with `gh release download --pattern`: the same command finds the
+          # asset on a workstation and reports "no assets to download" on the
+          # runner, and the API says plainly which asset it is.
+          url=$(gh api "repos/${{ github.repository }}/releases/tags/$tag" \
+            --jq '.assets[] | select(.name | endswith("_amd64.deb")) | .browser_download_url')
+          test -n "$url"
+          echo "$url"
+          curl -fsSL -o packaging/flatpak/sing-along.deb "$url"
+          test -s packaging/flatpak/sing-along.deb
+          dpkg-deb --info packaging/flatpak/sing-along.deb | head -4
           sha256sum packaging/flatpak/sing-along.deb
 
       # The published asset is named for a version; the manifest's source is
