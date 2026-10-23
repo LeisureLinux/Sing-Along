@@ -105,6 +105,8 @@ export default {
   },
 
   config: {
+    amllDbUrl: '詞級歌詞庫',
+    amllDbUrlHint: '留空使用預設位址。AMLL 歌詞庫的任何鏡像都提供相同的路徑。',
     saveFailed: '設定儲存失敗',
     proxy: '代理伺服器',
     proxyHint: '留空則直連。用於歌詞與封面服務。',

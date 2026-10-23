@@ -109,6 +109,8 @@ export default {
   },
 
   config: {
+    amllDbUrl: 'Datenbank für Wortzeiten',
+    amllDbUrlHint: 'Leer lassen für den Standardwert. Jeder Spiegel der AMLL-Datenbank bietet dieselben Pfade.',
     saveFailed: 'Einstellungen konnten nicht gespeichert werden',
     proxy: 'Proxy-Server',
     proxyHint: 'Leer lassen für direkte Verbindung. Gilt für Songtexte und Cover.',

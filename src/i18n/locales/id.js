@@ -109,6 +109,8 @@ export default {
   },
 
   config: {
+    amllDbUrl: 'Basis data lirik per kata',
+    amllDbUrlHint: 'Biarkan kosong untuk alamat bawaan. Cermin basis data AMLL mana pun menyajikan jalur yang sama.',
     saveFailed: 'Tidak dapat menyimpan pengaturan',
     proxy: 'Server proxy',
     proxyHint: 'Kosongkan untuk koneksi langsung. Berlaku untuk lirik dan sampul.',

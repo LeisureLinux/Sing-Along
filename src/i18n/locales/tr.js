@@ -113,6 +113,8 @@ export default {
   },
 
   config: {
+    amllDbUrl: 'Kelime düzeyinde şarkı sözü veritabanı',
+    amllDbUrlHint: 'Varsayılan adres için boş bırakın. AMLL veritabanının her aynası aynı yolları sunar.',
     saveFailed: 'Ayarlar kaydedilemedi',
     proxy: 'Proxy sunucusu',
     proxyHint: 'Doğrudan bağlanmak için boş bırakın. Sözler ve kapaklar için geçerli.',

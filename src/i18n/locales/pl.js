@@ -112,6 +112,8 @@ export default {
   },
 
   config: {
+    amllDbUrl: 'Baza tekstów z timingiem słów',
+    amllDbUrlHint: 'Pozostaw puste, aby użyć adresu domyślnego. Każde lustro bazy AMLL udostępnia te same ścieżki.',
     saveFailed: 'Nie udało się zapisać ustawień',
     proxy: 'Serwer proxy',
     proxyHint: 'Pozostaw puste, aby łączyć się bezpośrednio. Dotyczy tekstów i okładek.',

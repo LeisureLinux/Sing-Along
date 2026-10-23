@@ -170,6 +170,7 @@ async fn set_config(
     sync_cover: bool,
     proxy_url: String,
     update_check_enabled: bool,
+    amll_db_url: String,
     app_state: State<'_, AppState>,
 ) -> Result<(), String> {
     let conn_guard = app_state.db.lock().unwrap();
@@ -185,6 +186,7 @@ async fn set_config(
         sync_cover,
         &proxy_url,
         update_check_enabled,
+        &amll_db_url,
         conn,
     )
     .map_err(|err| err.to_string())?;
@@ -791,6 +793,11 @@ async fn download_lyrics(
     )
     .await;
 
+    // Word-level TTML obtained along the way, if any. It is carried out of the
+    // match rather than used inside it because it changes what gets stored: a
+    // lyricsfile built from these lines has real word timings, not estimates.
+    let mut word_ttml: Option<String> = None;
+
     let (lrclib_response, netease_note) = match lrclib_result {
         Ok(response) => (response, String::new()),
         Err(lrclib_error) => {
@@ -806,16 +813,32 @@ async fn download_lyrics(
             )
             .await
             {
-                Ok(Some(netease)) => (
-                    crate::lrclib::get::RawResponse::from_synced_lyrics(
-                        netease.synced_lyrics,
-                        &track.title,
-                        &track.album_name,
-                        &track.artist_name,
-                        track.duration,
-                    ),
-                    format!(" (via NetEase #{})", netease.song_id),
-                ),
+                Ok(Some(netease)) => {
+                    // NetEase gave us a song id, and the AMLL database indexes
+                    // word-level lyrics by that id. Asking it is one request, and
+                    // the answer is either a measured word timing or nothing —
+                    // worth trying before falling back to `word_sync`, which can
+                    // only estimate word boundaries from line length.
+                    //
+                    // A failure here is silent for the same reason the NetEase
+                    // failure is: a third source going down must not turn a
+                    // successful download into an error.
+                    word_ttml = fetch_amll_ttml(&config, netease.song_id).await;
+
+                    (
+                        crate::lrclib::get::RawResponse::from_synced_lyrics(
+                            netease.synced_lyrics,
+                            &track.title,
+                            &track.album_name,
+                            &track.artist_name,
+                            track.duration,
+                        ),
+                        match &word_ttml {
+                            Some(_) => format!(" (via NetEase #{}, word timings from AMLL)", netease.song_id),
+                            None => format!(" (via NetEase #{})", netease.song_id),
+                        },
+                    )
+                }
                 Ok(None) => {
                     // NetEase searched and found nothing: report the original
                     // LRCLIB failure, which is the truthful one.
@@ -842,8 +865,26 @@ async fn download_lyrics(
     let message = format!("{message}{netease_note}");
 
     // Build lyricsfile content from the resolved response
+    let word_lines = word_ttml
+        .as_deref()
+        .map(crate::amll::ttml::parse)
+        .filter(|lines| !lines.is_empty());
+
     let lyricsfile_content = if let Some(ref provided) = resolved.provided_lyricsfile {
         provided.clone()
+    } else if let Some(lines) = word_lines {
+        // Measured word timings beat anything derived from line length, so this
+        // wins over building from the LRC.
+        crate::lyricsfile::build_lyricsfile_from_word_lines(
+            &crate::lyricsfile::LyricsfileTrackMetadata::new(
+                &track.title,
+                &track.album_name,
+                &track.artist_name,
+                track.duration,
+            ),
+            &lines,
+        )
+        .ok_or_else(|| "Failed to build lyricsfile from word timings")?
     } else {
         // Build a lyricsfile from the plain/synced lyrics
         crate::lyricsfile::build_lyricsfile(
@@ -1606,6 +1647,42 @@ fn resolve_library_track(app_handle: &AppHandle, track_id: i64) -> Result<Playab
 /// tooling, and routing lyric or cover lookups through it silently fails.
 fn netease_client(proxy_url: &str) -> reqwest::Client {
     crate::http::client(proxy_url, 15).expect("failed to build HTTP client")
+}
+
+/// Word-level TTML from the AMLL database for a NetEase song id.
+///
+/// `None` for every reason it cannot help: no entry, a line-level entry, a
+/// network failure, a mirror that answers with an error page. The caller has a
+/// working line-level fallback either way, so this never surfaces as an error.
+async fn fetch_amll_ttml(
+    config: &crate::persistent_entities::PersistentConfig,
+    netease_id: i64,
+) -> Option<String> {
+    let base = if config.amll_db_url.trim().is_empty() {
+        crate::amll::DEFAULT_BASE_URL
+    } else {
+        config.amll_db_url.trim()
+    };
+    let client = match crate::http::client(&config.proxy_url, 15) {
+        Ok(client) => client,
+        Err(err) => {
+            eprintln!("AMLL lookup skipped, no HTTP client: {err}");
+            return None;
+        }
+    };
+
+    match crate::amll::fetch_lyrics(&client, base, netease_id).await {
+        Ok(Some(found)) if crate::amll::has_word_timings(&found.ttml) => Some(found.ttml),
+        // A line-level entry adds nothing to what NetEase already returned.
+        Ok(Some(_)) => None,
+        Ok(None) => None,
+        Err(err) => {
+            // The full chain: the reason a request failed is usually the useful
+            // part, and `{err}` alone stops at the outermost context.
+            eprintln!("AMLL lookup failed: {err:#}");
+            None
+        }
+    }
 }
 
 /// Search and embed album cover art for a track.

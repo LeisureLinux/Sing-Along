@@ -109,6 +109,8 @@ export default {
   },
 
   config: {
+    amllDbUrl: 'Cơ sở dữ liệu lời theo từng từ',
+    amllDbUrlHint: 'Để trống để dùng địa chỉ mặc định. Bất kỳ bản sao nào của cơ sở dữ liệu AMLL đều phục vụ cùng đường dẫn.',
     saveFailed: 'Không thể lưu cài đặt',
     proxy: 'Máy chủ proxy',
     proxyHint: 'Để trống để kết nối trực tiếp. Áp dụng cho lời và ảnh bìa.',

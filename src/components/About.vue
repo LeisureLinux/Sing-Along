@@ -227,6 +227,7 @@ const setUpdateCheckEnabled = async enabled => {
     syncCover: config.sync_cover,
     proxyUrl: config.proxy_url ?? '',
     updateCheckEnabled: enabled,
+    amllDbUrl: config.amll_db_url ?? '',
   })
 }
 

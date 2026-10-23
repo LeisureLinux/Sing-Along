@@ -109,6 +109,8 @@ export default {
   },
 
   config: {
+    amllDbUrl: 'Base de paroles avec minutage par mot',
+    amllDbUrlHint: 'Laisser vide pour l’adresse par défaut. Tout miroir de la base AMLL sert les mêmes chemins.',
     saveFailed: 'Impossible d’enregistrer les paramètres',
     proxy: 'Serveur proxy',
     proxyHint: 'Laisser vide pour se connecter directement. S’applique aux paroles et pochettes.',

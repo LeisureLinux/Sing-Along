@@ -109,6 +109,8 @@ export default {
   },
 
   config: {
+    amllDbUrl: 'Database di testi con tempi per parola',
+    amllDbUrlHint: 'Lascia vuoto per l’indirizzo predefinito. Qualsiasi mirror del database AMLL serve gli stessi percorsi.',
     saveFailed: 'Impossibile salvare le impostazioni',
     proxy: 'Server proxy',
     proxyHint: 'Lascia vuoto per la connessione diretta. Vale per testi e copertine.',

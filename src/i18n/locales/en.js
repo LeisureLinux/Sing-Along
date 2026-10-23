@@ -112,6 +112,8 @@ export default {
   },
 
   config: {
+    amllDbUrl: 'Word-level lyrics database',
+    amllDbUrlHint: 'Leave empty for the default. Any mirror of the AMLL database serves the same paths.',
     saveFailed: 'Could not save the settings',
     proxy: 'Proxy server',
     proxyHint: 'Leave empty to connect directly. Applies to the lyric and cover services.',

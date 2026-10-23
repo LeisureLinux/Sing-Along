@@ -105,6 +105,8 @@ export default {
   },
 
   config: {
+    amllDbUrl: '词级歌词库',
+    amllDbUrlHint: '留空使用默认地址。AMLL 歌词库的任何镜像都提供相同的路径。',
     saveFailed: '设置保存失败',
     proxy: '代理服务器',
     proxyHint: '留空则直连。用于歌词与封面服务。',

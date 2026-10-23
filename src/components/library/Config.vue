@@ -81,6 +81,26 @@
             $t('config.proxyHint')
           }}</span>
         </div>
+
+        <!-- Where the word-level lyrics database is read from. Empty means the
+             built-in default; it is a setting because that database is one
+             volunteer-maintained repository and any of its forks serves the same
+             paths. -->
+        <div class="flex flex-col mt-4">
+          <label class="block mb-2 child-label" for="amll-db-url">{{
+            $t('config.amllDbUrl')
+          }}</label>
+          <input
+            id="amll-db-url"
+            v-model="editingAmllDbUrl"
+            type="text"
+            placeholder="https://"
+            class="input px-4 h-8"
+          />
+          <span class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{{
+            $t('config.amllDbUrlHint')
+          }}</span>
+        </div>
       </div>
 
       <div>
@@ -144,6 +164,7 @@ const syncCover = ref(false)
 const editingThemeMode = ref('auto')
 const editingLrclibInstance = ref('')
 const editingProxyUrl = ref('')
+const editingAmllDbUrl = ref('')
 
 // Fields this dialog no longer edits (the per-batch skip rules and the
 // experimental embed flag) still exist in config: the download dialog reads
@@ -177,6 +198,7 @@ const save = async () => {
       volume: volume.value,
       syncCover: syncCover.value,
       proxyUrl: editingProxyUrl.value,
+      amllDbUrl: editingAmllDbUrl.value,
       // The backend's `set_config` takes every setting, not only the ones this
       // dialog edits, so the ones it does not edit are written back untouched.
       // Leaving this one out made the whole call fail, and with it every change
@@ -221,5 +243,6 @@ const beforeOpenHandler = async () => {
   editingThemeMode.value = config.theme_mode
   editingLrclibInstance.value = config.lrclib_instance
   editingProxyUrl.value = config.proxy_url ?? ''
+  editingAmllDbUrl.value = config.amll_db_url ?? ''
 }
 </script>

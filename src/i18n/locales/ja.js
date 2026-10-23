@@ -111,6 +111,8 @@ export default {
   },
 
   config: {
+    amllDbUrl: '単語単位の歌詞データベース',
+    amllDbUrlHint: '空欄の場合は既定のアドレスを使用します。AMLL データベースのミラーはどれも同じパスを提供します。',
     saveFailed: '設定を保存できませんでした',
     proxy: 'プロキシ',
     proxyHint: '空欄なら直接接続。歌詞とカバーの取得に使います。',

@@ -109,6 +109,8 @@ export default {
   },
 
   config: {
+    amllDbUrl: 'Banco de letras com tempo por palavra',
+    amllDbUrlHint: 'Deixe vazio para o endereço padrão. Qualquer espelho do banco AMLL serve os mesmos caminhos.',
     saveFailed: 'Não foi possível salvar as configurações',
     proxy: 'Servidor proxy',
     proxyHint: 'Deixe vazio para conectar diretamente. Vale para letras e capas.',

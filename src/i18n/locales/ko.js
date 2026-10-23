@@ -109,6 +109,8 @@ export default {
   },
 
   config: {
+    amllDbUrl: '단어 단위 가사 데이터베이스',
+    amllDbUrlHint: '비워 두면 기본 주소를 사용합니다. AMLL 데이터베이스의 어떤 미러든 같은 경로를 제공합니다.',
     saveFailed: '설정을 저장할 수 없습니다',
     proxy: '프록시 서버',
     proxyHint: '비워 두면 직접 연결합니다. 가사와 커버에 적용됩니다.',

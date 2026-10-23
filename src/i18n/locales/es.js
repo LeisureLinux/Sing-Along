@@ -109,6 +109,8 @@ export default {
   },
 
   config: {
+    amllDbUrl: 'Base de datos de letras con tiempos por palabra',
+    amllDbUrlHint: 'Déjalo vacío para usar la dirección predeterminada. Cualquier réplica de la base de datos AMLL sirve las mismas rutas.',
     saveFailed: 'No se pudo guardar la configuración',
     proxy: 'Servidor proxy',
     proxyHint: 'Vacío para conectar directamente. Se aplica a letras y portadas.',

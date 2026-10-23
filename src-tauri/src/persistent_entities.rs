@@ -104,4 +104,9 @@ pub struct PersistentConfig {
     pub update_check_enabled: bool,
     /// Last version the user was told about, so it is only announced once.
     pub last_announced_version: String,
+    /// Where the AMLL word-level lyrics database is served from.
+    ///
+    /// Empty means the built-in default; a mirror serves the same paths, and the
+    /// database is one volunteer-maintained repository.
+    pub amll_db_url: String,
 }

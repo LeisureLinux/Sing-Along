@@ -163,6 +163,64 @@ pub fn build_lyricsfile(
     serde_yaml::to_string(&document).ok()
 }
 
+/// Build a lyricsfile from lines that already carry word timings.
+///
+/// The other constructor takes LRC, which has only line-level timing and
+/// therefore produces no `words`. A word-timed TTML from the AMLL database does
+/// have them, and the difference matters: a lyricsfile with `words` sets
+/// `has_word_synced_lyrics`, which is what the editor and the export path check
+/// before offering word-level formats. Dropping the timings here would make a
+/// measured document indistinguishable from an estimated one.
+pub fn build_lyricsfile_from_word_lines(
+    metadata: &LyricsfileTrackMetadata,
+    lines: &[crate::amll::ttml::TimedLine],
+) -> Option<String> {
+    if lines.is_empty() {
+        return None;
+    }
+
+    let converted: Vec<LyricsfileLine> = lines
+        .iter()
+        .map(|line| LyricsfileLine {
+            text: line.text.clone(),
+            start_ms: line.start_ms,
+            end_ms: line.end_ms,
+            words: line
+                .words
+                .iter()
+                .map(|word| LyricsfileWord {
+                    text: word.text.clone(),
+                    start_ms: word.start_ms,
+                    end_ms: word.end_ms,
+                })
+                .collect(),
+        })
+        .collect();
+
+    let document = LyricsfileDocument {
+        version: LYRICSFILE_VERSION.to_string(),
+        metadata: LyricsfileMetadata {
+            title: metadata.title.clone(),
+            artist: metadata.artist_name.clone(),
+            album: normalize_non_empty(Some(metadata.album_name.as_str())),
+            duration_ms: duration_to_ms(metadata.duration),
+            offset_ms: None,
+            language: None,
+            instrumental: false,
+        },
+        lines: converted,
+        plain: Some(
+            lines
+                .iter()
+                .map(|line| line.text.as_str())
+                .collect::<Vec<_>>()
+                .join("\n"),
+        ),
+    };
+
+    serde_yaml::to_string(&document).ok()
+}
+
 pub fn parse_lyricsfile(lyricsfile: &str) -> Result<ParsedLyricsfile> {
     let document: ParsedLyricsfileDocument = serde_yaml::from_str(lyricsfile)?;
 

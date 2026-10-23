@@ -10,6 +10,7 @@ pub mod export;
 pub mod library;
 pub mod lrclib;
 pub mod netease;
+pub mod amll;
 pub mod lyricsfile;
 pub mod parser;
 pub mod persistent_entities;
