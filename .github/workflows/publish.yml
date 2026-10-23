@@ -85,7 +85,7 @@ jobs:
           # `uploadUpdaterJson`, not by the target list.
           - platform: 'macos-latest'
             args: '--target aarch64-apple-darwin --bundles dmg'
-          - platform: 'ubuntu-22.04'
+          - platform: 'ubuntu-24.04'
             args: '--bundles deb,rpm,appimage'
           - platform: 'windows-latest'
             # NSIS only. The .msi exists for GPO/Intune deployment, and this
@@ -111,17 +111,7 @@ jobs:
           node-version: lts/*
 
       - name: install Rust stable
-        # Pinned, not `stable`.
-        #
-        # `stable` follows whatever rustc was released last, and 1.99.1 built a
-        # binary that opened to a blank white window on Linux while the same
-        # source built with 1.98.1 rendered correctly on the same machine. The
-        # difference was visible in the binaries: rustc 1.99.1 and GCC 11 on the
-        # runner, rustc 1.98.1 and GCC 14 locally.
-        #
-        # A version that is known to produce a working release, rather than the
-        # newest one. Raising it is a decision to test, not a coincidence.
-        uses: dtolnay/rust-toolchain@1.98.1
+        uses: dtolnay/rust-toolchain@stable
         with:
           # Only the target actually being built: an extra Rust target costs a
           # download and gains nothing on the other platforms.
@@ -134,7 +124,7 @@ jobs:
       # only existed on one runner image; that breaks as soon as the image moves.
       # The app needs webkit2gtk-4.1 and ALSA, nothing more specific.
       - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04'
+        if: matrix.platform == 'ubuntu-24.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -203,7 +193,7 @@ jobs:
       # without a musl-targeted compiler the build stops with
       # `failed to find tool "x86_64-linux-musl-gcc"`.
       - name: build cli (linux amd64, static)
-        if: matrix.platform == 'ubuntu-22.04'
+        if: matrix.platform == 'ubuntu-24.04'
         run: |
           sudo apt-get install -y musl-tools
           rustup target add x86_64-unknown-linux-musl
@@ -215,7 +205,7 @@ jobs:
         working-directory: src-tauri
 
       - uses: actions/upload-artifact@v4
-        if: matrix.platform == 'ubuntu-22.04'
+        if: matrix.platform == 'ubuntu-24.04'
         with:
           name: cli-linux-amd64
           path: src-tauri/singalong-cli-linux-amd64
@@ -401,7 +391,7 @@ jobs:
       # The Flatpak job consumes it — that build unpacks the .deb rather than
       # compiling a Tauri application inside the Flatpak SDK.
       - uses: actions/upload-artifact@v4
-        if: matrix.platform == 'ubuntu-22.04'
+        if: matrix.platform == 'ubuntu-24.04'
         with:
           name: deb-amd64
           path: src-tauri/target/release/bundle/deb/*.deb
