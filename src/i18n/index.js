@@ -85,7 +85,16 @@ const matchLocale = tag => {
  */
 export function resolveLocale(preference) {
   if (preference && preference !== 'auto') {
-    return preference
+    // A stored preference is only trusted if it names a locale that ships.
+    //
+    // Otherwise a value that is not in the list — a leftover from an older
+    // build, a truncated write, a hand-edited entry — is handed to vue-i18n,
+    // which cannot find the message bundle and fails while mounting. The
+    // result is a blank window with nothing on screen to say why.
+    const known = AVAILABLE_LOCALES.find(option => option.value === preference)
+    if (known) {
+      return known.value
+    }
   }
 
   const candidates = navigator.languages?.length
@@ -103,6 +112,40 @@ export function resolveLocale(preference) {
 
 export function readLocalePreference() {
   return localStorage.getItem(STORAGE_KEY) || 'auto'
+}
+
+/**
+ * Whether a stored preference is one this build can honour.
+ *
+ * 'auto' and the shipped locale ids are; anything else is a leftover — from an
+ * older build, a truncated write, or a hand-edited entry — and `resolveLocale`
+ * ignores it.
+ */
+export function isUsablePreference(preference) {
+  if (preference === 'auto') {
+    return true
+  }
+  return AVAILABLE_LOCALES.some(option => option.value === preference)
+}
+
+/**
+ * Drop a stored preference that cannot be honoured.
+ *
+ * Removing it, rather than overwriting it with 'en', is what keeps the
+ * correction invisible: the app falls back to following the system language,
+ * which is what a fresh install does. Writing 'en' would stop a Chinese user's
+ * interface from ever being Chinese again, and would look like a setting they
+ * chose rather than a repair.
+ *
+ * Returns true when something was removed, so the caller can say so.
+ */
+export function discardUnusablePreference() {
+  const stored = localStorage.getItem(STORAGE_KEY)
+  if (stored === null || isUsablePreference(stored)) {
+    return false
+  }
+  localStorage.removeItem(STORAGE_KEY)
+  return true
 }
 
 export function storeLocalePreference(preference) {
@@ -144,6 +187,11 @@ const i18n = createI18n({
 
 /** Read the stored preference and set the locale. Called once from the entry point. */
 export function initLocale() {
+  // Repair a stored preference that cannot be honoured before using it, so the
+  // bad value does not survive to the next launch.
+  if (discardUnusablePreference()) {
+    console.warn('Discarded a stored locale that this build does not ship.')
+  }
   i18n.global.locale.value = resolveLocale(readLocalePreference())
   document.documentElement.setAttribute('lang', i18n.global.locale.value)
   applyWindowTitle()

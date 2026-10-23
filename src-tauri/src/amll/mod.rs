@@ -17,7 +17,7 @@
 //! It is not an integration with QQ Music. The platform id in the path is how the
 //! database indexes its entries; nothing here talks to QQ Music, Apple Music or
 //! Spotify. NetEase ids are the ones this project can obtain, because it already
-//! searches NetEase, so `ncm-lyrics` is what actually gets queried.
+//! searches NetEase, so entries filed under NetEase ids are what get queried.
 //!
 //! ## Reliability
 //!
@@ -58,11 +58,14 @@ const MIRROR_BASE_URLS: [&str; 2] = [
 
 /// The platform folder to look in.
 ///
-/// Only `ncm-lyrics` is reachable without a new search integration: the rest of
-/// this project obtains NetEase ids, and the database indexes by the platform's
-/// own id. Adding `qq-lyrics` would need a QQ Music search that does not exist
-/// here, and would gain nothing while NetEase ids are what we have.
-const NCM_FOLDER: &str = "ncm-lyrics";
+/// The folder the database files NetEase entries under.
+///
+/// This is the database's own layout, not a term this project uses: the folder
+/// names are the platform's, and the ids inside are the platform's. NetEase is
+/// the only platform whose ids this project can obtain, because it already
+/// searches NetEase — reaching the others would mean a search integration that
+/// does not exist here.
+const NETEASE_FOLDER: &str = "ncm-lyrics";
 
 /// A word-timed TTML document, with the id it was fetched by.
 pub struct AmllLyrics {
@@ -81,7 +84,7 @@ pub async fn fetch_lyrics(
     base_url: &str,
     netease_id: i64,
 ) -> Result<Option<AmllLyrics>> {
-    let path = format!("{NCM_FOLDER}/{netease_id}.ttml");
+    let path = format!("{NETEASE_FOLDER}/{netease_id}.ttml");
 
     // The configured base first, then each mirror. A user who set a mirror gets
     // exactly that mirror; everyone else gets whichever host answers, in an order
@@ -171,8 +174,8 @@ mod tests {
     fn the_base_url_can_end_with_a_slash() {
         // Both spellings have to produce the same path, because the setting is a
         // free-text field.
-        let with = format!("{}/ncm-lyrics/1.ttml", DEFAULT_BASE_URL.trim_end_matches('/'));
-        let without = format!("{}/ncm-lyrics/1.ttml", DEFAULT_BASE_URL);
+        let with = format!("{}/{NETEASE_FOLDER}/1.ttml", DEFAULT_BASE_URL.trim_end_matches('/'));
+        let without = format!("{}/{NETEASE_FOLDER}/1.ttml", DEFAULT_BASE_URL);
         assert_eq!(with, without);
     }
 }
