@@ -1274,8 +1274,26 @@ async fn prepare_search_hit_lyricsfile(
         &artist_name,
         duration.unwrap_or(0.0),
     );
-    let lyricsfile_content = crate::lyricsfile::build_lyricsfile(&metadata, None, Some(&synced))
-        .ok_or("Failed to build lyricsfile from NetEase lyrics")?;
+
+    // A NetEase hit may also have word-level timings in the AMLL database,
+    // keyed by the same song id. Prefer those measured timings to the
+    // line-level text NetEase returns, the same way the bulk download path
+    // does, so a manual search is not worse than a download.
+    //
+    // A failure here is non-fatal: fall through to the line-level lyrics.
+    let word_ttml = fetch_amll_ttml(&config, id).await;
+    let word_lines = word_ttml
+        .as_deref()
+        .map(crate::amll::ttml::parse)
+        .filter(|lines| !lines.is_empty());
+
+    let lyricsfile_content = if let Some(lines) = word_lines {
+        crate::lyricsfile::build_lyricsfile_from_word_lines(&metadata, &lines)
+            .or_else(|| crate::lyricsfile::build_lyricsfile(&metadata, None, Some(&synced)))
+    } else {
+        crate::lyricsfile::build_lyricsfile(&metadata, None, Some(&synced))
+    }
+    .ok_or("Failed to build lyricsfile from NetEase lyrics")?;
 
     let parsed = crate::lyricsfile::parse_lyricsfile(&lyricsfile_content).map_err(|e| e.to_string())?;
 

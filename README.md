@@ -18,7 +18,7 @@ licensed MIT. [`llms.txt`](llms.txt) summarises the project for AI agents.
 - **What it does:** batch-downloads synced lyrics, edits line- and word-level
   timing, converts between Simplified and Traditional Chinese, exports to LRC,
   enhanced LRC (A2) and TTML
-- **Lyric sources:** [LRCLIB](https://lrclib.net) (primary) and NetEase
+- **Lyric sources:** [LRCLIB](https://lrclib.net) (primary) and NetEase, with word-level timings optionally enriched from the AMLL database
   (optional fallback)
 - **Platform:** Linux `.deb`, amd64
 - **Not a music manager:** no streaming, no metadata scraping, no library
@@ -65,15 +65,19 @@ Français, Deutsch, Italiano, Português (Brasil), Polski, Türkçe, Русск�
 Українська, Tiếng Việt, ไทย, Bahasa Indonesia — following the system language by
 default, switching live without a restart.
 
-## Two lyric sources
+## Lyric sources
 
 | Source | What it is | Notes |
 | ------ | ---------- | ----- |
 | LRCLIB | Open, community-run lyric database | The default. Instance URL is configurable. |
 | NetEase | China's largest music service | Fallback when LRCLIB has nothing. Non-official API — it can break, and a failure just means "no fallback lyrics found" rather than an error. |
+| AMLL word-level lyrics database | Community collection of hand-timed word timings, indexed by NetEase song id | Used automatically when a NetEase lyric is taken: if the database has a matching entry, its measured word timings overwrite the estimated ones. Not a third search source and not searchable by title; the URL is configurable because the database has mirrors (`amll-db-url`). |
 
-The Search tab queries both and tags each result with where it came from. Either
-source can be unticked; a source that fails does not hide the other's results.
+The Search tab queries LRCLIB and NetEase and tags each result with where it
+came from; Either source can be unticked, and a source that fails does not hide
+the other's results. Word-level timings from AMLL only appear after the chosen
+NetEase track is opened/associated, because the database is keyed by NetEase id
+rather than by free text.
 
 ## Why word-level lyrics need converting
 
