@@ -111,7 +111,17 @@ jobs:
           node-version: lts/*
 
       - name: install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+        # Pinned, not `stable`.
+        #
+        # `stable` follows whatever rustc was released last, and 1.99.1 built a
+        # binary that opened to a blank white window on Linux while the same
+        # source built with 1.98.1 rendered correctly on the same machine. The
+        # difference was visible in the binaries: rustc 1.99.1 and GCC 11 on the
+        # runner, rustc 1.98.1 and GCC 14 locally.
+        #
+        # A version that is known to produce a working release, rather than the
+        # newest one. Raising it is a decision to test, not a coincidence.
+        uses: dtolnay/rust-toolchain@1.98.1
         with:
           # Only the target actually being built: an extra Rust target costs a
           # download and gains nothing on the other platforms.
