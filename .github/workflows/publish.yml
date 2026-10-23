@@ -109,6 +109,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+          cache: 'npm'
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -123,11 +124,31 @@ jobs:
       # The upstream workflow pinned libwebkit2gtk to a specific version that
       # only existed on one runner image; that breaks as soon as the image moves.
       # The app needs webkit2gtk-4.1 and ALSA, nothing more specific.
+      - name: prepare apt cache dirs (ubuntu only)
+        if: matrix.platform == 'ubuntu-24.04'
+        run: |
+          sudo install -d -m 0755 /var/lib/apt/lists /var/cache/apt/archives
+
+      - name: cache apt (ubuntu only)
+        if: matrix.platform == 'ubuntu-24.04'
+        id: apt-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            /var/lib/apt/lists
+            /var/cache/apt/archives
+          key: ${{ runner.os }}-${{ runner.arch }}-apt-ubuntu-24.04-${{ hashFiles('.github/workflows/publish.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-apt-ubuntu-24.04-
+
+      - name: update apt metadata (ubuntu only, cache miss)
+        if: matrix.platform == 'ubuntu-24.04' && steps.apt-cache.outputs.cache-hit != 'true'
+        run: sudo apt-get update
+
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-24.04'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
+          sudo apt-get install -y --no-install-recommends \
             libwebkit2gtk-4.1-dev \
             libgtk-3-dev \
             libayatana-appindicator3-dev \
