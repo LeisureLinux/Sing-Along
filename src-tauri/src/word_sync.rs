@@ -58,7 +58,7 @@ pub fn build_word_sync(input: &str) -> Option<Vec<WordSyncLine>> {
 
     for (index, line) in entries.iter().enumerate() {
         let body = line.text.trim();
-        if body.is_empty() || is_credit_line(body) {
+        if body.is_empty() || is_credit_line(body) || is_section_marker(body) {
             continue;
         }
 
@@ -106,6 +106,40 @@ pub fn build_word_sync(input: &str) -> Option<Vec<WordSyncLine>> {
 
 /// Credit and metadata lines carry timestamps in many LRC files but are not
 /// sung. Giving them word timings produces highlight over silence.
+/// Whether a line is a section marker rather than something sung.
+///
+/// `[Chorus]`, `[Verse 2]`, `[Bridge]`, `[Hook: artist]` mark the structure of
+/// the song. They are not lyrics, so giving them a timing means the highlight
+/// sweeps across a line that is silent. Some sources also write them lowercase
+/// or with a language prefix — `[副歌]`, `[verse]` — so the test is on the
+/// shape, not on a list of names.
+///
+/// A bracket that holds lyric text is left alone: `[00:12.00]` is already
+/// stripped by the parser, and a line that merely starts with a bracket and
+/// continues is not a marker.
+fn is_section_marker(text: &str) -> bool {
+    let trimmed = text.trim();
+    let Some(inner) = trimmed.strip_prefix('[').and_then(|t| t.strip_suffix(']')) else {
+        return false;
+    };
+    let inner = inner.trim();
+    if inner.is_empty() {
+        return false;
+    }
+    // A marker is a short label — one to three words, optionally with a value
+    // after a colon: "[Chorus]", "[Verse 2]", "[Hook: Eminem]". A bracketed line
+    // with more words than that is sung text that happens to be in brackets,
+    // and dropping it would lose lyrics.
+    //
+    // Counting words rather than characters: "[I keep on fallin' in and out of
+    // love]" is short enough to pass a character limit and long enough to be
+    // sung.
+    if inner.split_whitespace().count() > 4 {
+        return false;
+    }
+    !inner.contains(']') && !inner.contains('[')
+}
+
 fn is_credit_line(text: &str) -> bool {
     const PREFIXES: [&str; 16] = [
         "作词", "作曲", "编曲", "制作", "出品", "监制", "录音", "混音", "母带", "词", "曲",
@@ -429,5 +463,44 @@ mod tests {
         let xml = to_ttml(&lines, "T&T", "", "");
         assert!(xml.contains("&amp;"));
         assert!(!xml.contains("T&T<"));
+    }
+
+    /// Section markers are not lyrics. They mark the structure of the song and
+    /// are not sung, so a word timing for them is a highlight over silence.
+    #[test]
+    fn section_markers_are_not_lyrics() {
+        let lrc = "[00:01.00][Chorus]\n[00:02.00]Real line one\n[00:03.00]Real line two";
+        let lines = build_word_sync(lrc).expect("should parse");
+        let texts: Vec<&str> = lines.iter().map(|l| l.body.as_str()).collect();
+        assert_eq!(texts, vec!["Real line one", "Real line two"]);
+    }
+
+    #[test]
+    fn section_markers_of_several_shapes_are_skipped() {
+        for marker in ["[Chorus]", "[Verse 2]", "[Bridge]", "[Hook: Eminem]", "[副歌]"] {
+            assert!(
+                is_section_marker(marker),
+                "{marker} should be treated as a section marker"
+            );
+        }
+    }
+
+    /// A bracketed line that is actually sung must survive: the rule is the
+    /// shape of a short label, not "starts with a bracket".
+    #[test]
+    fn bracketed_lyrics_are_not_mistaken_for_markers() {
+        assert!(!is_section_marker("[I keep on fallin' in and out of love]"));
+        assert!(!is_section_marker("[Chorus] and then the drums come in"));
+        assert!(!is_section_marker("A line that is not bracketed"));
+        assert!(!is_section_marker("[]"));
+    }
+
+    /// A credit line inside brackets is a marker too, but the credit rule
+    /// already handles the bare form; both must agree.
+    #[test]
+    fn section_marker_and_credit_rules_do_not_conflict() {
+        assert!(is_credit_line("作词：某甲"));
+        assert!(!is_credit_line("[作词：某甲]"));
+        assert!(is_section_marker("[作词：某甲]"));
     }
 }
