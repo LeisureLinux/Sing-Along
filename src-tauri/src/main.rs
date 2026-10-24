@@ -36,6 +36,7 @@ pub mod utils;
 pub mod word_segmentation;
 pub mod word_sync;
 pub mod youtube;
+#[cfg(feature = "gui")]
 pub mod youtube_gui;
 pub mod ytdlp;
 
