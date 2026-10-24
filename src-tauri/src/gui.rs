@@ -171,6 +171,9 @@ async fn set_config(
     proxy_url: String,
     update_check_enabled: bool,
     amll_db_url: String,
+    ytdlp_binary: String,
+    ytdlp_cookies_json: String,
+    ytdlp_output_dir: String,
     app_state: State<'_, AppState>,
 ) -> Result<(), String> {
     let conn_guard = app_state.db.lock().unwrap();
@@ -187,6 +190,9 @@ async fn set_config(
         &proxy_url,
         update_check_enabled,
         &amll_db_url,
+        &ytdlp_binary,
+        &ytdlp_cookies_json,
+        &ytdlp_output_dir,
         conn,
     )
     .map_err(|err| err.to_string())?;
@@ -2485,6 +2491,10 @@ pub fn run() {
             refresh_lrclib_lyricsfile,
             read_text_file,
             segment_words,
+            crate::youtube_gui::get_ytdlp_status,
+            crate::youtube_gui::convert_cookie_export,
+            crate::youtube_gui::probe_youtube_track,
+            crate::youtube_gui::download_youtube_track,
         ])
         .setup({
             let tray_available = tray_available.clone();

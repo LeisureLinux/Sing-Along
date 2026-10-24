@@ -111,6 +111,18 @@
         <span>{{ $t('actions.downloadAll') }}</span>
       </button>
 
+      <!-- Fetching a track from YouTube. Separate from the lyric download,
+           because this one runs an external program and needs a cookie
+           export the user has to provide. -->
+      <button
+        class="button button-normal h-full min-w-[6rem] px-2 text-xs rounded-full"
+        :title="$t('youtube.title')"
+        @click.stop.prevent="$emit('showYoutubeDownload')"
+      >
+        <Youtube />
+        <span>{{ $t('youtube.button') }}</span>
+      </button>
+
       <button
         v-if="isExporting && exportedCount + skippedCount + errorCount < exportTotalCount"
         class="button button-working h-full min-w-[7rem] px-2 text-xs rounded-full"
@@ -286,6 +298,7 @@ import DotsVertical from '~icons/mdi/dots-vertical'
 import Refresh from '~icons/mdi/refresh'
 import FolderMultiple from '~icons/mdi/folder-multiple'
 import Export from '~icons/mdi/export'
+import Youtube from '~icons/mdi/youtube'
 import CheckboxButton from '@/components/common/CheckboxButton.vue'
 import { useDownloader } from '@/composables/downloader.js'
 import { useExporter } from '@/composables/export.js'
@@ -303,6 +316,7 @@ const emit = defineEmits([
   'manageDirectories',
   'exportAllLyrics',
   'showExportViewer',
+  'showYoutubeDownload',
 ])
 
 const { refresh: refreshPreferences, save: savePreferences } = useExportPreferences()

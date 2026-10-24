@@ -11,6 +11,7 @@
       @manage-directories="$emit('manageDirectories')"
       @export-all-lyrics="handleExportAllLyrics"
       @show-export-viewer="openExportViewer"
+      @show-youtube-download="openYoutubeDownloadModal"
     />
 
     <div id="library-content" class="relative grow overflow-hidden">
@@ -76,6 +77,7 @@ import ArtistList from './library/ArtistList.vue'
 import MyLrclib from './library/MyLrclib.vue'
 import DownloadViewer from './library/DownloadViewer.vue'
 import ExportViewer from './library/ExportViewer.vue'
+import YoutubeDownload from './library/YoutubeDownload.vue'
 import Config from './library/Config.vue'
 import About from './About.vue'
 import { useToast } from 'vue-toastification'
@@ -157,6 +159,15 @@ const { open: openExportViewer, close: closeExportViewer } = useModal({
   attrs: {
     onClose() {
       closeExportViewer()
+    },
+  },
+})
+
+const { open: openYoutubeDownloadModal, close: closeYoutubeDownloadModal } = useModal({
+  component: YoutubeDownload,
+  attrs: {
+    onClose() {
+      closeYoutubeDownloadModal()
     },
   },
 })

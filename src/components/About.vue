@@ -64,8 +64,8 @@
 
           <div>
             Email:
-            <a href="mailto:albertxu@freelamp.com" class="link" target="_blank"
-              >albertxu@freelamp.com</a
+            <a href="mailto:contact@freelamp.com" class="link" target="_blank"
+              >contact@freelamp.com</a
             >
           </div>
         </div>

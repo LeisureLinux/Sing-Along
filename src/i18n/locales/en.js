@@ -326,4 +326,40 @@ export default {
     scanFailedDetail: 'Scanning the library failed: {error}',
     unsavedChanges: 'You have unsaved changes. Are you sure you want to close?',
   },
+
+  youtube: {
+    title: 'Download from YouTube',
+    button: 'YouTube',
+    downloader: 'Downloader',
+    url: 'YouTube URL',
+    urlPlaceholder: 'https://music.youtube.com/watch?v=...',
+    lookUp: 'Look up',
+    hint: 'Paste a YouTube or YouTube Music link.',
+    unknownArtist: 'Unknown artist',
+    unknownAlbum: 'Unknown album',
+    album: 'Album',
+    albumCorrected: 'The album and the cover come from the release database.',
+    download: 'Download',
+    downloading: 'Downloading...',
+    downloaded: 'Downloaded {title} ({album})',
+    downloadExplanation:
+      'The file is named after the artist and the title, and the album and the cover are taken from the release database rather than from YouTube.',
+
+    binary: 'yt-dlp',
+    binaryPlaceholder: 'yt-dlp',
+    binaryHint:
+      'Leave empty to use the yt-dlp on the PATH. The Python installation is the one that works best: it can load the plugins that YouTube asks for.',
+    cookies: 'Browser cookies',
+    cookiesPlaceholder: 'Path to the exported cookies',
+    cookiesHint:
+      'Export your YouTube cookies as JSON with a browser extension, then choose the file here. It is converted automatically.',
+    browse: 'Browse...',
+    cookiesConverted: 'Converted {count} cookies',
+    cookieCount: '{count} cookies',
+    cookieExpired: '{count} expired',
+    cookieNotSignedIn: 'not signed in',
+    outputDir: 'Download folder',
+    outputDirPlaceholder: 'The first music directory',
+    outputDirHint: 'Leave empty to download into the first music directory.',
+  },
 }

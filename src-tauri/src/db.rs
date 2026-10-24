@@ -298,7 +298,10 @@ pub fn get_config(db: &Connection) -> Result<PersistentConfig> {
         proxy_url,
         update_check_enabled,
         last_announced_version,
-        amll_db_url
+        amll_db_url,
+        ytdlp_binary,
+        ytdlp_cookies_json,
+        ytdlp_output_dir
       FROM config_data
       LIMIT 1
     "})?;
@@ -315,6 +318,9 @@ pub fn get_config(db: &Connection) -> Result<PersistentConfig> {
             update_check_enabled: r.get("update_check_enabled")?,
             last_announced_version: r.get("last_announced_version")?,
             amll_db_url: r.get("amll_db_url")?,
+            ytdlp_binary: r.get("ytdlp_binary")?,
+            ytdlp_cookies_json: r.get("ytdlp_cookies_json")?,
+            ytdlp_output_dir: r.get("ytdlp_output_dir")?,
             skip_tracks_with_synced_lyrics: r.get("skip_tracks_with_synced_lyrics")?,
             skip_tracks_with_plain_lyrics: r.get("skip_tracks_with_plain_lyrics")?,
             show_line_count: r.get("show_line_count")?,
@@ -339,6 +345,9 @@ pub fn set_config(
     proxy_url: &str,
     update_check_enabled: bool,
     amll_db_url: &str,
+    ytdlp_binary: &str,
+    ytdlp_cookies_json: &str,
+    ytdlp_output_dir: &str,
     db: &Connection,
 ) -> Result<()> {
     let mut statement = db.prepare(indoc! {"
@@ -354,7 +363,10 @@ pub fn set_config(
         sync_cover = ?,
         proxy_url = ?,
         update_check_enabled = ?,
-        amll_db_url = ?
+        amll_db_url = ?,
+        ytdlp_binary = ?,
+        ytdlp_cookies_json = ?,
+        ytdlp_output_dir = ?
       WHERE 1
     "})?;
     statement.execute((
@@ -369,6 +381,9 @@ pub fn set_config(
         proxy_url,
         update_check_enabled,
         amll_db_url,
+        ytdlp_binary,
+        ytdlp_cookies_json,
+        ytdlp_output_dir,
     ))?;
     Ok(())
 }
@@ -410,6 +425,27 @@ pub fn set_export_preferences(
             skip_tracks_with_synced_lyrics,
             skip_tracks_with_plain_lyrics,
         ),
+    )?;
+    Ok(())
+}
+
+/// Persist the external downloader's settings on their own.
+///
+/// A scoped update, like the export preferences: the downloader panel can be
+/// opened and closed without the rest of the settings being touched, and
+/// saving one thing must not reset another.
+pub fn set_ytdlp_settings(
+    ytdlp_binary: &str,
+    ytdlp_cookies_json: &str,
+    ytdlp_output_dir: &str,
+    db: &Connection,
+) -> Result<()> {
+    db.execute(
+        "UPDATE config_data SET
+            ytdlp_binary = ?1,
+            ytdlp_cookies_json = ?2,
+            ytdlp_output_dir = ?3",
+        (ytdlp_binary, ytdlp_cookies_json, ytdlp_output_dir),
     )?;
     Ok(())
 }
@@ -2100,8 +2136,24 @@ mod export_preferences_tests {
             .unwrap()
             .to_latest(&mut conn)
             .unwrap();
-        set_config(true, false, true, true, "dark", "https://example.test", 0.4, false, "", true, "", &conn)
-            .unwrap();
+        set_config(
+            true,
+            false,
+            true,
+            true,
+            "dark",
+            "https://example.test",
+            0.4,
+            false,
+            "",
+            true,
+            "",
+            "",
+            "",
+            "",
+            &conn,
+        )
+        .unwrap();
         set_export_preferences(None, Some(true), Some(true), Some(true), None, None, &conn)
             .unwrap();
 
@@ -2178,6 +2230,9 @@ mod export_preferences_tests {
             false,
             "",
             true,
+            "",
+            "",
+            "",
             "",
             &conn,
         )

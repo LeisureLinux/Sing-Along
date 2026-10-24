@@ -104,6 +104,88 @@
       </div>
 
       <div>
+        <label class="group-label mb-4">{{ $t('youtube.downloader') }}</label>
+
+        <!-- The downloader. Everything here is about the user's own machine:
+             where their yt-dlp is, which cookies it should use, and where the
+             files should land. -->
+        <div class="flex flex-col mb-4">
+          <label class="block mb-2 child-label" for="ytdlp-binary">{{
+            $t('youtube.binary')
+          }}</label>
+          <input
+            id="ytdlp-binary"
+            v-model="editingYtdlpBinary"
+            type="text"
+            :placeholder="$t('youtube.binaryPlaceholder')"
+            class="input px-4 h-8"
+          />
+          <span class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{{
+            $t('youtube.binaryHint')
+          }}</span>
+        </div>
+
+        <div class="flex flex-col mb-4">
+          <label class="block mb-2 child-label" for="ytdlp-cookies">{{
+            $t('youtube.cookies')
+          }}</label>
+          <div class="flex gap-2">
+            <input
+              id="ytdlp-cookies"
+              v-model="editingYtdlpCookies"
+              type="text"
+              :placeholder="$t('youtube.cookiesPlaceholder')"
+              class="input px-4 h-8 grow"
+            />
+            <button class="button button-normal px-3 py-1 text-xs rounded" @click="chooseCookieFile">
+              {{ $t('youtube.browse') }}
+            </button>
+          </div>
+          <span class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{{
+            $t('youtube.cookiesHint')
+          }}</span>
+          <span
+            v-if="ytdlpStatus && ytdlpStatus.cookiesFound"
+            class="mt-1 text-xs"
+            :class="
+              ytdlpStatus.cookiesExpired > 0
+                ? 'text-yellow-700 dark:text-yellow-400'
+                : 'text-neutral-500 dark:text-neutral-400'
+            "
+          >
+            {{ cookieSummary }}
+          </span>
+        </div>
+
+        <div v-if="ytdlpStatus && ytdlpStatus.problem" class="mb-4">
+          <span class="text-xs text-yellow-700 dark:text-yellow-400">{{
+            ytdlpStatus.problem
+          }}</span>
+        </div>
+
+        <div class="flex flex-col mb-4">
+          <label class="block mb-2 child-label" for="ytdlp-output-dir">{{
+            $t('youtube.outputDir')
+          }}</label>
+          <div class="flex gap-2">
+            <input
+              id="ytdlp-output-dir"
+              v-model="editingYtdlpOutputDir"
+              type="text"
+              :placeholder="$t('youtube.outputDirPlaceholder')"
+              class="input px-4 h-8 grow"
+            />
+            <button class="button button-normal px-3 py-1 text-xs rounded" @click="chooseOutputDir">
+              {{ $t('youtube.browse') }}
+            </button>
+          </div>
+          <span class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{{
+            $t('youtube.outputDirHint')
+          }}</span>
+        </div>
+      </div>
+
+      <div>
         <label class="group-label mb-4">{{ $t('config.coverSync') }}</label>
 
         <div class="flex items-start">
@@ -140,8 +222,10 @@
 
 <script setup>
 import { invoke } from '@tauri-apps/api/core'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { open } from '@tauri-apps/plugin-dialog'
 import { useToast } from 'vue-toastification'
+import { useI18n } from 'vue-i18n'
 import { useGlobalState } from '../../composables/global-state'
 import { AVAILABLE_LOCALES, readLocalePreference, setLocale } from '@/i18n/index.js'
 import { usePlayer } from '@/composables/player.js'
@@ -150,6 +234,7 @@ import CheckboxButton from '@/components/common/CheckboxButton.vue'
 
 const { setThemeMode, setLrclibInstance } = useGlobalState()
 const toast = useToast()
+const { t } = useI18n()
 
 // Language switching is applied on change, not on save, so the rest of the form
 // is already in the newly chosen language while the user continues editing.
@@ -165,6 +250,29 @@ const editingThemeMode = ref('auto')
 const editingLrclibInstance = ref('')
 const editingProxyUrl = ref('')
 const editingAmllDbUrl = ref('')
+const editingYtdlpBinary = ref('')
+const editingYtdlpCookies = ref('')
+const editingYtdlpOutputDir = ref('')
+
+// What the downloader can and cannot do right now, so that a missing
+// yt-dlp or an expired cookie is reported here rather than as a failed
+// download later.
+const ytdlpStatus = ref(null)
+
+const cookieSummary = computed(() => {
+  const status = ytdlpStatus.value
+  if (!status) {
+    return ''
+  }
+  const parts = [t('youtube.cookieCount', { count: status.cookieCount })]
+  if (status.cookiesExpired > 0) {
+    parts.push(t('youtube.cookieExpired', { count: status.cookiesExpired }))
+  }
+  if (!status.cookiesSignedIn) {
+    parts.push(t('youtube.cookieNotSignedIn'))
+  }
+  return parts.join(' · ')
+})
 
 // Fields this dialog no longer edits (the per-batch skip rules and the
 // experimental embed flag) still exist in config: the download dialog reads
@@ -199,6 +307,9 @@ const save = async () => {
       syncCover: syncCover.value,
       proxyUrl: editingProxyUrl.value,
       amllDbUrl: editingAmllDbUrl.value,
+      ytdlpBinary: editingYtdlpBinary.value,
+      ytdlpCookiesJson: editingYtdlpCookies.value,
+      ytdlpOutputDir: editingYtdlpOutputDir.value,
       // The backend's `set_config` takes every setting, not only the ones this
       // dialog edits, so the ones it does not edit are written back untouched.
       // Leaving this one out made the whole call fail, and with it every change
@@ -213,6 +324,55 @@ const save = async () => {
   setThemeMode(editingThemeMode.value)
   setLrclibInstance(editingLrclibInstance.value)
   emit('close')
+}
+
+const refreshYtdlpStatus = async () => {
+  try {
+    ytdlpStatus.value = await invoke('get_ytdlp_status')
+  } catch (error) {
+    console.error('Failed to read the downloader status:', error)
+    ytdlpStatus.value = null
+  }
+}
+
+// Picking the cookie export.
+//
+// The JSON the browser extension writes is picked directly, and converted
+// right away: the user should not have to run a second program to turn it
+// into something yt-dlp can read.
+const chooseCookieFile = async () => {
+  const selected = await open({
+    multiple: false,
+    directory: false,
+    filters: [{ name: 'Cookie export', extensions: ['json'] }],
+  })
+
+  if (!selected || typeof selected !== 'string') {
+    return
+  }
+
+  editingYtdlpCookies.value = selected
+
+  try {
+    const status = await invoke('convert_cookie_export', { jsonPath: selected })
+    toast.success(t('youtube.cookiesConverted', { count: status.count }))
+  } catch (error) {
+    console.error('Failed to convert the cookie export:', error)
+    toast.error(String(error))
+  }
+
+  await refreshYtdlpStatus()
+}
+
+const chooseOutputDir = async () => {
+  const selected = await open({
+    directory: true,
+    recursive: false,
+  })
+
+  if (selected && typeof selected === 'string') {
+    editingYtdlpOutputDir.value = selected
+  }
 }
 
 const refreshLibrary = () => {
@@ -244,5 +404,12 @@ const beforeOpenHandler = async () => {
   editingLrclibInstance.value = config.lrclib_instance
   editingProxyUrl.value = config.proxy_url ?? ''
   editingAmllDbUrl.value = config.amll_db_url ?? ''
+  editingYtdlpBinary.value = config.ytdlp_binary ?? ''
+  editingYtdlpCookies.value = config.ytdlp_cookies_json ?? ''
+  editingYtdlpOutputDir.value = config.ytdlp_output_dir ?? ''
+
+  // The status is read after the values are loaded, so that it describes what
+  // is on screen.
+  await refreshYtdlpStatus()
 }
 </script>

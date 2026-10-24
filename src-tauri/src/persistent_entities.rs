@@ -109,4 +109,14 @@ pub struct PersistentConfig {
     /// Empty means the built-in default; a mirror serves the same paths, and the
     /// database is one volunteer-maintained repository.
     pub amll_db_url: String,
+    /// The `yt-dlp` to run for downloads from YouTube. Empty means the one on
+    /// PATH.
+    pub ytdlp_binary: String,
+    /// The browser cookie export the user points at.
+    ///
+    /// The JSON the browser extension writes. The text format `yt-dlp` reads is
+    /// derived from it.
+    pub ytdlp_cookies_json: String,
+    /// Where the downloads land. Empty means the first watched directory.
+    pub ytdlp_output_dir: String,
 }

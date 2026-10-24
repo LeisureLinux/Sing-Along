@@ -24,6 +24,7 @@ pub mod script_convert;
 pub mod cover;
 #[cfg(feature = "gui")]
 pub mod cover_cache;
+pub mod cookies;
 pub mod http;
 pub mod cli;
 pub mod cli_support;
@@ -34,6 +35,9 @@ pub mod state;
 pub mod utils;
 pub mod word_segmentation;
 pub mod word_sync;
+pub mod youtube;
+pub mod youtube_gui;
+pub mod ytdlp;
 
 /// Entry point for the shipped application and the headless CLI.
 ///

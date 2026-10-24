@@ -40,13 +40,20 @@ src-tauri/
 │   ├── player.rs            # Kira audio playback
 │   ├── persistent_entities.rs # Track/Album/Artist structs
 │   ├── utils.rs             # Text normalization
+│   ├── amll/                # AMLL word-level lyrics database client
+│   │   ├── mod.rs           # TTML fetch + mirror fallback
+│   │   └── ttml.rs          # TTML parser (line + word timings)
+│   ├── cookies.rs           # Browser cookie export (JSON) → Netscape text
+│   ├── ytdlp.rs             # Drives an external yt-dlp for downloads
+│   ├── youtube.rs           # Release database lookup: album + cover
+│   ├── youtube_gui.rs       # The Tauri commands for the above
 │   └── lrclib/              # LRCLIB API client
 │       ├── search.rs        # GET /api/search
 │       ├── get.rs           # GET /api/get
 │       ├── get_by_id.rs     # GET /api/get/{id}
 │       ├── publish.rs       # POST /api/publish (with PoW) — currently unwired
 │       └── challenge_solver.rs # SHA256 proof-of-work
-├── migrations/              # SQL files (v1-v21), rusqlite_migration
+├── migrations/              # SQL files (v1-v25), rusqlite_migration
 └── Cargo.toml / tauri.conf.json
 ```
 
@@ -496,3 +503,76 @@ The following deprecated functions were removed from `db.rs` (no longer used):
 - The tracks table schema for new databases (post-reset) will not include these deprecated columns
 
 **Migration v14:** Uses `ALTER TABLE DROP COLUMN` (SQLite 3.35.0+) to remove deprecated columns: `txt_lyrics`, `lrc_lyrics`, `instrumental`, `has_plain_lyrics`, `has_synced_lyrics`, `has_word_synced_lyrics`. Drops related indexes and forces a library reset.
+
+## Downloading from YouTube (`ytdlp.rs`, `youtube.rs`, `cookies.rs`)
+
+A track can be fetched from YouTube through the user's own `yt-dlp`. The
+downloader is not reimplemented: `yt-dlp` is the only thing that knows how to
+talk to YouTube, and it changes every week, so a copy of it in this project
+would be a copy that stops working.
+
+### The pieces
+
+| Module | What it does |
+| ------ | ------------ |
+| `cookies.rs` | Turns the browser's cookie export (JSON) into the Netscape text format `yt-dlp` reads, and reports whether the cookies are still usable |
+| `ytdlp.rs` | Runs `yt-dlp`: a probe for the metadata, then the download |
+| `youtube.rs` | Looks the track up in the release database, for the real album name, the year and the artwork |
+| `youtube_gui.rs` | The Tauri commands, and the order the steps happen in |
+
+### Why the cookies are a problem
+
+YouTube does not serve a residential address anonymously, reliably. The
+browser's cookie database on Linux is encrypted with a key in the login
+keyring, which a desktop session that is not the browser's own cannot read —
+so `--cookies-from-browser` decrypts only a fraction of the cookies and the
+rest is silently useless. The cookies have to be exported.
+
+The export is a JSON file that a browser extension writes. `cookies.rs`
+converts it, and the GUI does the conversion as soon as the user picks the
+file, so the user never has to run a second program.
+
+### Why the expiry is checked
+
+A browser rotates the session cookies whenever it decides to, and a rotated
+cookie is not refused — it is answered with "Sign in to confirm you're not a
+bot", which blames the user for something they did not do. So the cookies are
+checked for expiry when they are read, and the settings panel says so plainly.
+
+### Why the album name is looked up
+
+`yt-dlp` writes what YouTube tells it, and for a song on YouTube Music the
+album comes back as a compilation ("2021熱歌合集" — a "2021 hits" collection),
+the cover is a square video thumbnail, and the Chinese text is in whatever
+script the uploader used.
+
+The release database knows the real release. The lookup is by title and
+artist, and the release is chosen by how well it fits: the artist's own
+release beats one they merely appear on, an official release beats a bootleg,
+an album beats a compilation, and an earlier release beats a later one. The
+artwork comes from the cover art archive, which serves the picture for a
+release that the database knows.
+
+### The order of the steps
+
+1. The cookie export is converted and checked. This is first because it is
+   the step that fails most often, and the failure it prevents is the worst
+   one to debug.
+2. `yt-dlp` is asked what the track is. This is cheap, and it gives the user
+   the title, the artist and the album before anything is downloaded, so a
+   wrong URL is caught before a large file is fetched.
+3. The download runs.
+4. The metadata is corrected: the album, the year and the cover are replaced,
+   and the text is converted to the script the user asked for. The conversion
+   comes last, so it also converts the album name that was just written.
+
+A failure in step 4 does not fail the download: the file is already there,
+and a wrong album name is a smaller problem than a lost download.
+
+### The rate limit
+
+The release database asks for no more than one request a second and answers
+anything faster with "503 Service Unavailable". A download triggers a lookup,
+so a batch would otherwise trip the limit — and the failure would look like
+the service being down rather than like being too fast. The requests are
+therefore spaced out by a process-wide lock.

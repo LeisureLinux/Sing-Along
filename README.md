@@ -60,6 +60,12 @@ the audio tags.
 no key — and writes the front cover into the audio file's tags. Off by default,
 because it rewrites your files.
 
+**Download a track from YouTube.** Paste a YouTube or YouTube Music link and
+the track is fetched through your own `yt-dlp`, named after the artist and the
+title, with the album and the cover taken from the release database rather
+than from YouTube — and the Chinese text converted to the script you asked for.
+See [Downloading from YouTube](#downloading-from-youtube) below.
+
 **Seventeen UI languages.** English, 简体中文, 繁體中文, 日本語, 한국어, Español,
 Français, Deutsch, Italiano, Português (Brasil), Polski, Türkçe, Русский,
 Українська, Tiếng Việt, ไทย, Bahasa Indonesia — following the system language by
@@ -78,6 +84,39 @@ came from; Either source can be unticked, and a source that fails does not hide
 the other's results. Word-level timings from AMLL only appear after the chosen
 NetEase track is opened/associated, because the database is keyed by NetEase id
 rather than by free text.
+
+## Downloading from YouTube
+
+The YouTube button in the library header fetches a track through your own
+`yt-dlp`. The downloader is not built in: `yt-dlp` is the only thing that
+knows how to talk to YouTube, and it changes every week, so a copy of it here
+would be a copy that stops working.
+
+**What you need**
+
+- `yt-dlp` on your `PATH`, or a path to it in the settings. The Python
+  installation works best — the compiled binary cannot load the plugins
+  YouTube asks for.
+- Your YouTube cookies, exported as JSON with a browser extension. The
+  settings panel takes the JSON file and converts it; you never have to run a
+  second program.
+
+**Why the cookies are needed.** YouTube does not serve a residential address
+anonymously, reliably. A browser's cookie database on Linux is encrypted with
+a key in the login keyring, which the application cannot read, so the cookies
+have to be exported.
+
+**What the application fixes afterwards.** `yt-dlp` writes what YouTube tells
+it, and for a song on YouTube Music the album comes back as a compilation, the
+cover is a square video thumbnail, and the Chinese text is in whatever script
+the uploader used. The application looks the track up in the release database,
+replaces the album name and the cover with the real ones, and converts the
+text to the script you asked for.
+
+**A note on expiry.** A browser rotates its session cookies without warning,
+and a rotated cookie is not refused — the download fails with "Sign in to
+confirm you're not a bot", which blames you for something you did not do. The
+settings panel therefore reports how many of your cookies have expired.
 
 ## Why word-level lyrics need converting
 

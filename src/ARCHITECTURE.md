@@ -62,7 +62,7 @@ Module-level ref composables (singletons by design):
 - `Library.vue` - Header + tabbed panes (Tracks/Albums/Artists/MyLrclib) + `NowPlaying.vue`. Manages scan lifecycle (`scan-progress`, `scan-complete`, `scan_library`)
 - `NowPlaying.vue` - Persistent bottom panel. Track metadata, seek/play/volume/speed, lyrics. Keyboard shortcuts (space/enter/arrows) disabled when typing or via `isHotkey` state
 
-**Modals**: `Config.vue`, `About.vue`, `DownloadViewer.vue`
+**Modals**: `Config.vue`, `About.vue`, `DownloadViewer.vue`, `YoutubeDownload.vue`
 
 **Common Components**:
 
@@ -133,6 +133,35 @@ Shared fields are `export_txt`, `export_lrc`, and `export_embedded`. `auto_expor
 `downloader.js` queues `{ trackId, autoExport }` entries; `autoExport` is an immutable TXT/LRC/embedded snapshot or null. The album/artist row actions (`AlbumItem.vue`, `ArtistItem.vue`) and detail actions (`AlbumTrackList.vue`, `ArtistTrackList.vue`) use the same popup and snapshots as Download All. Scope queries use `get_album_track_ids` / `get_artist_track_ids` with the submitted skip flags; library-wide queries retain their existing presence filters. Single-track Download, Apply, and editor saves are unchanged. `export.js` queues `{ trackId, formats }` with immutable ordered TXT/LRC/embedded selections. Subsequent submissions cannot mutate queued batches.
 
 `download_lyrics` still returns a string. Post-save export failures are appended to that string and stay on the existing green success/FOUND log path in `DownloadViewer.vue`. No reporting UI or retry flow is added. The shared writers still overwrite targets and delete the opposite sidecar; format-operation success does not imply both files remain.
+
+### Downloading from YouTube
+
+A track can be fetched from YouTube through the user's own `yt-dlp`. The
+frontend does three things, in this order:
+
+1. **Look up the track.** `probe_youtube_track` asks `yt-dlp` what the track is
+   and returns the title, the artist, the album YouTube reports and the album
+   the release database has. The user sees both before anything is
+   downloaded, so a wrong URL is caught before a large file is fetched.
+2. **Download it.** `download_youtube_track` runs the download, corrects the
+   metadata, and returns where the file landed.
+3. **Report the outcome.** The toast says what was downloaded, with the
+   album name that ended up in the file.
+
+The settings panel has the two settings the download needs: where the
+`yt-dlp` is, and which cookie export to use. The cookie export is picked with
+the file dialog and converted immediately, so the user only ever handles the
+JSON that the browser extension wrote. The panel also reports how many
+cookies there are, how many have expired and whether they carry a signed-in
+session — a browser rotates its session cookies without warning, and the
+failure that follows is a message blaming the user for something they did
+not do.
+
+`Config.vue` holds the three fields the backend stores: `ytdlp_binary`,
+`ytdlp_cookies_json` and `ytdlp_output_dir`. They are written with
+`set_config` alongside everything else, and the downloader reads them back
+with `get_ytdlp_status`, which is also what the panel calls to show the
+state.
 
 ### Edit/Publish Details
 
