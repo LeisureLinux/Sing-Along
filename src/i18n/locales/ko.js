@@ -342,9 +342,13 @@ export default {
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
     binaryHint: '비워 두면 PATH의 yt-dlp를 사용합니다. Python 설치판이 가장 좋습니다. YouTube가 요구하는 플러그인을 불러올 수 있습니다.',
+    proxyHint:
+      '다운로드에는 위에서 설정한 프록시를 사용합니다. 일부 국가에서는 프록시 없이는 YouTube에 접근할 수 없습니다.',
     cookies: '브라우저 쿠키',
     cookiesPlaceholder: '내보낸 쿠키 파일 경로',
     cookiesHint: '브라우저 확장으로 YouTube 쿠키를 JSON으로 내보낸 뒤 이에서 파일을 선택하면 자동으로 변환됩니다.',
+    cookiesHowTo:
+      '먼저 브라우저에서 YouTube에 로그인하고 "Get cookies.txt LOCALLY" 같은 확장 프로그램으로 youtube.com을 JSON으로 내보낸 다음 여기에서 그 파일을 고르세요. 다운로드 직전에 내보내세요. 브라우저가 쿠키를 교체하기 때문에, 교체된 쿠키는 다운로더가 망가진 것처럼 실패합니다.',
     browse: '찾아보기...',
     cookiesConverted: '쿠키 {count}개를 변환했습니다',
     cookieCount: '쿠키 {count}개',
@@ -353,5 +357,12 @@ export default {
     outputDir: '다운로드 폴더',
     outputDirPlaceholder: '첫 번째 음악 디렉터리',
     outputDirHint: '비워 두면 첫 번째 음악 디렉터리에 다운로드합니다.',
+        errorCookies: '쿠키가 없거나 만료되었거나 로그인되어 있지 않습니다. 브라우저에서 다시 내보내고 바로 다시 시도하세요.',
+    errorProxy: '설정의 프록시에 연결할 수 없습니다. 주소를 확인하거나 비워 직접 연결하세요.',
+    errorTooMany: 'YouTube가 이 주소를 사용 제한하고 있습니다. 잠시 기다린 뒤 다시 시도하세요.',
+    errorUnavailable: '이 동영상은 다운로드할 수 없습니다: 비공개, 지역 제한 또는 삭제됨.',
+    errorNoBinary: 'yt-dlp를 실행할 수 없습니다. 설정에서 경로를 지정하세요.',
+    errorUnknown: '다운로드에 실패했습니다.',
+
   },
 }

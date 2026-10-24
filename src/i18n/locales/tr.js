@@ -346,9 +346,13 @@ export default {
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
     binaryHint: 'PATH üzerindeki yt-dlp’yi kullanmak için boş bırakın. Python kurulumu en iyisidir: YouTube’un istediği eklentileri yükleyebilir.',
+    proxyHint:
+      'İndirme yukarıda ayarlanan vekilin sunucusunu kullanır. Bazı ülkelerde onsuz YouTube’a erişilemez.',
     cookies: 'Tarayıcı çerezleri',
     cookiesPlaceholder: 'Dışa aktarılan çerez dosyasının yolu',
     cookiesHint: 'YouTube çerezlerini bir tarayıcı eklentisiyle JSON olarak dışa aktarın ve dosyayı burada seçin. Otomatik olarak dönüştürülür.',
+    cookiesHowTo:
+      'Tarayıcınızda YouTube’a giriş yapın, "Get cookies.txt LOCALLY" gibi bir uzantıyla youtube.com’u JSON olarak dışa aktarın ve dosyayı burada seçin. İndirmeden hemen önce dışa aktarın: tarayıcı çerezleri yeniler ve yenilenmiş bir çerez, indirici bozukmuş gibi başarısız olur.',
     browse: 'Gözat...',
     cookiesConverted: '{count} çerez dönüştürüldü',
     cookieCount: '{count} çerez',
@@ -357,5 +361,12 @@ export default {
     outputDir: 'İndirme klasörü',
     outputDirPlaceholder: 'İlk müzik dizini',
     outputDirHint: 'İlk müzik dizinine indirmek için boş bırakın.',
+        errorCookies: 'Çerezler eksik, süresi dolmuş veya oturum açık değil. Tarayıcıdan yeniden dışa aktarın ve hemen tekrar deneyin.',
+    errorProxy: 'Ayarlardaki vekil sunucusuna ulaşılamadı. Adresi denetleyin ya da doğrudan bağlanmak için boşaltın.',
+    errorTooMany: 'YouTube bu adresi hız sınırlıyor. Biraz bekleyip yeniden deneyin.',
+    errorUnavailable: 'Bu video indirilemez: gizli, bölge kısıtlı ya da kaldırılmış.',
+    errorNoBinary: 'yt-dlp çalıştırılamadı. Yolunu ayarlardan belirtin.',
+    errorUnknown: 'İndirme başarısız oldu.',
+
   },
 }

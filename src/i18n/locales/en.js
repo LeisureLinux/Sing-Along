@@ -349,10 +349,14 @@ export default {
     binaryPlaceholder: 'yt-dlp',
     binaryHint:
       'Leave empty to use the yt-dlp on the PATH. The Python installation is the one that works best: it can load the plugins that YouTube asks for.',
+    proxyHint:
+      'The download uses the proxy set above. In some countries YouTube is unreachable without one.',
     cookies: 'Browser cookies',
     cookiesPlaceholder: 'Path to the exported cookies',
     cookiesHint:
       'Export your YouTube cookies as JSON with a browser extension, then choose the file here. It is converted automatically.',
+    cookiesHowTo:
+      'Sign in to YouTube in your browser, use an extension such as "Get cookies.txt LOCALLY" to export youtube.com as JSON, and choose that file here. Export it just before the download: the browser rotates the cookies, and a rotated one fails in a way that looks like a broken downloader.',
     browse: 'Browse...',
     cookiesConverted: 'Converted {count} cookies',
     cookieCount: '{count} cookies',
@@ -361,5 +365,12 @@ export default {
     outputDir: 'Download folder',
     outputDirPlaceholder: 'The first music directory',
     outputDirHint: 'Leave empty to download into the first music directory.',
+        errorCookies: 'The cookies are missing, stale, or not signed in. Export them from your browser again, and try immediately afterwards.',
+    errorProxy: 'The proxy in the settings could not be reached. Check the address, or clear it to connect directly.',
+    errorTooMany: 'YouTube is rate-limiting this address. Wait a while, and try again.',
+    errorUnavailable: 'This video cannot be downloaded: it is private, region-locked, or gone.',
+    errorNoBinary: 'yt-dlp could not be run. Set its path in the settings.',
+    errorUnknown: 'The download failed.',
+
   },
 }

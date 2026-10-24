@@ -94,17 +94,28 @@ would be a copy that stops working.
 
 **What you need**
 
-- `yt-dlp` on your `PATH`, or a path to it in the settings. The Python
-  installation works best — the compiled binary cannot load the plugins
-  YouTube asks for.
+- `yt-dlp` on your `PATH`, or a path to it in the settings. Either kind works
+  — the Python installation and the compiled binary both download. The Python
+  installation is the better choice, because it can load the plugins that
+  YouTube asks for, and those help when a video needs a proof-of-origin
+  token.
 - Your YouTube cookies, exported as JSON with a browser extension. The
   settings panel takes the JSON file and converts it; you never have to run a
   second program.
+- A proxy, if YouTube is unreachable from where you are. The download uses
+  the proxy set in the settings.
 
 **Why the cookies are needed.** YouTube does not serve a residential address
 anonymously, reliably. A browser's cookie database on Linux is encrypted with
 a key in the login keyring, which the application cannot read, so the cookies
 have to be exported.
+
+**How to export the cookies.** Install a browser extension that exports
+cookies as JSON — "Get cookies.txt LOCALLY" is one — sign in to YouTube in
+the browser, and export `youtube.com`. The file is a `.json`; the settings
+panel converts it. Export it *just before* the download, because the browser
+rotates the session cookies and a rotated cookie fails in a way that looks
+like the downloader is broken.
 
 **What the application fixes afterwards.** `yt-dlp` writes what YouTube tells
 it, and for a song on YouTube Music the album comes back as a compilation, the
@@ -116,7 +127,18 @@ text to the script you asked for.
 **A note on expiry.** A browser rotates its session cookies without warning,
 and a rotated cookie is not refused — the download fails with "Sign in to
 confirm you're not a bot", which blames you for something you did not do. The
-settings panel therefore reports how many of your cookies have expired.
+settings panel therefore reports how many of your cookies have expired, and
+whether they carry a signed-in session at all.
+
+**When a download fails.** The dialog shows what `yt-dlp` said, and the usual
+causes are:
+
+| Message | What it means |
+| ------- | ------------ |
+| `Sign in to confirm you're not a bot` | The cookies are stale or missing. Export them again. |
+| `Unable to connect to proxy` | The proxy in the settings is not reachable. |
+| `HTTP Error 429` | Too many requests. Wait, and try again. |
+| `Video unavailable` | The video is private, region-locked, or gone. |
 
 ## Why word-level lyrics need converting
 

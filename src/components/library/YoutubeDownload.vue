@@ -38,7 +38,15 @@
         </div>
 
         <div v-else-if="problem" class="flex flex-col gap-3 justify-center items-center h-full text-sm">
-          <div class="text-red-700 dark:text-red-400 text-center break-words">{{ problem }}</div>
+          <!-- The plain-language cause first, because the message from
+               `yt-dlp` names the symptom rather than the fix, and the fix is
+               almost always the cookies or the proxy. -->
+          <div class="text-red-700 dark:text-red-400 text-center break-words">
+            {{ problemHint }}
+          </div>
+          <div class="text-xs text-neutral-500 dark:text-neutral-400 text-center break-words max-w-md">
+            {{ problem }}
+          </div>
           <button class="button button-normal px-4 py-1.5 text-xs rounded-full" @click="probe">
             {{ $t('actions.retry') }}
           </button>
@@ -88,11 +96,16 @@
 
 <script setup>
 import { invoke } from '@tauri-apps/api/core'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import Loading from '~icons/mdi/loading'
 import { useToast } from 'vue-toastification'
 import { useI18n } from 'vue-i18n'
 import BaseModal from '@/components/common/BaseModal.vue'
+import { classifyDownloadError } from '@/utils/youtube-errors.js'
+
+// The cause names are the keys of the translations, so the first letter has
+// to be a capital: 'cookies' becomes 'errorCookies'.
+const capitalize = text => text.charAt(0).toUpperCase() + text.slice(1)
 
 const emit = defineEmits(['close'])
 
@@ -104,6 +117,15 @@ const info = ref(null)
 const problem = ref('')
 const busy = ref(false)
 const downloading = ref(false)
+
+/**
+ * The plain-language cause of a failure.
+ *
+ * `yt-dlp` names the symptom, not the fix. The fix is almost always the
+ * cookies or the proxy, and a user who is told "Sign in to confirm you're
+ * not a bot" has no way to know that the file on disk is the problem.
+ */
+const problemHint = computed(() => t(`youtube.error${capitalize(classifyDownloadError(problem.value))}`))
 
 const probe = async () => {
   busy.value = true

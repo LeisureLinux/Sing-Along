@@ -342,9 +342,13 @@ export default {
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
     binaryHint: 'Kosongkan untuk memakai yt-dlp di PATH. Instalasi Python paling bagus: ia dapat memuat plugin yang diminta YouTube.',
+    proxyHint:
+      'Unduhan memakai proksi yang diatur di atas. Di beberapa negara YouTube tidak dapat diakses tanpanya.',
     cookies: 'Cookie peramban',
     cookiesPlaceholder: 'Jalur berkas cookie yang diekspor',
     cookiesHint: 'Ekspor cookie YouTube sebagai JSON dengan ekstensi peramban, lalu pilih berkasnya di sini. Berkas itu dikonversi otomatis.',
+    cookiesHowTo:
+      'Masuk ke YouTube di peramban, gunakan ekstensi seperti "Get cookies.txt LOCALLY" untuk mengekspor youtube.com sebagai JSON, lalu pilih berkas itu di sini. Eksporlah sesaat sebelum mengunduh: peramban memutar cookie, dan cookie yang sudah diputar gagal seolah-olah pengunduhnya rusak.',
     browse: 'Telusuri...',
     cookiesConverted: '{count} cookie dikonversi',
     cookieCount: '{count} cookie',
@@ -353,5 +357,12 @@ export default {
     outputDir: 'Folder unduhan',
     outputDirPlaceholder: 'Direktori musik pertama',
     outputDirHint: 'Kosongkan untuk mengunduh ke direktori musik pertama.',
+        errorCookies: 'Cookie tidak ada, kedaluwarsa, atau belum masuk. Ekspor lagi dari peramban, lalu coba segera setelahnya.',
+    errorProxy: 'Tidak dapat menghubungi proksi yang diatur. Periksa alamatnya, atau kosongkan untuk terhubung langsung.',
+    errorTooMany: 'YouTube membatasi laju alamat ini. Tunggu sebentar lalu coba lagi.',
+    errorUnavailable: 'Video ini tidak bisa diunduh: privat, dibatasi wilayah, atau sudah dihapus.',
+    errorNoBinary: 'yt-dlp tidak dapat dijalankan. Atur jalurnya di pengaturan.',
+    errorUnknown: 'Unduhan gagal.',
+
   },
 }

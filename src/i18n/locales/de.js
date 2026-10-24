@@ -342,9 +342,13 @@ export default {
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
     binaryHint: 'Leer lassen, um das yt-dlp aus dem PATH zu verwenden. Die Python-Installation funktioniert am besten: Sie kann die von YouTube verlangten Plugins laden.',
+    proxyHint:
+      'Der Download verwendet den oben eingestellten Proxy. In manchen Ländern ist YouTube ohne ihn nicht erreichbar.',
     cookies: 'Browser-Cookies',
     cookiesPlaceholder: 'Pfad zur exportierten Cookie-Datei',
     cookiesHint: 'Exportiere die YouTube-Cookies als JSON mit einer Browser-Erweiterung und wähle die Datei hier aus. Sie wird automatisch umgewandelt.',
+    cookiesHowTo:
+      'Melde dich in deinem Browser bei YouTube an, exportiere youtube.com mit einer Erweiterung wie "Get cookies.txt LOCALLY" als JSON und wähle die Datei hier aus. Exportiere sie kurz vor dem Download: der Browser wechselt die Cookies aus, und ein ausgewechseltes Cookie scheitert so, als wäre der Downloader kaputt.',
     browse: 'Durchsuchen...',
     cookiesConverted: '{count} Cookies umgewandelt',
     cookieCount: '{count} Cookies',
@@ -353,5 +357,12 @@ export default {
     outputDir: 'Download-Ordner',
     outputDirPlaceholder: 'Das erste Musikverzeichnis',
     outputDirHint: 'Leer lassen, um in das erste Musikverzeichnis herunterzuladen.',
+        errorCookies: 'Die Cookies fehlen, sind abgelaufen oder es ist nicht angemeldet. Exportiere sie neu aus dem Browser und versuche es sofort danach.',
+    errorProxy: 'Der in den Einstellungen eingestellte Proxy war nicht erreichbar. Prüfe die Adresse oder leere sie für eine direkte Verbindung.',
+    errorTooMany: 'YouTube drosselt diese Adresse. Warte einen Moment und versuche es erneut.',
+    errorUnavailable: 'Dieses Video kann nicht heruntergeladen werden: privat, regionsgesperrt oder nicht mehr vorhanden.',
+    errorNoBinary: 'yt-dlp konnte nicht ausgeführt werden. Lege seinen Pfad in den Einstellungen fest.',
+    errorUnknown: 'Der Download ist fehlgeschlagen.',
+
   },
 }

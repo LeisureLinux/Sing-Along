@@ -344,9 +344,13 @@ export default {
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
     binaryHint: '空欄のままにすると PATH の yt-dlp を使います。Python 版が最もoltaát 잘 됩니다：YouTube が要求するプラグインを読み込めます。',
+    proxyHint:
+      'ダウンロードには上で設定したプロキシを使う。国によってはプロキシなしでは YouTube に接続できません。',
     cookies: 'ブラウザの Cookie',
     cookiesPlaceholder: 'エクスポートした Cookie ファイルのパス',
     cookiesHint: 'ブラウザ拡張で YouTube の Cookie を JSON として書き出し、ここでそのファイルを選ぶと自動的に変換されます。',
+    cookiesHowTo:
+      'まずブラウザで YouTube にログインし、「Get cookies.txt LOCALLY」のような拡張機能を使って youtube.com を JSON で書き出してから、ここでそのファイルを選んでください。ダウンロードの直前に書き出してください。ブラウザは Cookie を入れ替えるので、入れ替えたあとの Cookie はダウンロード自体が壊れているように見える形で失敗します。',
     browse: '参照...',
     cookiesConverted: '{count} 件の Cookie を変換しました',
     cookieCount: 'Cookie {count} 件',
@@ -355,5 +359,12 @@ export default {
     outputDir: 'ダウンロード先',
     outputDirPlaceholder: '最初の音楽ディレクトリ',
     outputDirHint: '空欄のままにすると最初の音楽ディレクトリにダウンロードします。',
+        errorCookies: 'Cookie がない、期限切れ、または未ログインです。ブラウザから再エクスポートし、すぐに再試行してください。',
+    errorProxy: '設定のプロキシに接続できませんでした。アドレスを確認するか、空にして直接接続してください。',
+    errorTooMany: 'YouTube がこのアドレスを制限しています。しばらく待ってから再試行してください。',
+    errorUnavailable: 'この動画はダウンロードできません：非公開、地域限定、または削除済みです。',
+    errorNoBinary: 'yt-dlp を実行できません。設定でパスを指定してください。',
+    errorUnknown: 'ダウンロードに失敗しました。',
+
   },
 }

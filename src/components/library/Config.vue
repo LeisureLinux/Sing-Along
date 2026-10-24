@@ -144,6 +144,9 @@
           <span class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{{
             $t('youtube.cookiesHint')
           }}</span>
+          <span class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{{
+            $t('youtube.cookiesHowTo')
+          }}</span>
           <span
             v-if="ytdlpStatus && ytdlpStatus.cookiesFound"
             class="mt-1 text-xs"
@@ -160,6 +163,16 @@
         <div v-if="ytdlpStatus && ytdlpStatus.problem" class="mb-4">
           <span class="text-xs text-yellow-700 dark:text-yellow-400">{{
             ytdlpStatus.problem
+          }}</span>
+        </div>
+
+        <!-- The proxy. It is set in the panel above, and the download uses it:
+             in some countries YouTube is unreachable without one, and the
+             failure looks like a broken downloader rather than a missing
+             route. -->
+        <div class="flex flex-col mb-4">
+          <span class="text-xs text-neutral-500 dark:text-neutral-400">{{
+            $t('youtube.proxyHint')
           }}</span>
         </div>
 

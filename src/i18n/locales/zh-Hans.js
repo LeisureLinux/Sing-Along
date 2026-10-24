@@ -338,9 +338,13 @@ export default {
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
     binaryHint: '留空则使用 PATH 中的 yt-dlp。Python 安装的版本效果最好：它能加载 YouTube 所需的插件。',
+    proxyHint:
+      '下载使用上面设置的代理。在某些国家，不走代理无法访问 YouTube。',
     cookies: '浏览器 Cookie',
     cookiesPlaceholder: '导出 Cookie 的文件路径',
     cookiesHint: '用浏览器扩展把 YouTube Cookie 导出为 JSON，然后在这里选择该文件，会自动转换。',
+    cookiesHowTo:
+      '先在浏览器里登录 YouTube，用 "Get cookies.txt LOCALLY" 这类扩展把 youtube.com 导出为 JSON，然后在这里选择该文件。请在下载前一刻导出：浏览器会轮换 Cookie，轮换后的 Cookie 失败时看起来像是下载器坏了。',
     browse: '浏览...',
     cookiesConverted: '已转换 {count} 条 Cookie',
     cookieCount: '{count} 条 Cookie',
@@ -349,5 +353,12 @@ export default {
     outputDir: '下载目录',
     outputDirPlaceholder: '第一个音乐目录',
     outputDirHint: '留空则下载到第一个音乐目录。',
+        errorCookies: 'Cookie 缺失、已过期或未登录。请重新从浏览器导出，并立即重试。',
+    errorProxy: '无法连接到设置中的代理。请检查地址，或清空它以直连。',
+    errorTooMany: 'YouTube 正在限流此地址。请等待一会儿再试。',
+    errorUnavailable: '该视频无法下载：可能为私有、地区限制或已删除。',
+    errorNoBinary: '无法运行 yt-dlp。请在设置中指定它的路径。',
+    errorUnknown: '下载失败。',
+
   },
 }

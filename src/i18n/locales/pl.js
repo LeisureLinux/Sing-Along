@@ -345,9 +345,13 @@ export default {
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
     binaryHint: 'Zostaw puste, aby użyć yt-dlp ze ścieżki PATH. Instalacja w Pythonie działa najlepiej: potrafi wczytać wtyczki wymagane przez YouTube.',
+    proxyHint:
+      'Pobieranie korzysta z proxy ustawionego powyżej. W niektórych krajach YouTube jest bez niego nieosiągalny.',
     cookies: 'Pliki cookie przeglądarki',
     cookiesPlaceholder: 'Ścieżka do wyeksportowanego pliku cookie',
     cookiesHint: 'Wyeksportuj pliki cookie YouTube jako JSON za pomocą rozszerzenia przeglądarki i wybierz plik tutaj. Zostanie przekonwertowany automatycznie.',
+    cookiesHowTo:
+      'Zaloguj się do YouTube w przeglądarce, użyj rozszerzenia takiego jak „Get cookies.txt LOCALLY”, aby wyeksportować youtube.com jako JSON, i wybierz tutaj ten plik. Eksportuj tuż przed pobraniem: przeglądarka obraca pliki cookie, a obrócony cookie zawodzi tak, jakby pobieracz był zepsuty.',
     browse: 'Przeglądaj...',
     cookiesConverted: 'Przekonwertowano {count} plików cookie',
     cookieCount: '{count} plików cookie',
@@ -356,5 +360,12 @@ export default {
     outputDir: 'Folder pobierania',
     outputDirPlaceholder: 'Pierwszy katalog muzyczny',
     outputDirHint: 'Zostaw puste, aby pobierać do pierwszego katalogu muzycznego.',
+        errorCookies: 'Pliki cookie nie istnieją, wygasły albo nie ma zalogowanej sesji. Wyeksportuj je ponownie z przeglądarki i spróbuj zaraz potem.',
+    errorProxy: 'Nie można połączyć się z proxy ustawionym w ustawieniach. Sprawdź adres albo wyczyść go, aby połączyć się bezpośrednio.',
+    errorTooMany: 'YouTube ogranicza ten adres. Odczekaj chwilę i spróbuj ponownie.',
+    errorUnavailable: 'Tego filmu nie można pobrać: jest prywatny, zablokowany regionalnie albo usunięty.',
+    errorNoBinary: 'Nie udało się uruchomić yt-dlp. Wskaż jego ścieżkę w ustawieniach.',
+    errorUnknown: 'Pobieranie nie powiodło się.',
+
   },
 }

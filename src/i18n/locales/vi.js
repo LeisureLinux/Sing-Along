@@ -342,9 +342,13 @@ export default {
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
     binaryHint: 'Để trống để dùng yt-dlp trong PATH. Bản cài đặt bằng Python hoạt động tốt nhất: nó tải được các tiện ích mà YouTube yêu cầu.',
+    proxyHint:
+      'Tải về dùng proxy đã đặt ở trên. Ở một số nước, không có proxy thì không truy cập được YouTube.',
     cookies: 'Cookie trình duyệt',
     cookiesPlaceholder: 'Đường dẫn tệp cookie đã xuất',
     cookiesHint: 'Hãy xuất cookie YouTube dưới dạng JSON bằng một tiện ích trình duyệt rồi chọn tệp ở đây. Tệp sẽ được chuyển đổi tự động.',
+    cookiesHowTo:
+      'Hãy đăng nhập YouTube trong trình duyệt, dùng một tiện ích như "Get cookies.txt LOCALLY" để xuất youtube.com ở dạng JSON, rồi chọn tệp đó ở đây. Hãy xuất ngay trước khi tải: trình duyệt luân phiên cookie, và cookie đã bị luân sẽ thất bại như thể trình tải về bị hỏng.',
     browse: 'Duyệt...',
     cookiesConverted: 'Đã chuyển đổi {count} cookie',
     cookieCount: '{count} cookie',
@@ -353,5 +357,12 @@ export default {
     outputDir: 'Thư mục tải về',
     outputDirPlaceholder: 'Thư mục nhạc đầu tiên',
     outputDirHint: 'Để trống để tải về thư mục nhạc đầu tiên.',
+        errorCookies: 'Thiếu cookie, cookie đã hết hạn, hoặc chưa đăng nhập. Hãy xuất lại từ trình duyệt rồi thử lại ngay.',
+    errorProxy: 'Không kết nối được với proxy đã đặt. Hãy kiểm tra địa chỉ, hoặc để trống để kết nối trực tiếp.',
+    errorTooMany: 'YouTube đang giới hạn địa chỉ này. Hãy chờ một lúc rồi thử lại.',
+    errorUnavailable: 'Không thể tải video này: riêng tư, bị chặn theo khu vực, hoặc đã bị xóa.',
+    errorNoBinary: 'Không chạy được yt-dlp. Hãy đặt đường dẫn của nó trong cài đặt.',
+    errorUnknown: 'Tải về thất bại.',
+
   },
 }
