@@ -340,6 +340,7 @@ export default {
     download: 'ダウンロード',
     downloading: 'ダウンロード中...',
     downloaded: '{title}（{album}）をダウンロードしました',
+    downloadedWithoutLyrics: '{title} をダウンロードしましたが、歌詞が見つかりませんでした（{note}）',
     downloadExplanation: 'ファイル名はアーティストと曲名になり、アルバムとカバーは YouTube ではなくリリースデータベースから取得します。',
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
@@ -365,6 +366,17 @@ export default {
     errorUnavailable: 'この動画はダウンロードできません：非公開、地域限定、または削除済みです。',
     errorNoBinary: 'yt-dlp を実行できません。設定でパスを指定してください。',
     errorUnknown: 'ダウンロードに失敗しました。',
+
+        duplicateTitle: 'この曲がすでにライブラリにあります',
+    duplicateBody: 'ライブラリに同じ名前の曲があります。ダウンロードをどうするか選んでください。',
+    duplicateExisting: 'ライブラリにあるもの',
+    hasLyrics: '歌詞あり',
+    duplicateReplace: '置き換える',
+    duplicateReplaceHint: 'すでにあるファイルを新しいダウンロードで置き換えます。',
+    duplicateKeepBoth: '両方を残す',
+    duplicateKeepBothHint: 'ダウンロードを隣の別の名前で保存します。',
+    duplicateCancel: 'ダウンロードしない',
+    duplicateCancelHint: '何もダウンロードせず、既存のファイルも変更しません。',
 
   },
 }

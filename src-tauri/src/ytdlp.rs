@@ -72,6 +72,16 @@ pub struct DownloadOptions {
     pub script: crate::script_convert::ScriptTarget,
     /// Whether the album and the cover should be looked up.
     pub fix_metadata: bool,
+    /// Whether an existing file of the same name is replaced.
+    ///
+    /// `yt-dlp` does not replace one: it says "this has already been
+    /// downloaded" and stops, which leaves the caller believing it
+    /// succeeded. The flag is passed through, so the decision is the
+    /// caller's.
+    pub overwrite: bool,
+    /// A suffix for the file name, for the case where the download is to sit
+    /// beside an existing one rather than replace it.
+    pub name_suffix: String,
     /// The proxy for the metadata lookups, which are a different service and
     /// may need a different route.
     pub metadata_proxy: String,
@@ -82,6 +92,11 @@ pub struct DownloadOptions {
 /// The name is built from the artist and the title, in the script the user
 /// asked for, because that is what a listener expects to see in a file
 /// browser: "許美靜 - 城裡的月光.mp3" rather than "AbQ7DWlQCe8.mp3".
+pub fn file_stem_for(info: &TrackInfo, script: crate::script_convert::ScriptTarget) -> String {
+    output_name(info, script)
+}
+
+/// The name of the file the download produces, before the extension.
 fn output_name(info: &TrackInfo, script: crate::script_convert::ScriptTarget) -> String {
     let artist = info
         .artist
@@ -115,7 +130,7 @@ fn output_name(info: &TrackInfo, script: crate::script_convert::ScriptTarget) ->
 /// A slash in an artist name would otherwise create a directory that does not
 /// exist, and the download would fail with a message about a missing path
 /// rather than about the name.
-fn sanitise(name: &str) -> String {
+pub fn sanitise(name: &str) -> String {
     let cleaned: String = name
         .chars()
         .map(|c| match c {
@@ -188,7 +203,11 @@ pub async fn download(options: &DownloadOptions, url: &str) -> Result<Downloaded
     // The name is asked for first, so that the file is named after the track
     // rather than after its identifier.
     let info = probe(options, url).await?;
-    let name = sanitise(&output_name(&info, options.script));
+    let name = sanitise(&format!(
+        "{}{}",
+        output_name(&info, options.script),
+        options.name_suffix
+    ));
 
     let mut command = Command::new(&binary);
     command
@@ -207,6 +226,13 @@ pub async fn download(options: &DownloadOptions, url: &str) -> Result<Downloaded
         .arg(url)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+
+    if options.overwrite {
+        // Without this, `yt-dlp` refuses to replace a file that is already
+        // there: it reports "has already been downloaded" and exits
+        // successfully, so the caller sees a success and an unchanged file.
+        command.arg("--force-overwrites");
+    }
 
     apply_common_arguments(&mut command, options);
 
@@ -431,6 +457,8 @@ mod integration_tests {
             output_dir: PathBuf::new(),
             script: ScriptTarget::Off,
             fix_metadata: false,
+            overwrite: false,
+            name_suffix: String::new(),
         };
 
         // A video that is public and needs no account, chosen because the

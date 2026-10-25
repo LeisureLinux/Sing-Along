@@ -338,6 +338,7 @@ export default {
     download: 'Unduh',
     downloading: 'Mengunduh...',
     downloaded: '{title} ({album}) diunduh',
+    downloadedWithoutLyrics: 'Diunduh {title}, tetapi tidak ada lirik yang ditemukan ({note})',
     downloadExplanation: 'Berkas diberi nama menurut seniman dan judul lagu, dan album serta sampul berasal dari basis data rilis.',
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
@@ -363,6 +364,17 @@ export default {
     errorUnavailable: 'Video ini tidak bisa diunduh: privat, dibatasi wilayah, atau sudah dihapus.',
     errorNoBinary: 'yt-dlp tidak dapat dijalankan. Atur jalurnya di pengaturan.',
     errorUnknown: 'Unduhan gagal.',
+
+        duplicateTitle: 'Lagu ini sudah ada di pustaka Anda',
+    duplicateBody: 'Sudah ada lagu dengan nama ini di pustaka. Pilih apa yang harus dilakukan dengan unduhan ini.',
+    duplicateExisting: 'Di pustaka',
+    hasLyrics: 'ada liriknya',
+    duplicateReplace: 'Ganti',
+    duplicateReplaceHint: 'Unduhan menggantikan berkas yang sudah ada.',
+    duplicateKeepBoth: 'Simpan keduanya',
+    duplicateKeepBothHint: 'Unduhan disimpan di sebelahnya, dengan nama lain.',
+    duplicateCancel: 'Jangan unduh',
+    duplicateCancelHint: 'Tidak ada yang diunduh dan tidak ada yang berubah.',
 
   },
 }

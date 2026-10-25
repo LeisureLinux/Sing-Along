@@ -338,6 +338,7 @@ export default {
     download: 'ดาวน์โหลด',
     downloading: 'กำลังดาวน์โหลด...',
     downloaded: 'ดาวน์โหลด {title} ({album}) แล้ว',
+    downloadedWithoutLyrics: 'ดาวน์โหลด {title} แล้ว แต่ไม่พบเนื้อเพลง ({note})',
     downloadExplanation: 'ไฟล์ตั้งชื่อตามศิลปินและชื่อเพลง ส่วนอัลบั้มและภาพปกมาจากฐานข้อมูลการวางจำหน่าย',
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
@@ -363,6 +364,17 @@ export default {
     errorUnavailable: 'ดาวน์โหลดวิดีโอนี้ไม่ได้: เป็นแบบส่วนตัว ถูกจำกัดตามภูมิภาค หรือถูกลบไปแล้ว',
     errorNoBinary: 'เรียก yt-dlp ไม่ได้ กรุณากำหนดพาธในการตั้งค่า',
     errorUnknown: 'การดาวน์โหลดล้มเหลว',
+
+        duplicateTitle: 'เพลงนี้มีอยู่ในคลังเพลงของคุณแล้ว',
+    duplicateBody: 'มีเพลงชื่อนี้อยู่ในคลังเพลงแล้ว กรุณาเลือกว่าจะทำอย่างไรกับไฟล์ที่ดาวน์โหลด',
+    duplicateExisting: 'ในคลังเพลง',
+    hasLyrics: 'มีเนื้อเพลง',
+    duplicateReplace: 'แทนที่',
+    duplicateReplaceHint: 'ไฟล์ที่ดาวน์โหลดจะแทนที่ไฟล์เดิม',
+    duplicateKeepBoth: 'เก็บทั้งสอง',
+    duplicateKeepBothHint: 'ไฟล์ที่ดาวน์โหลดจะถูกบันทึกข้าง ๆ ด้วยชื่อที่ต่างออกไป',
+    duplicateCancel: 'ไม่ดาวน์โหลด',
+    duplicateCancelHint: 'จะไม่มีการดาวน์โหลดและไม่มีอะไรเปลี่ยนแปลง',
 
   },
 }

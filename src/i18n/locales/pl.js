@@ -341,6 +341,7 @@ export default {
     download: 'Pobierz',
     downloading: 'Pobieranie...',
     downloaded: '{title} ({album}) pobrano',
+    downloadedWithoutLyrics: 'Pobrano {title}, ale nie znaleziono tekstu ({note})',
     downloadExplanation: 'Plik jest nazywany wykonawcą i tytułem, a album i okładka pochodzą z bazy wydawnictw.',
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
@@ -366,6 +367,17 @@ export default {
     errorUnavailable: 'Tego filmu nie można pobrać: jest prywatny, zablokowany regionalnie albo usunięty.',
     errorNoBinary: 'Nie udało się uruchomić yt-dlp. Wskaż jego ścieżkę w ustawieniach.',
     errorUnknown: 'Pobieranie nie powiodło się.',
+
+        duplicateTitle: 'Ten utwór jest już w Twojej bibliotece',
+    duplicateBody: 'W bibliotece jest już utwór o tej nazwie. Wybierz, co zrobić z pobraniem.',
+    duplicateExisting: 'W bibliotece',
+    hasLyrics: 'ma tekst',
+    duplicateReplace: 'Zastąp go',
+    duplicateReplaceHint: 'Pobieranie zastępuje istniejący plik.',
+    duplicateKeepBoth: 'Zachowaj oba',
+    duplicateKeepBothHint: 'Pobrane pliki zapisze się obok, pod inną nazwą.',
+    duplicateCancel: 'Nie pobieraj',
+    duplicateCancelHint: 'Nic nie zostanie pobrane ani zmienione.',
 
   },
 }

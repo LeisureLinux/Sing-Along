@@ -646,6 +646,11 @@ pub fn write_metadata(
 
 /// Download the bytes of a cover image.
 pub async fn download_cover(client: &reqwest::Client, url: &str) -> Result<Vec<u8>> {
+    // The wait is here as well as in the lookup: the artwork is fetched
+    // straight after the lookup that found it, and the archive treats a
+    // request that comes too soon after another one as abuse.
+    wait_for_the_rate_limit();
+
     let response = client
         .get(url)
         .header(reqwest::header::USER_AGENT, USER_AGENT)
@@ -976,3 +981,6 @@ mod tag_tests {
 
         std::fs::remove_file(&path).ok();
     }}
+
+
+

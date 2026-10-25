@@ -338,6 +338,7 @@ export default {
     download: 'Baixar',
     downloading: 'Baixando...',
     downloaded: '{title} ({album}) baixado',
+    downloadedWithoutLyrics: 'Baixado {title}, mas nenhuma letra encontrada ({note})',
     downloadExplanation: 'O arquivo recebe o nome do artista e da música, e o álbum e a capa vêm do banco de dados de lançamentos.',
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
@@ -363,6 +364,17 @@ export default {
     errorUnavailable: 'Este vídeo não pode ser baixado: é privado, bloqueado por região ou não existe mais.',
     errorNoBinary: 'Não foi possível executar o yt-dlp. Defina o caminho dele nas configurações.',
     errorUnknown: 'O download falhou.',
+
+        duplicateTitle: 'Esta música já está na sua biblioteca',
+    duplicateBody: 'Já existe uma faixa com esse nome na biblioteca. Escolha o que fazer com o download.',
+    duplicateExisting: 'Na biblioteca',
+    hasLyrics: 'com letra',
+    duplicateReplace: 'Substituir',
+    duplicateReplaceHint: 'O download substitui o arquivo que já está lá.',
+    duplicateKeepBoth: 'Manter os dois',
+    duplicateKeepBothHint: 'O download é salvo ao lado, com outro nome.',
+    duplicateCancel: 'Não baixar',
+    duplicateCancelHint: 'Nada é baixado e nada é alterado.',
 
   },
 }

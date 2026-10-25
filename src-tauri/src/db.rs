@@ -813,6 +813,185 @@ pub fn update_lyricsfile_by_id(
 
 /// Get lyricsfile by ID
 /// Returns (lyricsfile_id, track_id, lyricsfile_content) if found
+/// Add a single file to the library.
+///
+/// The scan does this for every file in the library, but a scan cannot be
+/// aimed at one directory: it marks every track as pending and then deletes
+/// the ones it did not see, so scanning one folder would remove the rest of
+/// the library. This adds one file and touches nothing else, which is what a
+/// download needs.
+pub fn add_single_track(
+    path: &std::path::Path,
+    conn: &mut Connection,
+    cover_cache_dir: &std::path::Path,
+) -> Result<i64> {
+    let (metadata, lyrics) = crate::scanner::metadata::extract_track_info(path)?;
+
+    // A file that is already in the library is updated rather than added
+    // again. This is the "replace" case: the download overwrote the file, so
+    // the entry that points at it should point at the new content rather
+    // than be a second entry for the same path.
+    let path_str = path.to_string_lossy().to_string();
+    if let Some(existing) = find_track_by_path(&path_str, conn).ok() {
+        let file_size = std::fs::metadata(path)?.len() as i64;
+        let modified_time = std::fs::metadata(path)?
+            .modified()?
+            .duration_since(std::time::SystemTime::UNIX_EPOCH)?
+            .as_secs() as i64;
+        let content_hash = crate::scanner::hasher::compute_quick_hash(path)?;
+
+        let tx = conn.transaction()?;
+
+        let artist_id = match find_artist_tx(&metadata.artist, &tx) {
+            Ok(id) => id,
+            Err(_) => add_artist_tx(&metadata.artist, &tx)?,
+        };
+        let album_id = match find_album_tx(&metadata.album, &metadata.album_artist, &tx) {
+            Ok(id) => id,
+            Err(_) => add_album_tx(&metadata.album, &metadata.album_artist, &tx)?,
+        };
+
+        update_track_path_and_fingerprint_tx(
+            existing.id,
+            &path_str,
+            file_size,
+            modified_time,
+            &content_hash,
+            &tx,
+        )?;
+        update_track_metadata_tx(existing.id, &metadata, artist_id, album_id, &tx)?;
+
+        insert_track_fts_tx(
+            existing.id,
+            &crate::utils::prepare_input(&metadata.title),
+            &crate::utils::prepare_input(&metadata.artist),
+            &crate::utils::prepare_input(&metadata.album),
+            &tx,
+        )?;
+
+        tx.commit()?;
+        return Ok(existing.id);
+    }
+
+    let file_size = std::fs::metadata(path)?.len() as i64;
+    let modified_time = std::fs::metadata(path)?
+        .modified()?
+        .duration_since(std::time::SystemTime::UNIX_EPOCH)?
+        .as_secs() as i64;
+    let content_hash = crate::scanner::hasher::compute_quick_hash(path)?;
+
+    let tx = conn.transaction()?;
+
+    let artist_id = match find_artist_tx(&metadata.artist, &tx) {
+        Ok(id) => id,
+        Err(_) => add_artist_tx(&metadata.artist, &tx)?,
+    };
+
+    let (album_id, album_was_created) =
+        match find_album_tx(&metadata.album, &metadata.album_artist, &tx) {
+            Ok(id) => (id, false),
+            Err(_) => (add_album_tx(&metadata.album, &metadata.album_artist, &tx)?, true),
+        };
+
+    // The album gets a cover from the file, the same way the scan does it.
+    if album_was_created {
+        if let Some(bytes) = crate::cover_cache::cover_for_track(path) {
+            if let Some(file_name) = crate::cover_cache::store_cover(cover_cache_dir, &format!("album-{album_id}"), &bytes) {
+                set_album_image_tx(album_id, &file_name, &tx)?;
+            }
+        }
+    }
+
+    let track_id = insert_track_from_metadata_tx(
+        &metadata,
+        &lyrics,
+        file_size,
+        modified_time,
+        &content_hash,
+        artist_id,
+        album_id,
+        &tx,
+    )?;
+
+    insert_track_fts_tx(
+        track_id,
+        &crate::utils::prepare_input(&metadata.title),
+        &crate::utils::prepare_input(&metadata.artist),
+        &crate::utils::prepare_input(&metadata.album),
+        &tx,
+    )?;
+
+    tx.commit()?;
+    Ok(track_id)
+}
+
+/// The track at a file path, if there is one.
+///
+/// Used after a scan, to find the entry the scan has just created.
+pub fn find_track_by_path(file_path: &str, db: &Connection) -> Result<PersistentTrack> {
+    let mut statement = db.prepare(indoc! {"
+      SELECT
+        tracks.id,
+        tracks.file_path,
+        tracks.file_name,
+        tracks.title,
+        tracks.album_id,
+        tracks.artist_id,
+        tracks.duration,
+        tracks.track_number,
+        tracks.instrumental,
+        tracks.lyricsfile_id,
+        albums.name AS album_name,
+        albums.artist_name AS album_artist_name,
+        artists.name AS artist_name
+      FROM tracks
+      JOIN albums ON tracks.album_id = albums.id
+      JOIN artists ON tracks.artist_id = artists.id
+      WHERE tracks.file_path = ?
+      LIMIT 1
+    "})?;
+
+    let mut rows = statement.query([file_path])?;
+    let row = rows.next()?.ok_or_else(|| {
+        anyhow::anyhow!("no track at {file_path}")
+    })?;
+
+    Ok(PersistentTrack {
+        id: row.get("id")?,
+        file_path: row.get("file_path")?,
+        file_name: row.get("file_name")?,
+        title: row.get("title")?,
+        album_name: row.get("album_name")?,
+        album_artist_name: row.get("album_artist_name")?,
+        album_id: row.get("album_id")?,
+        artist_name: row.get("artist_name")?,
+        artist_id: row.get("artist_id")?,
+        image_path: None,
+        track_number: row.get("track_number")?,
+        txt_lyrics: None,
+        lrc_lyrics: None,
+        lyricsfile: None,
+        lyricsfile_id: row.get("lyricsfile_id")?,
+        duration: row.get("duration")?,
+        instrumental: row.get("instrumental")?,
+    })
+}
+
+/// The lyricsfile of a track, if it has one.
+///
+/// A narrow question, asked when a download is about to duplicate a track:
+/// the user is told whether the library entry already has lyrics, because
+/// that changes what they want to do.
+pub fn get_track_lyricsfile(track_id: i64, db: &Connection) -> Result<Option<String>> {
+    let mut statement = db.prepare("SELECT lyricsfile FROM lyricsfiles WHERE track_id = ? LIMIT 1")?;
+    let mut rows = statement.query([track_id])?;
+    if let Some(row) = rows.next()? {
+        let lyricsfile: Option<String> = row.get(0)?;
+        return Ok(lyricsfile);
+    }
+    Ok(None)
+}
+
 pub fn get_lyricsfile_by_id(
     lyricsfile_id: i64,
     db: &Connection,
@@ -1674,6 +1853,35 @@ pub fn update_track_path_tx(
 }
 
 /// Update track path and fingerprint after move
+/// Update the metadata of a track that is already in the library.
+///
+/// Used when a download replaces a file: the path is the same, so the entry
+/// stays, but the title, the artist and the album may have changed.
+pub fn update_track_metadata_tx(
+    track_id: i64,
+    metadata: &crate::scanner::metadata::TrackMetadata,
+    artist_id: i64,
+    album_id: i64,
+    tx: &rusqlite::Transaction,
+) -> Result<()> {
+    use crate::utils::prepare_input;
+
+    tx.execute(
+        "UPDATE tracks SET title = ?, title_lower = ?, album_id = ?, artist_id = ?, duration = ?, track_number = ? WHERE id = ?",
+        params![
+            &metadata.title,
+            prepare_input(&metadata.title),
+            album_id,
+            artist_id,
+            metadata.duration,
+            metadata.track_number,
+            track_id,
+        ],
+    )?;
+
+    Ok(())
+}
+
 pub fn update_track_path_and_fingerprint_tx(
     track_id: i64,
     new_path: &str,

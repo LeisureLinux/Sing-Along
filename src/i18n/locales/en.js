@@ -342,6 +342,18 @@ export default {
     download: 'Download',
     downloading: 'Downloading...',
     downloaded: 'Downloaded {title} ({album})',
+    downloadedWithoutLyrics: 'Downloaded {title}, but {note}',
+    duplicateTitle: 'This song is already in your library',
+    duplicateBody:
+      'There is already a track with this name in the library. Choose what to do with the download.',
+    duplicateExisting: 'In the library',
+    hasLyrics: 'has lyrics',
+    duplicateReplace: 'Replace it',
+    duplicateReplaceHint: 'The download replaces the file that is already there.',
+    duplicateKeepBoth: 'Keep both',
+    duplicateKeepBothHint: 'The download is saved beside it, under a different name.',
+    duplicateCancel: 'Do not download',
+    duplicateCancelHint: 'Nothing is downloaded and nothing changes.',
     downloadExplanation:
       'The file is named after the artist and the title, and the album and the cover are taken from the release database rather than from YouTube.',
 

@@ -553,6 +553,38 @@ an album beats a compilation, and an earlier release beats a later one. The
 artwork comes from the cover art archive, which serves the picture for a
 release that the database knows.
 
+### The duplicate
+
+A download can be about a track the library already holds, and the file
+the download would write may be the file the library entry points at. Three
+things are done about it:
+
+- The probe reports the existing track, so the dialog can ask. The answer is
+  the user's: replace the file, keep both, or do not download.
+- The comparison is made in one script. YouTube publishes in whatever script
+  the uploader chose, and the library holds the title as it was written into
+  the file, so a library entry in Simplified and a download in Traditional
+  are the same recording. The database's search is exact on the normalised
+  title and the normalisation does not know about the scripts, so the
+  candidates are looked at again with the script ignored.
+- `yt-dlp` does not replace a file that is already there: it reports "this
+  has already been downloaded" and exits successfully, which leaves the
+  caller believing it succeeded. `--force-overwrites` is therefore passed
+  when the user chose to replace.
+
+### The library
+
+The downloaded file is added to the library with `db::add_single_track`,
+which adds one track and touches nothing else. A scan cannot be used for
+this: a scan marks every track as pending and then deletes the ones it did
+not see, so scanning the download folder would empty the rest of the
+library.
+
+The lyrics are then fetched for the new track, through the same pipeline as
+any other track — LRCLIB, then NetEase as a fallback, then the AMLL word
+timings. A song with no lyrics anywhere is an ordinary outcome, so it is
+reported rather than raised.
+
 ### The order of the steps
 
 1. The cookie export is converted and checked. This is first because it is

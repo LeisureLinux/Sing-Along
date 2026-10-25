@@ -342,6 +342,7 @@ export default {
     download: 'İndir',
     downloading: 'İndiriliyor...',
     downloaded: '{title} ({album}) indirildi',
+    downloadedWithoutLyrics: '{title} indirildi, ancak şarkı sözü bulunamadı ({note})',
     downloadExplanation: 'Dosya sanatçı ve şarkı adıyla adlandırılır; albüm ve kapak YouTube’dan değil, yayın veritabanından gelir.',
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
@@ -367,6 +368,17 @@ export default {
     errorUnavailable: 'Bu video indirilemez: gizli, bölge kısıtlı ya da kaldırılmış.',
     errorNoBinary: 'yt-dlp çalıştırılamadı. Yolunu ayarlardan belirtin.',
     errorUnknown: 'İndirme başarısız oldu.',
+
+        duplicateTitle: 'Bu şarkı zaten kitaplığınızda',
+    duplicateBody: 'Kitaplıkta bu adda bir parça zaten var. İndirmeyle ne yapılacağını seçin.',
+    duplicateExisting: 'Kitaplıktaki',
+    hasLyrics: 'sözleri var',
+    duplicateReplace: 'Değiştir',
+    duplicateReplaceHint: 'İndirme, oradaki dosyanın yerini alır.',
+    duplicateKeepBoth: 'İkisini de koru',
+    duplicateKeepBothHint: 'İndirme, farklı bir adla yanına kaydedilir.',
+    duplicateCancel: 'İndirme',
+    duplicateCancelHint: 'Hiçbir şey indirilmez ve hiçbir şey değişmez.',
 
   },
 }

@@ -338,6 +338,7 @@ export default {
     download: 'Tải',
     downloading: 'Đang tải...',
     downloaded: '{title} ({album}) đã tải',
+    downloadedWithoutLyrics: 'Đã tải {title}, nhưng không tìm thấy lời ({note})',
     downloadExplanation: 'Tệp được đặt tên theo ca sĩ và tên bài, còn album và ảnh bìa lấy từ cơ sở dữ liệu phát hành.',
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
@@ -363,6 +364,17 @@ export default {
     errorUnavailable: 'Không thể tải video này: riêng tư, bị chặn theo khu vực, hoặc đã bị xóa.',
     errorNoBinary: 'Không chạy được yt-dlp. Hãy đặt đường dẫn của nó trong cài đặt.',
     errorUnknown: 'Tải về thất bại.',
+
+        duplicateTitle: 'Bài này đã có trong thư viện của bạn',
+    duplicateBody: 'Thư viện đã có một bản nhạc cùng tên. Hãy chọn cách xử lý bản tải về.',
+    duplicateExisting: 'Trong thư viện',
+    hasLyrics: 'có lời',
+    duplicateReplace: 'Thay thế',
+    duplicateReplaceHint: 'Bản tải về sẽ thay thế tệp đang có.',
+    duplicateKeepBoth: 'Giữ cả hai',
+    duplicateKeepBothHint: 'Bản tải về được lưu bên cạnh, với tên khác.',
+    duplicateCancel: 'Không tải về',
+    duplicateCancelHint: 'Không tải về gì và không thay đổi gì.',
 
   },
 }

@@ -338,6 +338,7 @@ export default {
     download: '다운로드',
     downloading: '다운로드 중...',
     downloaded: '{title} ({album}) 다운로드 완료',
+    downloadedWithoutLyrics: '{title}을(를) 다운로드했지만 가사를 찾지 못했습니다({note})',
     downloadExplanation: '파일 이름은 아티스트와 곡 제목이 되고, 앨범과 표지는 YouTube가 아니라 발매 데이터베이스에서 가져옵니다.',
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
@@ -363,6 +364,17 @@ export default {
     errorUnavailable: '이 동영상은 다운로드할 수 없습니다: 비공개, 지역 제한 또는 삭제됨.',
     errorNoBinary: 'yt-dlp를 실행할 수 없습니다. 설정에서 경로를 지정하세요.',
     errorUnknown: '다운로드에 실패했습니다.',
+
+        duplicateTitle: '이 곡이 이미 라이브러리에 있습니다',
+    duplicateBody: '라이브러리에 같은 이름의 곡이 있습니다. 다운로드를 어떻게 할지 선택하세요.',
+    duplicateExisting: '라이브러리에 있는 곡',
+    hasLyrics: '가사 있음',
+    duplicateReplace: '가져가기',
+    duplicateReplaceHint: '새로 받은 파일로 기존 파일을 대체합니다.',
+    duplicateKeepBoth: '둘 다 유지',
+    duplicateKeepBothHint: '다운로드를 옆에 다른 이름으로 저장합니다.',
+    duplicateCancel: '다운로드하지 않기',
+    duplicateCancelHint: '아무것도 받지 않고 기존 파일도 그대로 둡니다.',
 
   },
 }

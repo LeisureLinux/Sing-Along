@@ -338,6 +338,7 @@ export default {
     download: 'Herunterladen',
     downloading: 'Wird heruntergeladen...',
     downloaded: '{title} ({album}) heruntergeladen',
+    downloadedWithoutLyrics: '{title} heruntergeladen, aber keine Songtexte gefunden ({note})',
     downloadExplanation: 'Die Datei heißt nach Interpret und Titel, Album und Cover kommen aus der Release-Datenbank.',
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
@@ -363,6 +364,17 @@ export default {
     errorUnavailable: 'Dieses Video kann nicht heruntergeladen werden: privat, regionsgesperrt oder nicht mehr vorhanden.',
     errorNoBinary: 'yt-dlp konnte nicht ausgeführt werden. Lege seinen Pfad in den Einstellungen fest.',
     errorUnknown: 'Der Download ist fehlgeschlagen.',
+
+        duplicateTitle: 'Dieser Song ist schon in deiner Bibliothek',
+    duplicateBody: 'Es gibt bereits einen Track mit diesem Namen in der Bibliothek. Wähle, was mit dem Download geschehen soll.',
+    duplicateExisting: 'In der Bibliothek',
+    hasLyrics: 'mit Songtext',
+    duplicateReplace: 'Ersetzen',
+    duplicateReplaceHint: 'Der Download ersetzt die vorhandene Datei.',
+    duplicateKeepBoth: 'Beide behalten',
+    duplicateKeepBothHint: 'Der Download wird daneben unter einem anderen Namen gespeichert.',
+    duplicateCancel: 'Nicht herunterladen',
+    duplicateCancelHint: 'Es wird nichts heruntergeladen und nichts geändert.',
 
   },
 }

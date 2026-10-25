@@ -124,6 +124,21 @@ the uploader used. The application looks the track up in the release database,
 replaces the album name and the cover with the real ones, and converts the
 text to the script you asked for.
 
+The script is the one the download prompt asked for, or — if you have not
+answered that prompt — the one your interface language implies. A
+Simplified-Chinese reader gets Simplified metadata, a Traditional-Chinese
+reader gets Traditional. The file name follows the same rule, so the song can
+be found again by typing the name you see in your player.
+
+**When the song is already in your library.** The dialog says so and asks what
+to do: replace the file that is there, keep both (the download is saved
+beside it as "Artist - Title (2).mp3"), or do not download. Nothing is
+overwritten without an answer.
+
+**The lyrics.** The downloaded track is added to the library and its lyrics are
+fetched, the same way they are for any other track. A song with no lyrics
+anywhere says so rather than failing: the download itself succeeded.
+
 **A note on expiry.** A browser rotates its session cookies without warning,
 and a rotated cookie is not refused — the download fails with "Sign in to
 confirm you're not a bot", which blames you for something you did not do. The

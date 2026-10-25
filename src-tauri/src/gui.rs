@@ -779,6 +779,20 @@ async fn download_lyrics(
     app_handle: AppHandle,
 ) -> Result<String, String> {
     let export_formats = auto_export.map(AutoExportOptions::formats).transpose()?;
+    download_lyrics_for_track(track_id, export_formats, lyric_script, &app_handle).await
+}
+
+/// The body of the lyric download, shared with the YouTube download.
+///
+/// A track that arrives from YouTube needs its lyrics the same way a track
+/// that was already in the library does, and the pipeline is the same one:
+/// LRCLIB, then NetEase as a fallback, then the AMLL word timings.
+pub(crate) async fn download_lyrics_for_track(
+    track_id: i64,
+    export_formats: Option<Vec<crate::export::ExportFormat>>,
+    lyric_script: Option<String>,
+    app_handle: &AppHandle,
+) -> Result<String, String> {
     let track = app_handle
         .db(|db| crate::db::get_track_by_id(track_id, db))
         .map_err(|err| err.to_string())?;

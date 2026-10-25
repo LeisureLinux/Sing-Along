@@ -17,6 +17,7 @@
 //!    and the Chinese text is converted to the script the user asked for.
 
 use crate::persistent_entities::PersistentConfig;
+use tauri::Manager;
 use serde::Serialize;
 use std::path::{Path, PathBuf};
 
@@ -61,6 +62,41 @@ pub struct YoutubeTrackInfo {
     pub corrected_album: Option<String>,
     /// The artwork the release database has, when it has one.
     pub corrected_cover: bool,
+    /// A track in the library that is the same recording.
+    ///
+    /// The user is asked what to do about it, because the answer depends on
+    /// things only the user knows: whether the file on disk is a better copy
+    /// than the one in the library, or whether the library entry is a rip
+    /// they would rather keep.
+    pub existing_track: Option<ExistingTrack>,
+}
+
+/// A track in the library that the download would duplicate.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExistingTrack {
+    pub id: i64,
+    pub title: String,
+    pub artist: String,
+    pub album: String,
+    /// Where the file is.
+    pub file_path: String,
+    /// How long it is, so the user can tell two recordings apart.
+    pub duration: f64,
+    /// Whether it has lyrics already.
+    pub has_lyrics: bool,
+}
+
+/// What the user decided to do about an existing track.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DuplicateChoice {
+    /// Replace the file and the library entry.
+    Replace,
+    /// Keep the library entry and put the download beside it under a
+    /// different name.
+    KeepBoth,
+    /// Do not download.
+    Cancel,
 }
 
 /// The result of a download.
@@ -79,6 +115,162 @@ pub struct YoutubeDownloadResult {
     pub album_corrected: bool,
     /// Whether the cover was replaced.
     pub cover_corrected: bool,
+    /// The library entry the file became, when the library was told about it.
+    pub track_id: Option<i64>,
+    /// Whether lyrics were found for it.
+    pub lyrics_found: bool,
+    /// Why no lyrics were found, in words the user can act on.
+    pub lyrics_note: Option<String>,
+}
+
+
+
+/// A suffix that makes the file name free.
+///
+/// "Keep both" means two files of the same song, side by side. The second
+/// one is called "Artist - Title (2).mp3", the third "Artist - Title (3).mp3",
+/// and so on: a number a person can read, rather than a timestamp they have
+/// to decode.
+async fn find_free_suffix(
+    config: &PersistentConfig,
+    output_dir: &Path,
+    url: &str,
+    script: crate::script_convert::ScriptTarget,
+) -> Result<String, String> {
+    let options = download_options(config, Some(output_dir.to_path_buf()), false, "", script);
+    let info = crate::ytdlp::probe(&options, url)
+        .await
+        .map_err(|err| err.to_string())?;
+
+    let base = crate::ytdlp::sanitise(&crate::ytdlp::file_stem_for(&info, script));
+
+    for number in 2..100 {
+        let candidate = format!(" ({number})");
+        let path = output_dir.join(format!("{base}{candidate}.mp3"));
+        if !path.exists() {
+            return Ok(candidate);
+        }
+    }
+
+    Ok(" (2)".to_owned())
+}
+
+/// The library track that a download would duplicate.
+///
+/// The match is on the title, the artist and the duration, which together
+/// identify a recording well enough: two different songs rarely share all
+/// three, and the same song released twice does — but then the two files are
+/// the same recording and the user is the one who knows which to keep.
+///
+/// The scripts are compared after conversion, because a library that was
+/// downloaded in Simplified and a download that arrives in Traditional are
+/// the same recording.
+fn find_existing_track(
+    title: &str,
+    artist: &str,
+    album: Option<&str>,
+    duration: Option<f64>,
+    conn: &rusqlite::Connection,
+) -> Option<ExistingTrack> {
+    // The comparison is made in one script.
+    //
+    // YouTube publishes in whatever script the uploader chose, and the
+    // library holds the title as it was written into the file — which, for a
+    // download, is the script the user asked for. So a library entry in
+    // Simplified and a download in Traditional are the same recording, and
+    // the search has to see that.
+    //
+    // Both sides are converted to Simplified for the search, because the
+    // library's own text is what the search runs against.
+    let title = crate::script_convert::convert(title, crate::script_convert::ScriptTarget::Simplified);
+    let artist =
+        crate::script_convert::convert(artist, crate::script_convert::ScriptTarget::Simplified);
+    let album = album.map(|value| {
+        crate::script_convert::convert(value, crate::script_convert::ScriptTarget::Simplified)
+    });
+
+    let mut matches = crate::db::find_tracks_by_metadata(
+        &title,
+        Some(&artist),
+        album.as_deref(),
+        duration,
+        conn,
+    )
+    .ok()?;
+
+    // The search is exact on the title, so a recording whose title differs
+    // only in the script is not found by it. The candidates are therefore
+    // looked at again, with the script ignored.
+    if matches.is_empty() {
+        matches = find_tracks_by_title_and_artist(&title, &artist, duration, conn);
+    }
+
+    let track = matches.into_iter().next()?;
+
+    let has_lyrics = crate::db::get_track_lyricsfile(track.id, conn)
+        .ok()
+        .flatten()
+        .is_some();
+
+    Some(ExistingTrack {
+        id: track.id,
+        title: track.title,
+        artist: track.artist_name,
+        album: track.album_name,
+        file_path: track.file_path,
+        duration: track.duration,
+        has_lyrics,
+    })
+}
+
+
+/// The library tracks with a title and an artist, whatever the script.
+///
+/// The search the database offers is exact on the normalised title, and the
+/// normalisation does not know about the Chinese scripts. So the two texts
+/// that differ only in the script do not match, and the recording a download
+/// is about to duplicate is not found.
+fn find_tracks_by_title_and_artist(
+    title: &str,
+    artist: &str,
+    duration: Option<f64>,
+    conn: &rusqlite::Connection,
+) -> Vec<crate::persistent_entities::PersistentTrack> {
+    let Ok(tracks) = crate::db::get_tracks(conn) else {
+        return Vec::new();
+    };
+
+    let wanted = normalise_for_comparison(title);
+    let wanted_artist = normalise_for_comparison(artist);
+
+    tracks
+        .into_iter()
+        .filter(|track| {
+            if normalise_for_comparison(&track.title) != wanted {
+                return false;
+            }
+            if !wanted_artist.is_empty()
+                && normalise_for_comparison(&track.artist_name) != wanted_artist
+            {
+                return false;
+            }
+            // The duration has to be close, when it is known: two different
+            // recordings rarely share a title and an artist exactly.
+            match (duration, track.duration) {
+                (Some(wanted), actual) if actual > 0.0 => (wanted - actual).abs() <= 3.0,
+                _ => true,
+            }
+        })
+        .collect()
+}
+
+/// A text reduced to a comparable form, with the Chinese in one script.
+fn normalise_for_comparison(text: &str) -> String {
+    crate::script_convert::convert(text, crate::script_convert::ScriptTarget::Simplified)
+        .chars()
+        .filter(|c| c.is_alphanumeric())
+        .flat_map(|c| c.to_lowercase())
+        .collect()
 }
 
 /// The settings that decide how the downloader is called, read from the
@@ -86,6 +278,9 @@ pub struct YoutubeDownloadResult {
 fn download_options(
     config: &PersistentConfig,
     output_dir: Option<PathBuf>,
+    overwrite: bool,
+    name_suffix: &str,
+    script: crate::script_convert::ScriptTarget,
 ) -> crate::ytdlp::DownloadOptions {
     let cookies = if config.ytdlp_cookies_json.trim().is_empty() {
         PathBuf::new()
@@ -108,10 +303,37 @@ fn download_options(
         proxy: proxy.clone(),
         metadata_proxy: proxy,
         output_dir: output_dir.unwrap_or_default(),
-        script: crate::script_convert::ScriptTarget::parse(&config.lyric_script)
-            .unwrap_or(crate::script_convert::ScriptTarget::Off),
+        script,
         fix_metadata: true,
+        overwrite,
+        name_suffix: name_suffix.to_owned(),
     }
+}
+
+/// The Chinese script the metadata should end up in.
+///
+/// The caller decides, because only the caller knows the interface language.
+/// The rule is the one the lyric download uses: the answer the user gave to
+/// the download prompt wins, and the interface language is the fallback.
+///
+/// It matters here because YouTube publishes in whatever script the uploader
+/// chose. Without it a Simplified-Chinese reader would get a file whose title
+/// is in Traditional, and would not find it again by typing the name they
+/// see in their player.
+pub fn script_target(requested: Option<&str>, locale: &str) -> crate::script_convert::ScriptTarget {
+    let target = match requested {
+        // "ask" means the user has not answered the prompt yet, so the
+        // interface language decides.
+        Some("ask") | None | Some("") => match locale {
+            "zh-Hant" => "traditional",
+            "zh-Hans" => "simplified",
+            _ => "off",
+        },
+        Some(other) => other,
+    };
+
+    crate::script_convert::ScriptTarget::parse(target)
+        .unwrap_or(crate::script_convert::ScriptTarget::Off)
 }
 
 /// Report what the downloader can and cannot do right now.
@@ -247,7 +469,12 @@ pub async fn convert_cookie_export(
 #[tauri::command]
 pub async fn probe_youtube_track(
     url: String,
+    // The Chinese script the metadata should end up in, and the interface
+    // language it falls back to. Only the caller knows the language.
+    lyric_script: Option<String>,
+    locale: String,
     app_state: tauri::State<'_, crate::state::AppState>,
+    app_handle: tauri::AppHandle,
 ) -> Result<YoutubeTrackInfo, String> {
     // The lock is taken and released inside a block, so that no guard is held
     // across an await: a guard is not `Send`, and a command that holds one
@@ -258,7 +485,8 @@ pub async fn probe_youtube_track(
         crate::db::get_config(conn).map_err(|err| err.to_string())?
     };
 
-    let options = download_options(&config, None);
+    let script = script_target(lyric_script.as_deref(), &locale);
+    let options = download_options(&config, None, false, "", script);
     let info = crate::ytdlp::probe(&options, url.trim())
         .await
         .map_err(|err| err.to_string())?;
@@ -285,6 +513,21 @@ pub async fn probe_youtube_track(
         }
     };
 
+    // The library is asked whether it already holds this recording. The
+    // answer is what lets the user choose between replacing it and keeping
+    // both, instead of silently overwriting a file they may care about.
+    let existing_track = {
+        let conn_guard = app_state.db.lock().unwrap();
+        let conn = conn_guard.as_ref().unwrap();
+        find_existing_track(
+            &info.title,
+            info.artist.as_deref().unwrap_or_default(),
+            corrected_album.as_deref().or(info.album.as_deref()),
+            info.duration,
+            conn,
+        )
+    };
+
     Ok(YoutubeTrackInfo {
         id: info.id,
         title: info.title,
@@ -293,6 +536,7 @@ pub async fn probe_youtube_track(
         duration: info.duration,
         corrected_album,
         corrected_cover,
+        existing_track,
     })
 }
 
@@ -305,7 +549,17 @@ pub async fn probe_youtube_track(
 #[tauri::command]
 pub async fn download_youtube_track(
     url: String,
+    // What to do about a track the library already holds: "replace"
+    // overwrites the file, "keepBoth" puts the download beside it under a
+    // different name, and "cancel" does nothing. A string rather than an
+    // enum because it crosses the IPC boundary.
+    duplicate_choice: Option<String>,
+    // The Chinese script the metadata should end up in, and the interface
+    // language it falls back to. Only the caller knows the language.
+    lyric_script: Option<String>,
+    locale: String,
     app_state: tauri::State<'_, crate::state::AppState>,
+    app_handle: tauri::AppHandle,
 ) -> Result<YoutubeDownloadResult, String> {
     let (config, directories) = {
         let conn_guard = app_state.db.lock().unwrap();
@@ -330,7 +584,36 @@ pub async fn download_youtube_track(
         PathBuf::from(config.ytdlp_output_dir.trim())
     };
 
-    let mut options = download_options(&config, Some(output_dir));
+    let script = script_target(lyric_script.as_deref(), &locale);
+
+    let choice = match duplicate_choice.as_deref() {
+        Some("replace") => DuplicateChoice::Replace,
+        Some("keepBoth") => DuplicateChoice::KeepBoth,
+        Some("cancel") => DuplicateChoice::Cancel,
+        // No answer means no decision was needed: there was no duplicate.
+        _ => DuplicateChoice::Replace,
+    };
+
+    if choice == DuplicateChoice::Cancel {
+        return Err("the download was cancelled".to_owned());
+    }
+
+    // The file name is worked out before the download, because "keep both"
+    // needs a name that is not taken. The name `yt-dlp` would choose is the
+    // artist and the title, so that is what is checked.
+    let name_suffix = if choice == DuplicateChoice::KeepBoth {
+        find_free_suffix(&config, &output_dir, url.trim(), script).await?
+    } else {
+        String::new()
+    };
+
+    let mut options = download_options(
+        &config,
+        Some(output_dir),
+        choice == DuplicateChoice::Replace,
+        &name_suffix,
+        script,
+    );
 
     // The cookie export is converted here rather than earlier, so that a user
     // who picked a file but never saved the settings still gets a working
@@ -390,6 +673,21 @@ pub async fn download_youtube_track(
         let _ = crate::youtube::convert_file_script(&downloaded.path, options.script);
     }
 
+    // The library is told about the new file, so that the track exists and
+    // can have lyrics like any other. The scan is of the download directory
+    // only, because a full scan of a large library would take minutes for
+    // one new song.
+    let track_id = register_in_library(&app_state, &app_handle, &downloaded.path).await;
+
+    // And the lyrics are fetched, the same way they are for any other track.
+    // A song without lyrics is the usual case on YouTube: the platform has
+    // no lyrics of its own, and the sources this project uses may not hold
+    // this recording either. So a failure is reported rather than raised.
+    let (lyrics_found, lyrics_note) = match track_id {
+        Some(track_id) => fetch_lyrics_for(track_id, &app_handle, script).await,
+        None => (false, Some("the file was not added to the library".to_owned())),
+    };
+
     Ok(YoutubeDownloadResult {
         path: downloaded.path.display().to_string(),
         title: downloaded.info.title,
@@ -397,10 +695,121 @@ pub async fn download_youtube_track(
         artist: downloaded.info.artist,
         album_corrected,
         cover_corrected,
+        track_id,
+        lyrics_found,
+        lyrics_note,
     })
 }
 
-/// Where a file is, for the GUI to show.
-pub fn file_path_for(path: &Path) -> String {
-    path.display().to_string()
+/// Add a downloaded file to the library.
+///
+/// The file is added on its own rather than by a scan. A scan cannot be
+/// aimed at one directory: it marks every track as pending and then deletes
+/// the ones it did not see, so scanning the download folder would empty the
+/// rest of the library. This adds one track and touches nothing else.
+async fn register_in_library(
+    app_state: &tauri::State<'_, crate::state::AppState>,
+    app_handle: &tauri::AppHandle,
+    path: &Path,
+) -> Option<i64> {
+    let cover_cache_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map(|dir| dir.join("covers"))
+        .unwrap_or_else(|_| std::env::temp_dir().join("sing-along-covers"));
+
+    let mut conn_guard = app_state.db.lock().ok()?;
+    let conn = conn_guard.as_mut()?;
+
+    // The insert reads the file and hashes it, so it runs on a thread that
+    // can afford to wait.
+    tokio::task::block_in_place(|| crate::db::add_single_track(path, conn, &cover_cache_dir)).ok()
+}
+
+/// Fetch the lyrics for a track, the same way the lyric download does.
+///
+/// Returns whether lyrics were found, and a note when they were not. A note
+/// rather than an error: a missing lyric is an ordinary outcome, not a
+/// failure of the download.
+async fn fetch_lyrics_for(
+    track_id: i64,
+    app_handle: &tauri::AppHandle,
+    script: crate::script_convert::ScriptTarget,
+) -> (bool, Option<String>) {
+    let script = match script {
+        crate::script_convert::ScriptTarget::Off => None,
+        crate::script_convert::ScriptTarget::Simplified => Some("simplified".to_owned()),
+        crate::script_convert::ScriptTarget::Traditional => Some("traditional".to_owned()),
+    };
+
+    match crate::gui::download_lyrics_for_track(track_id, None, script, app_handle).await {
+        Ok(_) => (true, None),
+        Err(error) => {
+            let note = if error.contains("no timed lyrics") {
+                "no timed lyrics were found for this song".to_owned()
+            } else if error.contains("not found") {
+                "no lyrics were found for this song".to_owned()
+            } else {
+                error
+            };
+            (false, Some(note))
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The script the metadata ends up in.
+    ///
+    /// The answer the user gave wins, and the interface language is the
+    /// fallback. The fallback matters: YouTube publishes in whatever script
+    /// the uploader chose, so a Simplified-Chinese reader would otherwise
+    /// get a file whose title they cannot type back into a search.
+    #[test]
+    fn the_interface_language_decides_when_the_user_has_not_answered() {
+        assert_eq!(
+            script_target(Some("ask"), "zh-Hans"),
+            crate::script_convert::ScriptTarget::Simplified
+        );
+        assert_eq!(
+            script_target(Some("ask"), "zh-Hant"),
+            crate::script_convert::ScriptTarget::Traditional
+        );
+        assert_eq!(
+            script_target(None, "zh-Hans"),
+            crate::script_convert::ScriptTarget::Simplified
+        );
+    }
+
+    #[test]
+    fn a_language_without_chinese_leaves_the_text_alone() {
+        assert_eq!(
+            script_target(Some("ask"), "en"),
+            crate::script_convert::ScriptTarget::Off
+        );
+        assert_eq!(
+            script_target(Some("ask"), "ja"),
+            crate::script_convert::ScriptTarget::Off
+        );
+    }
+
+    #[test]
+    fn the_users_answer_beats_the_interface_language() {
+        // A Traditional-Chinese reader who asks for Simplified lyrics gets
+        // Simplified lyrics, even though the interface is in Traditional.
+        assert_eq!(
+            script_target(Some("simplified"), "zh-Hant"),
+            crate::script_convert::ScriptTarget::Simplified
+        );
+        assert_eq!(
+            script_target(Some("traditional"), "zh-Hans"),
+            crate::script_convert::ScriptTarget::Traditional
+        );
+        assert_eq!(
+            script_target(Some("off"), "zh-Hans"),
+            crate::script_convert::ScriptTarget::Off
+        );
+    }
 }

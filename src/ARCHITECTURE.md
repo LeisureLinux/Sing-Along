@@ -144,7 +144,9 @@ frontend does three things, in this order:
    the release database has. The user sees both before anything is
    downloaded, so a wrong URL is caught before a large file is fetched.
 2. **Download it.** `download_youtube_track` runs the download, corrects the
-   metadata, and returns where the file landed.
+   metadata, adds the file to the library, fetches its lyrics, and returns
+   where the file landed. The `duplicateChoice` says what to do about a
+   track the library already holds: replace it, keep both, or cancel.
 3. **Report the outcome.** The toast says what was downloaded, with the
    album name that ended up in the file.
 

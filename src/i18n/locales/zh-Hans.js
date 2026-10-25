@@ -334,6 +334,7 @@ export default {
     download: '下载',
     downloading: '下载中...',
     downloaded: '已下载 {title}（{album}）',
+    downloadedWithoutLyrics: '已下载 {title}，但没有找到歌词（{note}）',
     downloadExplanation: '文件以艺术家和歌曲名命名，专辑和封面取自发行数据库，而不是 YouTube。',
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
@@ -359,6 +360,17 @@ export default {
     errorUnavailable: '该视频无法下载：可能为私有、地区限制或已删除。',
     errorNoBinary: '无法运行 yt-dlp。请在设置中指定它的路径。',
     errorUnknown: '下载失败。',
+
+        duplicateTitle: '这首歌已经在你的曲库里了',
+    duplicateBody: '曲库里已经有一首同名的歌曲了。请选择这次下载怎么处理。',
+    duplicateExisting: '曲库中已有',
+    hasLyrics: '已有歌词',
+    duplicateReplace: '替换它',
+    duplicateReplaceHint: '用新下载的文件替换原有文件。',
+    duplicateKeepBoth: '两个都保留',
+    duplicateKeepBothHint: '新文件保存在旁边，名字会不一样。',
+    duplicateCancel: '不下载',
+    duplicateCancelHint: '不下载任何东西，也不改动现有文件。',
 
   },
 }

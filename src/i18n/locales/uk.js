@@ -342,6 +342,7 @@ export default {
     download: 'Завантажити',
     downloading: 'Завантаження...',
     downloaded: '{title} ({album}) завантажено',
+    downloadedWithoutLyrics: 'Завантажено {title}, але текст не знайдено ({note})',
     downloadExplanation: 'Файл називається за виконавцем і назвою треку, а альбом та обкладинка беруться з бази релізів.',
     binary: 'yt-dlp',
     binaryPlaceholder: 'yt-dlp',
@@ -367,6 +368,17 @@ export default {
     errorUnavailable: 'Це відео не можна завантажити: воно приватне, обмежене за регіоном або видалене.',
     errorNoBinary: 'Не вдалося запустити yt-dlp. Вкажіть його шлях у налаштуваннях.',
     errorUnknown: 'Завантаження не вдалося.',
+
+        duplicateTitle: 'Ця пісня вже є у вашій фонотеці',
+    duplicateBody: 'У фонотеці вже є трек із такою назвою. Оберіть, що робити із завантаженням.',
+    duplicateExisting: 'У фонотеці',
+    hasLyrics: 'є текст',
+    duplicateReplace: 'Замінити',
+    duplicateReplaceHint: 'Завантаження замінить уже наявний файл.',
+    duplicateKeepBoth: 'Зберегти обидва',
+    duplicateKeepBothHint: 'Завантаження буде збережено поруч, з іншою назвою.',
+    duplicateCancel: 'Не завантажувати',
+    duplicateCancelHint: 'Нічого не завантажується і нічого не змінюється.',
 
   },
 }
