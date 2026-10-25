@@ -585,6 +585,38 @@ any other track — LRCLIB, then NetEase as a fallback, then the AMLL word
 timings. A song with no lyrics anywhere is an ordinary outcome, so it is
 reported rather than raised.
 
+### The metadata repair (`repair.rs`, `repair_gui.rs`)
+
+A library built by copying files into folders inherits the folders' names: a
+track whose tag had no album gets the name of the directory it was dropped
+into, and a library of Chinese songs ends up with an album called "KXT"
+holding a hundred songs by seventy-seven artists.
+
+**Which names are worth repairing.** A name under more than one artist. A
+real album belongs to one artist, so a name that several artists share is a
+name that came from a folder. The unit of the answer is the *name*, not the
+album row: the row is per artist and per name, so "KXT" is one row for 齐秦,
+one for 梁静茹, and one for every other artist whose files were dropped into
+a folder called KXT. Looking at the rows would find nothing, because no one
+of them has more than one artist.
+
+**What the repair writes.** The album name, the year and the artwork come
+from the release database, and the text is converted to the requested script
+and written in UTF-8. The file is rewritten, not just the library row: a
+row that disagrees with the file it points at is a library that changes on
+the next scan, and a player that reads the file shows the old values.
+
+**The encoding.** The text frames of an ID3v2 tag say what encoding they
+are in, and a library collected over years holds files in several: UTF-16
+from one ripper, UTF-8 from another. The same title is then spelled
+differently depending on the file it is in. The repaired file is written in
+UTF-8, which is what the format's version 4 uses.
+
+**Nothing is guessed.** A track the release database does not have keeps
+what it has, and the report says so. The user is shown what the database
+has for each track before anything is written, and only the tracks that were
+found are offered.
+
 ### The library check
 
 `get_library_problems` reports two things, and neither is a verdict.

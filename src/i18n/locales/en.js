@@ -327,6 +327,40 @@ export default {
     unsavedChanges: 'You have unsaved changes. Are you sure you want to close?',
   },
 
+  repair: {
+    title: 'Repair the metadata',
+    introduction:
+      'The album names and the artwork of the tracks that came from a folder are looked up in the release database, and the text is written in UTF-8. Nothing is guessed: a track that the database does not have keeps what it has.',
+    fixCover: 'Look up the artwork as well',
+    script: 'Chinese script',
+    scriptOff: 'Leave as it is',
+    scriptSimplified: 'Convert to Simplified',
+    scriptTraditional: 'Convert to Traditional',
+    scriptHint:
+      'The conversion is lossy: 发 is 發 in 發財 and 髮 in 頭髮, and only the context decides. It is applied to the title, the album, the artist and the comment.',
+    albumsTitle: '{count} albums whose name came from a folder',
+    albumsBody:
+      'A real album belongs to one artist. An album under several artists is a name that came from the folder the files were dropped into.',
+    albumSummary: '{artists} artists, {tracks} tracks',
+    lookUp: 'Look up',
+    lookingUp: 'Looking the tracks up...',
+    willBecome: 'Becomes',
+    hasCover: 'with artwork',
+    notFound: 'Not in the release database — it will keep what it has',
+    encodingTitle: '{count} files whose text is not in UTF-8',
+    encodingBody:
+      'The text frames of an ID3v2 tag say what encoding they are in. A library collected over years holds files in several, and the same title is spelled differently depending on the file it is in. Repairing a file writes it in UTF-8.',
+    nothingToDo: 'Nothing to repair. The library looks right.',
+    repairSelected: 'Repair {count}',
+    working: 'Repairing...',
+    done: 'Repaired {count} tracks',
+    resultTitle: 'What was repaired',
+    albumChanged: 'album',
+    coverWritten: 'artwork written',
+    scriptChanged: 'script converted',
+    encodingChanged: 'written in UTF-8',
+  },
+
   libraryProblems: {
     title: 'Library check',
     introduction:

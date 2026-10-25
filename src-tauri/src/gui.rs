@@ -2543,6 +2543,10 @@ pub fn run() {
             crate::youtube_gui::download_youtube_track,
             crate::youtube_gui::get_library_problems,
             crate::youtube_gui::remove_library_entries,
+            crate::repair_gui::find_suspicious_albums,
+            crate::repair_gui::look_up_album_tracks,
+            crate::repair_gui::repair_tracks,
+            crate::repair_gui::find_non_utf8_tracks,
         ])
         .setup({
             let tray_available = tray_available.clone();

@@ -155,6 +155,14 @@ line, with the percentage and the speed; the other plays the track as soon as
 it is downloaded. The progress arrives as a `youtube-download-progress`
 event, which the backend emits while the download runs.
 
+The metadata repair is a third dialog, also reached from the menu. It finds
+the album names that came from a folder — a name under more than one artist,
+because a real album belongs to one — looks the tracks up in the release
+database, and shows what each would become before anything is written. It
+also writes the text in UTF-8: the text frames of an ID3v2 tag say what
+encoding they are in, and a library collected over years holds files in
+several.
+
 The library check is a separate dialog, reached from the menu. It reports the
 entries whose file is not on the disk and the pairs that look like the same
 recording, grouped by how sure the library is. Nothing is removed without the

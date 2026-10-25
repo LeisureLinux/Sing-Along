@@ -13,6 +13,7 @@
       @show-export-viewer="openExportViewer"
       @show-youtube-download="openYoutubeDownloadModal"
       @show-library-problems="openLibraryProblemsModal"
+      @show-repair="openRepairModal"
     />
 
     <div id="library-content" class="relative grow overflow-hidden">
@@ -80,6 +81,7 @@ import DownloadViewer from './library/DownloadViewer.vue'
 import ExportViewer from './library/ExportViewer.vue'
 import YoutubeDownload from './library/YoutubeDownload.vue'
 import LibraryProblems from './library/LibraryProblems.vue'
+import RepairMetadata from './library/RepairMetadata.vue'
 import Config from './library/Config.vue'
 import About from './About.vue'
 import { useToast } from 'vue-toastification'
@@ -170,6 +172,17 @@ const { open: openYoutubeDownloadModal, close: closeYoutubeDownloadModal } = use
   attrs: {
     onClose() {
       closeYoutubeDownloadModal()
+    },
+  },
+})
+
+const { open: openRepairModal, close: closeRepairModal } = useModal({
+  component: RepairMetadata,
+  attrs: {
+    onClose() {
+      closeRepairModal()
+      // The metadata changed, so the library has to be read again.
+      refreshLibrary()
     },
   },
 })

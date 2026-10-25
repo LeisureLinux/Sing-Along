@@ -274,6 +274,12 @@
                 $t('config.title')
               }}</span>
             </button>
+            <button v-close-popper class="dropdown-item" @click="$emit('showRepair')">
+              <PlaylistEdit class="text-neutral-800 dark:text-neutral-300" />
+              <span class="text-neutral-800 dark:text-neutral-300 text-sm font-bold">{{
+                $t('repair.title')
+              }}</span>
+            </button>
             <button v-close-popper class="dropdown-item" @click="$emit('showLibraryProblems')">
               <PlaylistRemove class="text-neutral-800 dark:text-neutral-300" />
               <span class="text-neutral-800 dark:text-neutral-300 text-sm font-bold">{{
@@ -306,6 +312,7 @@ import FolderMultiple from '~icons/mdi/folder-multiple'
 import Export from '~icons/mdi/export'
 import Youtube from '~icons/mdi/youtube'
 import PlaylistRemove from '~icons/mdi/playlist-remove'
+import PlaylistEdit from '~icons/mdi/playlist-edit'
 import CheckboxButton from '@/components/common/CheckboxButton.vue'
 import { useDownloader } from '@/composables/downloader.js'
 import { useExporter } from '@/composables/export.js'
@@ -325,6 +332,7 @@ const emit = defineEmits([
   'showExportViewer',
   'showYoutubeDownload',
   'showLibraryProblems',
+  'showRepair',
 ])
 
 const { refresh: refreshPreferences, save: savePreferences } = useExportPreferences()

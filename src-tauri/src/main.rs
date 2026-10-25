@@ -16,6 +16,9 @@ pub mod parser;
 pub mod persistent_entities;
 #[cfg(feature = "gui")]
 pub mod playlist;
+pub mod repair;
+#[cfg(feature = "gui")]
+pub mod repair_gui;
 #[cfg(feature = "gui")]
 pub mod player;
 pub mod scanner;

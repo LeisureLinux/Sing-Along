@@ -149,6 +149,31 @@ large file takes minutes, and a window that says nothing for three minutes
 looks broken. There is also a switch that plays the track as soon as it is
 downloaded.
 
+**Repairing the metadata.** A library built by copying files into folders
+inherits the folders' names: a track whose tag had no album gets the name of
+the directory it was dropped into, and a library of Chinese songs ends up with
+an album called "KXT" holding a hundred songs by seventy-seven different
+artists. The menu has a repair that looks the tracks up in the release
+database and writes the real album name, the real artwork and the year into
+the files.
+
+A name under more than one artist is what gives a folder name away — a real
+album belongs to one artist — so those are the ones offered for repair. The
+tracks are listed with what the database has for each, and only the ones that
+were found are selectable: a track the database does not have keeps what it
+has.
+
+The repair also writes the text in UTF-8. The text frames of an ID3v2 tag say
+what encoding they are in, and a library collected over years holds files in
+several — UTF-16 from one ripper, UTF-8 from another. The same title is then
+spelled differently depending on the file it is in. 213 of the 359 files in
+one library were not in UTF-8.
+
+The Chinese script is converted at the same time, if you ask for it. The
+conversion is lossy in both directions: `发` is `發` (as in 發財) or `髮` (as
+in 頭髮), and only context decides. It is applied to the title, the album, the
+artist and the comment.
+
 **Cleaning the library.** The menu has a check that finds the entries whose
 file is not on the disk — a drive that is not mounted, a folder that was moved
 — and the pairs that look like the same recording. The pairs are sorted by how
