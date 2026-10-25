@@ -323,6 +323,23 @@ export default {
     unsavedChanges: '저장하지 않은 변경 사항이 있습니다. 닫으시겠습니까?',
   },
 
+
+  libraryProblems: {
+    title: '라이브러리 점검',
+    introduction: '라이브러리에 파일이 이미 없는 항목이나 같은 녹음이 여러 번 들어 있는 경우가 있습니다. 지시하기 전에는 아무것도 지우지 않습니다.',
+    missingTitle: '파일이 없는 항목 {count}개',
+    missingBody: '파일이 라이브러리가 기대하는 자리에 없습니다. 드라이브가 마운트되지 않았거나 파일이 이동·삭제되었을 수 있습니다.',
+    identicalTitle: '완전히 같은 파일 {count}쌍',
+    identicalBody: '두 파일의 내용이 같아서 같은 오디오가 두 이름으로 저장된 것입니다. 두 번째를 남겨도 곡이 늘지는 않습니다.',
+    sameRecordingTitle: '같은 녹음일 가능성이 있는 {count}쌍',
+    sameRecordingBody: '제목과 아티스트가 같고 길이도 같습니다. 보통 같은 녹음의 두 출처입니다 — 리핑과 다운로드, 또는 두 폴더에 저장된 사본.',
+    differentRecordingTitle: '이름은 같지만 길이가 다른 {count}쌍',
+    differentRecordingBody: '제목과 아티스트는 같지만 길이가 다릅니다. 스튜디오 버전과 라이브 버전, 앨범 버전과 싱글 버전처럼 같은 노래의 다른 버전이므로 어느 쪽도 지우지 않습니다.',
+    hasLyrics: '가사 있음',
+    nothingToDo: '정리할 것이 없습니다. 라이브러리는 괜찮아 보입니다.',
+    removeSelected: '{count}개 삭제',
+    removed: '{count}개 항목을 삭제했습니다',
+  },
   youtube: {
     title: 'YouTube에서 다운로드',
     button: 'YouTube',
@@ -376,5 +393,8 @@ export default {
     duplicateCancel: '다운로드하지 않기',
     duplicateCancelHint: '아무것도 받지 않고 기존 파일도 그대로 둡니다.',
 
+    showProgress: '다운로더가 하는 일 보기',
+    playAfterDownload: '다운로드 후 바로 재생',
+    progressWaiting: '다운로더를 기다리는 중...',
   },
 }

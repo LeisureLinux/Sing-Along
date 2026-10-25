@@ -323,6 +323,23 @@ export default {
     unsavedChanges: 'Es gibt ungespeicherte Änderungen. Wirklich schließen?',
   },
 
+
+  libraryProblems: {
+    title: 'Bibliothek prüfen',
+    introduction: 'In der Bibliothek stehen manchmal Einträge, deren Datei nicht mehr da ist, oder dieselbe Aufnahme mehrfach. Ohne deine Zustimmung wird nichts entfernt.',
+    missingTitle: '{count} Einträge ohne Datei',
+    missingBody: 'Die Datei ist nicht da, wo die Bibliothek sie erwartet. Vielleicht ist ein Laufwerk nicht gemountet, oder die Datei wurde verschoben oder gelöscht.',
+    identicalTitle: '{count} Paare identischer Dateien',
+    identicalBody: 'Die beiden Dateien haben denselben Inhalt: dieselbe Aufnahme unter zwei Namen. Die zweite zu behalten behält nichts zusätzlich.',
+    sameRecordingTitle: '{count} Paare, die wohl dieselbe Aufnahme sind',
+    sameRecordingBody: 'Gleicher Titel und gleicher Künstler, und gleiche Länge. Das ist meist dieselbe Aufnahme aus zwei Quellen: ein Rip und ein Download, oder eine Kopie in zwei Ordnern.',
+    differentRecordingTitle: '{count} Paare mit gleichem Namen, aber anderer Länge',
+    differentRecordingBody: 'Gleicher Titel und gleicher Künstler, aber eine andere Länge. Das sind verschiedene Fassungen desselben Titels — Studio und live, oder Album und Single — also wird nichts entfernt.',
+    hasLyrics: 'mit Songtext',
+    nothingToDo: 'Nichts aufzuräumen. Die Bibliothek sieht in Ordnung aus.',
+    removeSelected: '{count} entfernen',
+    removed: '{count} Einträge entfernt',
+  },
   youtube: {
     title: 'Von YouTube herunterladen',
     button: 'YouTube',
@@ -376,5 +393,8 @@ export default {
     duplicateCancel: 'Nicht herunterladen',
     duplicateCancelHint: 'Es wird nichts heruntergeladen und nichts geändert.',
 
+    showProgress: 'Zeigen, was der Downloader tut',
+    playAfterDownload: 'Den Titel abspielen, sobald er geladen ist',
+    progressWaiting: 'Warten auf den Downloader...',
   },
 }

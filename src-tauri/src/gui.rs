@@ -1808,6 +1808,37 @@ async fn play_track(
     app_state: State<'_, AppState>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
+    play_track_command(
+        track_id,
+        file_path,
+        title,
+        album_name,
+        artist_name,
+        album_artist_name,
+        duration,
+        queue,
+        index,
+        &app_handle,
+    )
+    .await
+}
+
+/// The body of the track playback, shared with the YouTube download.
+///
+/// The download offers to play what it just fetched, and playing it means
+/// the same thing as playing it from the library.
+pub(crate) async fn play_track_command(
+    track_id: Option<i64>,
+    file_path: Option<String>,
+    title: Option<String>,
+    album_name: Option<String>,
+    artist_name: Option<String>,
+    album_artist_name: Option<String>,
+    duration: Option<f64>,
+    queue: Option<Vec<i64>>,
+    index: Option<usize>,
+    app_handle: &AppHandle,
+) -> Result<(), String> {
     let playable_track: PlayableTrack = if let Some(id) = track_id {
         resolve_library_track(&app_handle, id)?
     } else if let Some(path) = file_path {
@@ -1854,6 +1885,7 @@ async fn play_track(
         return Err("Either track_id or file_path must be provided".to_string());
     };
 
+    let app_state = app_handle.state::<AppState>();
     let mut player_guard = app_state.player.lock().unwrap();
     if let Some(ref mut player) = *player_guard {
         // Keep the queue in sync with what is actually starting. A file-picker
@@ -2509,6 +2541,8 @@ pub fn run() {
             crate::youtube_gui::convert_cookie_export,
             crate::youtube_gui::probe_youtube_track,
             crate::youtube_gui::download_youtube_track,
+            crate::youtube_gui::get_library_problems,
+            crate::youtube_gui::remove_library_entries,
         ])
         .setup({
             let tray_available = tray_available.clone();

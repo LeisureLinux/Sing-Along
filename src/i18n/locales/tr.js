@@ -327,6 +327,23 @@ export default {
     unsavedChanges: 'Kaydedilmemiş değişiklikler var. Kapatmak istediğine emin misin?',
   },
 
+
+  libraryProblems: {
+    title: 'Kitaplık denetimi',
+    introduction: 'Kitaplıkta bazen dosyası artık olmayan kayıtlar ya da aynı kaydın birden fazla kopyası olur. Siz onaylamadan hiçbir şey silinmez.',
+    missingTitle: 'Dosyası eksik {count} kayıt',
+    missingBody: 'Dosya kitaplığın beklediği yerde değil. Sürücü bağlanmamış ya da dosya taşınmış veya silinmiş olabilir.',
+    identicalTitle: 'Tamamen aynı {count} çift dosya',
+    identicalBody: 'İki dosyanın içeriği aynı: aynı ses, iki isimle. İkinciyi tutmak hiçbir şey kazandırmaz.',
+    sameRecordingTitle: 'Büyük olasılıkla aynı kayıt olan {count} çift',
+    sameRecordingBody: 'Aynı başlık ve sanatçı, aynı süre. Genellikle aynı kaydın iki kaynağıdır: bir rip ve bir indirme, ya da iki klasöre kopyalanmış hali.',
+    differentRecordingTitle: 'Adı aynı ama süresi farklı {count} çift',
+    differentRecordingBody: 'Aynı başlık ve sanatçı, ama farklı süre. Bunlar aynı şarkının farklı sürümleri — stüdyo ve canlı, ya da albüm ve tek — bu yüzden hiçbiri silinmez.',
+    hasLyrics: 'şarkı sözü var',
+    nothingToDo: 'Temizlenecek bir şey yok. Kitaplık düzgün görünüyor.',
+    removeSelected: '{count} kaydı kaldır',
+    removed: '{count} kayıt kaldırıldı',
+  },
   youtube: {
     title: 'YouTube’dan indir',
     button: 'YouTube',
@@ -380,5 +397,8 @@ export default {
     duplicateCancel: 'İndirme',
     duplicateCancelHint: 'Hiçbir şey indirilmez ve hiçbir şey değişmez.',
 
+    showProgress: 'İndiricinin ne yaptığını göster',
+    playAfterDownload: 'İndirdikten sonra parçayı çal',
+    progressWaiting: 'İndirici bekleniyor...',
   },
 }

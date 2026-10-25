@@ -325,6 +325,23 @@ export default {
     unsavedChanges: '保存されていない変更があります。閉じてもよろしいですか？',
   },
 
+
+  libraryProblems: {
+    title: 'ライブラリの点検',
+    introduction: 'ライブラリには、ファイルが既にない項目や、同じ録音のコピーが含まれていることがあります。何も削除，除非あなたが指示してください。',
+    missingTitle: 'ファイルが {count} 件見つかりません',
+    missingBody: 'ファイルがライブラリが想定する場所がありません。ドライブがマウントされていないか、ファイルが移動・削除された可能性があります。',
+    identicalTitle: '完全に同じファイルが {count} 組',
+    identicalBody: '2 つのファイルの内容が同じで、同じ音声が 2 つの名前で保存されています。2 つ目を残しても曲が増えません。',
+    sameRecordingTitle: '同じ録音の可能性がある {count} 組',
+    sameRecordingBody: 'タイトルもアーティストも同じで、長さも同じです。多くの場合、同じ録音の 2 つのソースです（リバースやダウンロード、または 2 つのフォルダにコピーされている）。',
+    differentRecordingTitle: '名前が同じだが長さが異なる {count} 組',
+    differentRecordingBody: 'タイトルとアーティストは同じですが長さが異なります。スタジオ版とライブ版、アルバム版とシングル版のように同じ曲の別のバージョンなので、どちらも削除しません。',
+    hasLyrics: '歌詞あり',
+    nothingToDo: '清理するものはありません。ライブラリは解决问题的ないようです。',
+    removeSelected: '{count} 件を削除',
+    removed: '{count} 件を削除しました',
+  },
   youtube: {
     title: 'YouTube からダウンロード',
     button: 'YouTube',
@@ -378,5 +395,8 @@ export default {
     duplicateCancel: 'ダウンロードしない',
     duplicateCancelHint: '何もダウンロードせず、既存のファイルも変更しません。',
 
+    showProgress: 'ダウンロードの進行状況を表示する',
+    playAfterDownload: 'ダウンロード後に再生する',
+    progressWaiting: 'ダウンローダーを待っています...',
   },
 }

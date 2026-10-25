@@ -48,6 +48,22 @@ pub struct TrackInfo {
     pub webpage_url: Option<String>,
 }
 
+/// How far along a download is.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DownloadProgress {
+    /// The line `yt-dlp` printed, with the progress marker removed.
+    pub message: String,
+    /// How much is done, from 0 to 100, when the line says.
+    pub percent: Option<f64>,
+    /// How fast it is going, in bytes a second, when the line says.
+    pub speed: Option<u64>,
+    /// How much is left, in seconds, when the line says.
+    pub eta: Option<u64>,
+    /// The size of the whole thing, in bytes, when the line says.
+    pub total: Option<u64>,
+}
+
 /// The result of a download.
 #[derive(Debug, Clone)]
 pub struct DownloadedTrack {
@@ -58,7 +74,7 @@ pub struct DownloadedTrack {
 }
 
 /// The settings that decide how `yt-dlp` is called.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct DownloadOptions {
     /// The `yt-dlp` to run. Empty means the one on `PATH`.
     pub binary: String,
@@ -82,6 +98,12 @@ pub struct DownloadOptions {
     /// A suffix for the file name, for the case where the download is to sit
     /// beside an existing one rather than replace it.
     pub name_suffix: String,
+    /// Where the progress is reported, if it is.
+    ///
+    /// A function rather than a channel, because the caller wants to push
+    /// the progress to the interface as it arrives, and the download runs
+    /// in a task of its own.
+    pub progress: Option<std::sync::Arc<dyn Fn(DownloadProgress) + Send + Sync>>,
     /// The proxy for the metadata lookups, which are a different service and
     /// may need a different route.
     pub metadata_proxy: String,
@@ -223,6 +245,10 @@ pub async fn download(options: &DownloadOptions, url: &str) -> Result<Downloaded
         .arg("-o")
         .arg(options.output_dir.join(format!("{name}.%(ext)s")))
         .arg("--no-playlist")
+        // The progress is printed one line per event rather than with
+        // carriage returns, so it can be read as it arrives instead of
+        // arriving as one string at the end.
+        .arg("--newline")
         .arg(url)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
@@ -236,13 +262,63 @@ pub async fn download(options: &DownloadOptions, url: &str) -> Result<Downloaded
 
     apply_common_arguments(&mut command, options);
 
-    let output = command
-        .output()
-        .await
+    // The output is read while the download runs, so that the progress can
+    // be reported as it happens. A download of a large file takes minutes,
+    // and a window that says nothing for three minutes looks broken.
+    let mut child = command
+        .spawn()
         .with_context(|| format!("cannot run {}", binary.display()))?;
 
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
+    let stdout = child.stdout.take();
+    let stderr = child.stderr.take();
+
+    let progress = options.progress.clone();
+    let stderr_task = tokio::spawn(async move {
+        let mut collected = String::new();
+        if let Some(mut stderr) = stderr {
+            use tokio::io::AsyncReadExt;
+            let mut buffer = Vec::new();
+            loop {
+                match stderr.read(&mut buffer).await {
+                    Ok(0) => break,
+                    Ok(_) => {
+                        // The bytes are appended, not replaced: a read that
+                        // returns a few bytes has more behind it.
+                        collected.push_str(&String::from_utf8_lossy(&buffer));
+                        buffer.clear();
+                    }
+                    Err(_) => break,
+                }
+            }
+        }
+        collected
+    });
+
+    // The two streams are read at the same time.
+    //
+    // A child that fills one pipe while nobody reads it blocks, so the two
+    // have to be read together: the error goes to one and the progress to
+    // the other, and a download that fails early writes to both.
+    let stdout_task = async move {
+        if let Some(stdout) = stdout {
+            use tokio::io::{AsyncBufReadExt, BufReader};
+            let mut lines = BufReader::new(stdout).lines();
+            while let Ok(Some(line)) = lines.next_line().await {
+                if let Some(callback) = &progress {
+                    if let Some(update) = parse_progress(&line) {
+                        callback(update);
+                    }
+                }
+            }
+        }
+    };
+
+    let ((), status, stderr) = tokio::join!(stdout_task, child.wait(), stderr_task);
+
+    let stderr = stderr.unwrap_or_default();
+    let status = status?;
+
+    if !status.success() {
         anyhow::bail!("yt-dlp failed: {}", first_meaningful_line(&stderr));
     }
 
@@ -338,6 +414,112 @@ fn find_newest_mp3(dir: &Path, name: &str) -> Option<PathBuf> {
     best.map(|(_, path)| path)
 }
 
+/// Read a progress line `yt-dlp` printed.
+///
+/// The line looks like this:
+///
+/// ```text
+/// [download]  45.2% of  5.35MiB at  1.20MiB/s ETA 00:02
+/// ```
+///
+/// The parts that are there are read; the ones that are not stay `None`. A
+/// line that says nothing about the progress — a stage name, a warning — is
+/// still reported, because knowing what the downloader is doing is the point.
+fn parse_progress(line: &str) -> Option<DownloadProgress> {
+    let trimmed = line.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+
+    // The marker is what tells a progress line from a stage line.
+    let (message, is_progress) = match trimmed.strip_prefix("[download]") {
+        Some(rest) => (rest.trim(), true),
+        None => (trimmed, false),
+    };
+
+    let mut percent = None;
+    let mut speed = None;
+    let mut eta = None;
+    let mut total = None;
+
+    if is_progress {
+        // The percentage comes first.
+        if let Some(value) = message.split_whitespace().next() {
+            if let Some(number) = value.strip_suffix('%') {
+                if let Ok(parsed) = number.parse::<f64>() {
+                    percent = Some(parsed);
+                }
+            }
+        }
+
+        // The size of the whole thing.
+        for piece in message.split(" of ") {
+            let size = piece.trim().split_whitespace().next().unwrap_or_default();
+            if let Some(value) = parse_size(size) {
+                total = Some(value);
+                break;
+            }
+        }
+
+        // The speed. The marker is " at " followed by a rate, so the search
+        // looks for the marker that is followed by something with a unit in
+        // it: a line can hold the word "at" anywhere.
+        for piece in message.split(" at ") {
+            let rate = piece.trim().split_whitespace().next().unwrap_or_default();
+            if let Some(value) = parse_size(rate) {
+                speed = Some(value);
+                break;
+            }
+        }
+
+        // The time left.
+        if let Some(index) = message.find("ETA ") {
+            let rest = &message[index + 4..];
+            let time = rest.split_whitespace().next().unwrap_or_default();
+            eta = parse_duration(time);
+        }
+    }
+
+    Some(DownloadProgress {
+        message: message.to_owned(),
+        percent,
+        speed,
+        eta,
+        total,
+    })
+}
+
+/// A size with a unit, in bytes.
+///
+/// The unit may carry a suffix: a rate is written "1.20MiB/s", and the
+/// "/s" is not part of the unit.
+fn parse_size(text: &str) -> Option<u64> {
+    let text = text.trim();
+    let text = text.strip_suffix("/s").unwrap_or(text);
+
+    let (number, unit) = text.split_at(text.find(|c: char| c.is_alphabetic())?);
+    let value: f64 = number.parse().ok()?;
+    let factor: f64 = match unit.trim() {
+        "B" | "" => 1.0,
+        "KiB" => 1024.0,
+        "MiB" => 1024.0 * 1024.0,
+        "GiB" => 1024.0 * 1024.0 * 1024.0,
+        "kB" => 1000.0,
+        "MB" => 1000.0 * 1000.0,
+        "GB" => 1000.0 * 1000.0 * 1000.0,
+        _ => return None,
+    };
+    Some((value * factor) as u64)
+}
+
+/// A duration as `MM:SS`, in seconds.
+fn parse_duration(text: &str) -> Option<u64> {
+    let mut parts = text.split(':');
+    let minutes: u64 = parts.next()?.parse().ok()?;
+    let seconds: u64 = parts.next().unwrap_or("0").parse().ok()?;
+    Some(minutes * 60 + seconds)
+}
+
 /// The first line of an error message that says something.
 ///
 /// `yt-dlp` prints a banner, then the progress, then the error. Taking the
@@ -421,6 +603,31 @@ mod tests {
     }
 
     #[test]
+    fn a_progress_line_is_read() {
+        let progress = parse_progress("[download]  45.2% of  5.35MiB at  1.20MiB/s ETA 00:02")
+            .unwrap();
+
+        assert_eq!(progress.percent, Some(45.2));
+        assert_eq!(progress.total, Some((5.35 * 1024.0 * 1024.0) as u64));
+        assert_eq!(progress.speed, Some((1.20 * 1024.0 * 1024.0) as u64));
+        assert_eq!(progress.eta, Some(2));
+    }
+
+    #[test]
+    fn a_stage_line_is_reported_without_numbers() {
+        let progress = parse_progress("[youtube] AbQ7DWlQCe8: Downloading webpage").unwrap();
+
+        assert_eq!(progress.percent, None);
+        assert_eq!(progress.speed, None);
+        assert!(progress.message.contains("Downloading webpage"));
+    }
+
+    #[test]
+    fn an_empty_line_is_not_a_progress_line() {
+        assert!(parse_progress("   ").is_none());
+    }
+
+    #[test]
     fn a_failure_without_an_error_line_still_says_something() {
         assert_eq!(first_meaningful_line("something went wrong\n"), "something went wrong");
     }
@@ -459,6 +666,7 @@ mod integration_tests {
             fix_metadata: false,
             overwrite: false,
             name_suffix: String::new(),
+            progress: None,
         };
 
         // A video that is public and needs no account, chosen because the

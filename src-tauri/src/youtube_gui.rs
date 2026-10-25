@@ -17,7 +17,7 @@
 //!    and the Chinese text is converted to the script the user asked for.
 
 use crate::persistent_entities::PersistentConfig;
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 use serde::Serialize;
 use std::path::{Path, PathBuf};
 
@@ -121,6 +121,22 @@ pub struct YoutubeDownloadResult {
     pub lyrics_found: bool,
     /// Why no lyrics were found, in words the user can act on.
     pub lyrics_note: Option<String>,
+    /// The library entry, with the fields the player needs.
+    ///
+    /// The dialog offers to play the track, and playing it means telling the
+    /// player about a library entry rather than about a file on disk.
+    pub track: Option<DownloadedTrackInfo>,
+}
+
+/// What the player needs to play a downloaded track.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DownloadedTrackInfo {
+    pub id: i64,
+    pub title: String,
+    pub artist: String,
+    pub album: Option<String>,
+    pub duration: Option<f64>,
 }
 
 
@@ -307,6 +323,7 @@ fn download_options(
         fix_metadata: true,
         overwrite,
         name_suffix: name_suffix.to_owned(),
+        progress: None,
     }
 }
 
@@ -554,6 +571,15 @@ pub async fn download_youtube_track(
     // different name, and "cancel" does nothing. A string rather than an
     // enum because it crosses the IPC boundary.
     duplicate_choice: Option<String>,
+    // Whether the track should start playing once it is downloaded.
+    play_now: Option<bool>,
+    // Whether the progress of the download is reported.
+    //
+    // A download of a large file takes minutes, and a window that says
+    // nothing for three minutes looks broken. The report is opt-in because
+    // it is a lot of text, and a user who does not need it would rather not
+    // read it.
+    show_progress: Option<bool>,
     // The Chinese script the metadata should end up in, and the interface
     // language it falls back to. Only the caller knows the language.
     lyric_script: Option<String>,
@@ -615,6 +641,15 @@ pub async fn download_youtube_track(
         script,
     );
 
+    // The progress is reported as an event, so that the dialog can show it
+    // without polling.
+    if show_progress.unwrap_or(false) {
+        let app_handle = app_handle.clone();
+        options.progress = Some(std::sync::Arc::new(move |update: crate::ytdlp::DownloadProgress| {
+            let _ = app_handle.emit("youtube-download-progress", &update);
+        }));
+    }
+
     // The cookie export is converted here rather than earlier, so that a user
     // who picked a file but never saved the settings still gets a working
     // download.
@@ -642,13 +677,14 @@ pub async fn download_youtube_track(
         let client = crate::http::client(&options.metadata_proxy, 15)
             .map_err(|err| err.to_string())?;
 
-        if let Ok(Some(correction)) = crate::youtube::lookup(
+        match crate::youtube::lookup(
             &client,
             &downloaded.info.title,
             downloaded.info.artist.as_deref().unwrap_or_default(),
         )
         .await
         {
+            Ok(Some(correction)) => {
             let cover_bytes = match &correction.cover_url {
                 Some(url) => crate::youtube::download_cover(&client, url).await.ok(),
                 None => None,
@@ -666,11 +702,30 @@ pub async fn download_youtube_track(
                 album_corrected = true;
             }
             cover_corrected = cover_bytes.is_some();
+            }
+            // The lookup failing is not a failure of the download: the file
+            // is already there, with the album name YouTube gave. It is
+            // logged, because a release database that is unreachable and one
+            // that has no entry look the same from the outside.
+            Ok(None) => {}
+            Err(error) => {
+                eprintln!("The release database could not be reached: {error:#}");
+            }
         }
 
         // The script conversion comes last, so it also converts the album
         // name that was just written.
         let _ = crate::youtube::convert_file_script(&downloaded.path, options.script);
+    }
+
+    // The download directory has to be watched, or the file is in a folder
+    // the library does not look at: the track would be added by hand here
+    // and then dropped by the next scan, which deletes the entries whose
+    // files it did not see.
+    {
+        let conn_guard = app_state.db.lock().map_err(|err| err.to_string())?;
+        let conn = conn_guard.as_ref().unwrap();
+        let _ = crate::db::add_directory(&options.output_dir.display().to_string(), conn);
     }
 
     // The library is told about the new file, so that the track exists and
@@ -688,6 +743,58 @@ pub async fn download_youtube_track(
         None => (false, Some("the file was not added to the library".to_owned())),
     };
 
+    // The track as the player needs it, so that the dialog can offer to play
+    // it and the player can be told about a library entry rather than a file.
+    let track = match track_id {
+        Some(track_id) => {
+            let conn_guard = app_state.db.lock().ok();
+            let conn = conn_guard.as_ref().and_then(|guard| guard.as_ref());
+            conn.and_then(|conn| {
+                crate::db::get_track_by_id(track_id, conn)
+                    .ok()
+                    .map(|track| DownloadedTrackInfo {
+                        id: track.id,
+                        title: track.title,
+                        artist: track.artist_name,
+                        album: Some(track.album_name),
+                        duration: Some(track.duration),
+                    })
+            })
+        }
+        None => None,
+    };
+
+    // The track starts playing when the user asked for it. The queue is the
+    // library, so that "next" moves on to the song after this one rather
+    // than to nothing.
+    if play_now.unwrap_or(false) {
+        if let Some(track) = &track {
+            let queue: Vec<i64> = {
+                let conn_guard = app_state.db.lock().ok();
+                let conn = conn_guard.as_ref().and_then(|guard| guard.as_ref());
+                conn.and_then(|conn| {
+                    crate::db::get_track_ids(true, true, true, true, conn).ok()
+                })
+                    .unwrap_or_default()
+            };
+            let index = queue.iter().position(|id| *id == track.id);
+
+            let _ = crate::gui::play_track_command(
+                Some(track.id),
+                None,
+                None,
+                None,
+                None,
+                None,
+                track.duration,
+                if queue.is_empty() { None } else { Some(queue) },
+                index,
+                &app_handle,
+            )
+            .await;
+        }
+    }
+
     Ok(YoutubeDownloadResult {
         path: downloaded.path.display().to_string(),
         title: downloaded.info.title,
@@ -698,8 +805,10 @@ pub async fn download_youtube_track(
         track_id,
         lyrics_found,
         lyrics_note,
+        track,
     })
 }
+
 
 /// Add a downloaded file to the library.
 ///
@@ -812,4 +921,98 @@ mod tests {
             crate::script_convert::ScriptTarget::Off
         );
     }
+}
+
+/// The library entries whose file is not on the disk, and the pairs that look
+/// like the same recording.
+///
+/// The report is not a verdict. The duplicates are grouped by how sure the
+/// library is, because the certainty is what decides whether a pair is worth
+/// removing: two files with the same content are the same audio, while two
+/// recordings of the same song are not the same thing and a library that
+/// threw one away would lose a track.
+#[tauri::command]
+pub async fn get_library_problems(
+    app_state: tauri::State<'_, crate::state::AppState>,
+) -> Result<LibraryProblems, String> {
+    let conn_guard = app_state.db.lock().map_err(|err| err.to_string())?;
+    let conn = conn_guard.as_ref().unwrap();
+
+    let missing = crate::db::tracks_with_missing_files(conn).map_err(|err| err.to_string())?;
+    let duplicates = crate::db::find_duplicate_tracks(conn).map_err(|err| err.to_string())?;
+
+    Ok(LibraryProblems {
+        missing: missing
+            .into_iter()
+            .map(|track| MissingTrack {
+                id: track.id,
+                title: track.title,
+                artist: track.artist_name,
+                album: track.album_name,
+                file_path: track.file_path,
+                has_lyrics: crate::db::get_track_lyricsfile(track.id, conn)
+                    .ok()
+                    .flatten()
+                    .is_some(),
+            })
+            .collect(),
+        duplicates,
+    })
+}
+
+/// What is wrong with the library.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LibraryProblems {
+    /// The entries whose file is not on the disk.
+    pub missing: Vec<MissingTrack>,
+    /// The pairs that look like the same recording.
+    pub duplicates: Vec<crate::db::DuplicatePair>,
+}
+
+/// A library entry whose file is not on the disk.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MissingTrack {
+    pub id: i64,
+    pub title: String,
+    pub artist: String,
+    pub album: String,
+    pub file_path: String,
+    pub has_lyrics: bool,
+}
+
+/// Remove the library entries the user picked.
+#[tauri::command]
+pub async fn remove_library_entries(
+    track_ids: Vec<i64>,
+    app_state: tauri::State<'_, crate::state::AppState>,
+) -> Result<usize, String> {
+    let mut conn_guard = app_state.db.lock().map_err(|err| err.to_string())?;
+    let conn = conn_guard.as_mut().unwrap();
+
+    let tx = conn.transaction().map_err(|err| err.to_string())?;
+    let mut removed = 0;
+
+    for id in &track_ids {
+        // The lyrics of a track that is gone are gone too, unless they are
+        // also kept as a standalone lyricsfile.
+        tx.execute("DELETE FROM lyricsfiles WHERE track_id = ?", [id])
+            .map_err(|err| err.to_string())?;
+        let deleted = tx
+            .execute("DELETE FROM tracks WHERE id = ?", [id])
+            .map_err(|err| err.to_string())?;
+        if deleted > 0 {
+            removed += 1;
+        }
+    }
+
+    tx.execute(
+        "DELETE FROM albums WHERE id NOT IN (SELECT DISTINCT album_id FROM tracks)",
+        [],
+    )
+    .map_err(|err| err.to_string())?;
+
+    tx.commit().map_err(|err| err.to_string())?;
+    Ok(removed)
 }

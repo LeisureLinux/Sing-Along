@@ -266,6 +266,25 @@ pub fn set_directories(directories: Vec<String>, db: &Connection) -> Result<()> 
     Ok(())
 }
 
+/// Add a directory to the watched list, if it is not there already.
+///
+/// Returns whether it was added. The directories are a set rather than a
+/// list in the code that uses them, and adding one twice would make the
+/// scanner walk it twice.
+pub fn add_directory(path: &str, db: &Connection) -> Result<bool> {
+    let path = path.trim();
+    if path.is_empty() {
+        return Ok(false);
+    }
+
+    if get_directories(db)?.iter().any(|existing| existing == path) {
+        return Ok(false);
+    }
+
+    db.execute("INSERT INTO directories (path) VALUES (?1)", [path])?;
+    Ok(true)
+}
+
 pub fn get_init(db: &Connection) -> Result<bool> {
     let mut statement = db.prepare("SELECT init FROM library_data LIMIT 1")?;
     let init: bool = statement.query_row([], |r| r.get(0))?;
@@ -923,6 +942,273 @@ pub fn add_single_track(
 
     tx.commit()?;
     Ok(track_id)
+}
+
+/// How sure the library is that two tracks are the same recording.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum DuplicateCertainty {
+    /// The two files have the same content hash: they are the same audio.
+    Identical,
+    /// The two have the same title and artist and the same length: they are
+    /// the same recording, from different sources.
+    SameRecording,
+    /// The two have the same title and artist but different lengths: they
+    /// are the same song, but different takes or different editions.
+    DifferentRecording,
+}
+
+/// A pair of library tracks that might be the same recording.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DuplicatePair {
+    pub first_id: i64,
+    pub first_path: String,
+    pub first_title: String,
+    pub first_artist: String,
+    pub first_album: String,
+    pub first_duration: f64,
+    pub second_id: i64,
+    pub second_path: String,
+    pub second_title: String,
+    pub second_artist: String,
+    pub second_album: String,
+    pub second_duration: f64,
+    /// How sure the library is.
+    pub certainty: DuplicateCertainty,
+    /// Whether both files are on the disk.
+    pub both_present: bool,
+}
+
+/// The library tracks that look like the same recording.
+///
+/// The rules, in the order they are applied:
+///
+/// * **The same content hash** means the same audio. Two files with the
+///   same hash are the same recording, whatever their names say. This is
+///   certain.
+/// * **The same title and artist, and the same length**, means the same
+///   recording from two sources: a rip and a download, or a copy in two
+///   folders. This is very likely, but not certain — a song can be
+///   re-recorded, and the two versions can be the same length.
+/// * **The same title and artist, but different lengths**, means the same
+///   song in different versions: a studio take and a live one, or an album
+///   version and a single. These are *not* duplicates. A library that
+///   keeps both is right, and a library that throws one away loses a track.
+///
+/// The last rule is the one that matters: a title alone is not evidence.
+/// Two different songs can share a name, and a library that removed them
+/// would lose music.
+///
+/// The comparison is made in one Chinese script, so a track in Traditional
+/// and one in Simplified are recognised as the same song.
+pub fn find_duplicate_tracks(db: &Connection) -> Result<Vec<DuplicatePair>> {
+    let tracks = get_tracks(db)?;
+
+    // The content hashes come separately: the track the library shows does
+    // not carry one, and the hash is what tells two files apart.
+    let mut hashes: std::collections::HashMap<i64, String> =
+        std::collections::HashMap::new();
+    for track in get_tracks_with_fingerprints(db)? {
+        if let Some(hash) = track.content_hash {
+            hashes.insert(track.id, hash);
+        }
+    }
+
+    let mut pairs = Vec::new();
+
+    for (index, first) in tracks.iter().enumerate() {
+        for second in tracks.iter().skip(index + 1) {
+            // The same file, listed twice, is a different kind of problem.
+            if first.file_path == second.file_path {
+                continue;
+            }
+
+            if normalise_for_comparison(&first.title) != normalise_for_comparison(&second.title) {
+                continue;
+            }
+            if !artists_match(&first.artist_name, &second.artist_name) {
+                continue;
+            }
+
+            let first_hash = hashes.get(&first.id);
+            let same_hash = first_hash.is_some()
+                && first_hash == hashes.get(&second.id);
+
+            let length_difference = (first.duration - second.duration).abs();
+            let same_length = length_difference <= 3.0;
+
+            let certainty = if same_hash {
+                DuplicateCertainty::Identical
+            } else if same_length {
+                DuplicateCertainty::SameRecording
+            } else {
+                DuplicateCertainty::DifferentRecording
+            };
+
+            let both_present = std::path::Path::new(&first.file_path).exists()
+                && std::path::Path::new(&second.file_path).exists();
+
+            // A pair where the two recordings are of a different length is
+            // reported but not offered for removal: they are different
+            // versions of the same song, and a library that threw one away
+            // would lose a track.
+            //
+            // The pair is only reported when both files are there, because
+            // otherwise the pair is really one missing file and a duplicate
+            // of it — and the missing file is reported on its own.
+            if certainty == DuplicateCertainty::DifferentRecording && !both_present {
+                continue;
+            }
+
+            pairs.push(DuplicatePair {
+                first_id: first.id,
+                first_path: first.file_path.clone(),
+                first_title: first.title.clone(),
+                first_artist: first.artist_name.clone(),
+                first_album: first.album_name.clone(),
+                first_duration: first.duration,
+                second_id: second.id,
+                second_path: second.file_path.clone(),
+                second_title: second.title.clone(),
+                second_artist: second.artist_name.clone(),
+                second_album: second.album_name.clone(),
+                second_duration: second.duration,
+                certainty,
+                both_present,
+            });
+        }
+    }
+
+    Ok(pairs)
+}
+
+/// A title reduced to a comparable form.
+///
+/// The Chinese is put into one script, so that a track in Traditional and
+/// one in Simplified are recognised as the same song.
+fn normalise_for_comparison(text: &str) -> String {
+    crate::script_convert::convert(text, crate::script_convert::ScriptTarget::Simplified)
+        .chars()
+        .filter(|c| c.is_alphanumeric())
+        .flat_map(|c| c.to_lowercase())
+        .collect()
+}
+
+/// Whether two artist names name the same artist.
+///
+/// The names are written by hand and by different hands, so the same artist
+/// appears as "温拿" and "温拿乐队", and two artists on the same song appear
+/// as "陈奕迅 + 王菲" and "王菲 & 陈奕迅" — the same two people in a
+/// different order.
+///
+/// So the names are compared three ways: as they are, as a set of the names
+/// they are made of, and by one containing the other. The last is the loosest
+/// and the most likely to be wrong, so it is the last one tried.
+fn artists_match(left: &str, right: &str) -> bool {
+    // The text is split before it is normalised, because the normalisation
+    // drops the separators: after it, "陈奕迅 + 王菲" and "王菲 & 陈奕迅" are
+    // two strings with no difference in kind, only in order.
+    let left_parts = split_artists(left);
+    let right_parts = split_artists(right);
+
+    // The same people in a different order.
+    if left_parts == right_parts {
+        return true;
+    }
+
+    let left = left_parts.join("");
+    let right = right_parts.join("");
+
+    // One name is a longer form of the other.
+    left.contains(&right) || right.contains(&left)
+}
+
+/// The names an artist credit is made of.
+///
+/// Split on the separators a credit uses, and on the conjunction words in the
+/// languages this project ships.
+fn split_artists(name: &str) -> Vec<String> {
+    const SEPARATORS: [&str; 10] = ["&", "+", ",", "、", "，", " feat. ", " ft. ", " x ", "／", "/"];
+
+    // The text is split before it is normalised, so the separators are still
+    // there to be split on.
+    let mut parts = vec![name.to_owned()];
+    for separator in SEPARATORS {
+        parts = parts
+            .iter()
+            .flat_map(|part| part.split(separator).map(|piece| piece.trim().to_owned()))
+            .collect();
+    }
+
+    // The words that join two names without being one.
+    const CONJUNCTIONS: [&str; 6] = ["and", "with", "et", "und", "与", "和"];
+    let mut names: Vec<String> = parts
+        .iter()
+        .flat_map(|part| {
+            part.split_whitespace()
+                .filter(|word| !CONJUNCTIONS.contains(word))
+                .map(normalise_for_comparison)
+                .collect::<Vec<_>>()
+        })
+        .filter(|part| !part.is_empty())
+        .collect();
+
+    // Sorted, because the order of a credit is not the identity of the
+    // artists: "陈奕迅 + 王菲" and "王菲 & 陈奕迅" are the same two people.
+    names.sort();
+    names
+}
+
+/// The library tracks whose file is not on the disk.
+///
+/// A file can go missing without the library being told: an external drive
+/// that is not mounted, a folder that was moved, a file that was deleted
+/// behind the application's back. The library still has the entry, and every
+/// attempt to play it fails.
+///
+/// The check is on the file, not on the scan: a scan would remove the
+/// entries, but the user may want to know what is missing before it is
+/// removed, and a scan of a library whose drive is not mounted would empty
+/// the whole library.
+pub fn tracks_with_missing_files(db: &Connection) -> Result<Vec<PersistentTrack>> {
+    Ok(get_tracks(db)?
+        .into_iter()
+        .filter(|track| !std::path::Path::new(&track.file_path).exists())
+        .collect())
+}
+
+/// Remove library entries whose file is not on the disk.
+///
+/// The entries and their lyrics go; the albums and the artists stay, because
+/// they may hold other tracks. Returns how many were removed.
+pub fn remove_tracks_with_missing_files(db: &mut Connection) -> Result<usize> {
+    let missing: Vec<i64> = get_tracks(db)?
+        .into_iter()
+        .filter(|track| !std::path::Path::new(&track.file_path).exists())
+        .map(|track| track.id)
+        .collect();
+
+    if missing.is_empty() {
+        return Ok(0);
+    }
+
+    let tx = db.transaction()?;
+    for id in &missing {
+        delete_tracks_fts_by_ids_tx(&[*id], &tx)?;
+        // The lyrics of a file that is gone are gone too, but a standalone
+        // lyricsfile that was never attached to a track is left alone.
+        tx.execute("DELETE FROM lyricsfiles WHERE track_id = ?", [id])?;
+        tx.execute("DELETE FROM tracks WHERE id = ?", [id])?;
+    }
+    // An album with no tracks left is not an album any more.
+    tx.execute(
+        "DELETE FROM albums WHERE id NOT IN (SELECT DISTINCT album_id FROM tracks)",
+        [],
+    )?;
+    tx.commit()?;
+
+    Ok(missing.len())
 }
 
 /// The track at a file path, if there is one.
@@ -2533,5 +2819,43 @@ mod migration_tests {
             b"jpeg"
         );
         let _ = std::fs::remove_dir_all(&root);
+    }
+}
+
+#[cfg(test)]
+mod duplicate_tests {
+    use super::*;
+
+    #[test]
+    fn the_same_artist_written_differently_matches() {
+        // The same band, with and without the word for "band".
+        assert!(artists_match("温拿", "温拿乐队"));
+        // The same two people, in a different order.
+        assert!(artists_match("陈奕迅 + 王菲", "王菲 & 陈奕迅"));
+        // The same, in English.
+        assert!(artists_match("Romeo & Juliet", "Juliet & Romeo"));
+    }
+
+    #[test]
+    fn different_artists_do_not_match() {
+        // Two different songs that happen to share a name.
+        assert!(!artists_match("戴佩妮", "赵咏华"));
+        assert!(!artists_match("姜育恒", "苏芮"));
+    }
+
+    #[test]
+    fn a_title_is_compared_without_its_script() {
+        assert_eq!(
+            normalise_for_comparison("城裡的月光"),
+            normalise_for_comparison("城里的月光")
+        );
+        assert_eq!(
+            normalise_for_comparison("Rolling In The Deep"),
+            normalise_for_comparison("Rolling in the Deep")
+        );
+        assert_ne!(
+            normalise_for_comparison("城裡的月光"),
+            normalise_for_comparison("城裡的太陽")
+        );
     }
 }

@@ -323,6 +323,23 @@ export default {
     unsavedChanges: 'Bạn có thay đổi chưa lưu. Chắc chắn muốn đóng?',
   },
 
+
+  libraryProblems: {
+    title: 'Kiểm tra thư viện',
+    introduction: 'Thư viện đôi khi có các mục mà tệp đã mất, hoặc cùng một bản thu được lưu nhiều lần. Không gì bị xóa nếu chưa có bạn đồng ý.',
+    missingTitle: '{count} mục bị thiếu tệp',
+    missingBody: 'Tệp không còn ở nơi thư viện mong đợi. Có thể ổ đĩa chưa gắn, hoặc tệp đã bị chuyển hay đã bị xóa.',
+    identicalTitle: '{count} cặp tệp hoàn toàn giống nhau',
+    identicalBody: 'Hai tệp có cùng nội dung: cùng một đoạn âm thanh với hai cái tên. Giữ lại cái thứ hai không giữ được gì thêm.',
+    sameRecordingTitle: '{count} cặp nhiều khả năng là cùng một bản thu',
+    sameRecordingBody: 'Cùng tên và cùng ca sĩ, và cùng độ dài. Thường là cùng một bản thu từ hai nguồn: bản rip và bản tải về, hoặc một bản sao trong hai thư mục.',
+    differentRecordingTitle: '{count} cặp cùng tên nhưng khác độ dài',
+    differentRecordingBody: 'Cùng tên và cùng ca sĩ, nhưng độ dài khác. Đây là các phiên bản khác của cùng một bài — bản thu âm và bản sống, hoặc bản album và bản đơn — nên không xóa bản nào.',
+    hasLyrics: 'có lời',
+    nothingToDo: 'Không có gì để dọn. Thư viện đang ổn.',
+    removeSelected: 'Xóa {count}',
+    removed: 'Đã xóa {count} mục',
+  },
   youtube: {
     title: 'Tải từ YouTube',
     button: 'YouTube',
@@ -376,5 +393,8 @@ export default {
     duplicateCancel: 'Không tải về',
     duplicateCancelHint: 'Không tải về gì và không thay đổi gì.',
 
+    showProgress: 'Hiện trình tải về đang làm gì',
+    playAfterDownload: 'Phát bản nhạc khi tải xong',
+    progressWaiting: 'Đang chờ trình tải về...',
   },
 }

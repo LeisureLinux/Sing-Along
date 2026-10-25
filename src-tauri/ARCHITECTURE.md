@@ -585,6 +585,35 @@ any other track — LRCLIB, then NetEase as a fallback, then the AMLL word
 timings. A song with no lyrics anywhere is an ordinary outcome, so it is
 reported rather than raised.
 
+### The library check
+
+`get_library_problems` reports two things, and neither is a verdict.
+
+**The entries whose file is not on the disk.** A file can go missing without
+the library being told: a drive that is not mounted, a folder that was moved,
+a file that was deleted behind the application's back. The check is on the
+file, not on the scan, because a scan would remove the entries — and a scan
+of a library whose drive is not mounted would empty the whole library.
+
+**The pairs that look like the same recording.** Three rules, in the order
+they are applied:
+
+- **The same content hash** means the same audio. Certain.
+- **The same title and artist, and the same length**, means the same
+  recording from two sources. Very likely.
+- **The same title and artist, but a different length**, means the same song
+  in different versions — a studio take and a live one. These are *not*
+  duplicates, and the third group is reported but never offered for removal.
+
+A title on its own is never evidence: two different songs can share a name,
+and a library that removed them would lose music. The artist comparison is
+looser than the title comparison, because the names are written by hand:
+"温拿" and "温拿乐队" are the same band, and "陈奕迅 + 王菲" and
+"王菲 & 陈奕迅" are the same two people in a different order.
+
+The comparison is made in one Chinese script, so a track in Traditional and
+one in Simplified are recognised as the same song.
+
 ### The order of the steps
 
 1. The cookie export is converted and checked. This is first because it is

@@ -148,7 +148,17 @@ frontend does three things, in this order:
    where the file landed. The `duplicateChoice` says what to do about a
    track the library already holds: replace it, keep both, or cancel.
 3. **Report the outcome.** The toast says what was downloaded, with the
-   album name that ended up in the file.
+   album name that ended up in the file, and whether lyrics were found.
+
+The dialog has two switches: one shows what the downloader is doing, line by
+line, with the percentage and the speed; the other plays the track as soon as
+it is downloaded. The progress arrives as a `youtube-download-progress`
+event, which the backend emits while the download runs.
+
+The library check is a separate dialog, reached from the menu. It reports the
+entries whose file is not on the disk and the pairs that look like the same
+recording, grouped by how sure the library is. Nothing is removed without the
+user's agreement.
 
 The settings panel has the two settings the download needs: where the
 `yt-dlp` is, and which cookie export to use. The cookie export is picked with

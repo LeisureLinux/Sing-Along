@@ -151,7 +151,11 @@ impl Default for CorrectionOptions {
 /// faster with "503 Service Unavailable". A download triggers a lookup, so a
 /// batch of downloads would otherwise trip the limit — and the failure looks
 /// like the service being down rather than like being too fast.
-const REQUEST_INTERVAL: std::time::Duration = std::time::Duration::from_millis(1100);
+///
+/// The interval is longer than they ask for, because the limit is on the
+/// account and the application is not the only thing using it: a lookup that
+/// follows a probe a second later is still too soon.
+const REQUEST_INTERVAL: std::time::Duration = std::time::Duration::from_millis(2500);
 
 /// The time of the last request, so the next one can wait.
 ///

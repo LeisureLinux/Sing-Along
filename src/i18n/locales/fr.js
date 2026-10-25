@@ -323,6 +323,23 @@ export default {
     unsavedChanges: 'Des modifications ne sont pas enregistrées. Voulez-vous vraiment fermer ?',
   },
 
+
+  libraryProblems: {
+    title: 'Vérification de la bibliothèque',
+    introduction: 'La bibliothèque contient parfois des entrées dont le fichier a disparu, ou le même enregistrement plusieurs fois. Rien n’est supprimé sans votre accord.',
+    missingTitle: '{count} entrées dont le fichier est manquant',
+    missingBody: 'Le fichier n’est pas là où la bibliothèque l’attend. Un disque n’est peut-être pas monté, ou le fichier a été déplacé ou supprimé.',
+    identicalTitle: '{count} paires de fichiers identiques',
+    identicalBody: 'Les deux fichiers ont le même contenu : c’est le même audio sous deux noms. Garder le second ne garde rien de plus.',
+    sameRecordingTitle: '{count} paires qui sont probablement le même enregistrement',
+    sameRecordingBody: 'Même titre et même artiste, et même durée. C’est généralement le même enregistrement de deux sources : un rip et un téléchargement, ou une copie dans deux dossiers.',
+    differentRecordingTitle: '{count} paires de même nom mais de durées différentes',
+    differentRecordingBody: 'Même titre et même artiste, mais une durée différente. Ce sont des versions différentes de la même chanson — studio et live, ou album et single — donc rien n’est supprimé.',
+    hasLyrics: 'avec paroles',
+    nothingToDo: 'Rien à nettoyer. La bibliothèque a l’air correcte.',
+    removeSelected: 'Supprimer {count}',
+    removed: '{count} entrées supprimées',
+  },
   youtube: {
     title: 'Télécharger depuis YouTube',
     button: 'YouTube',
@@ -376,5 +393,8 @@ export default {
     duplicateCancel: 'Ne pas télécharger',
     duplicateCancelHint: 'Rien n’est téléchargé et rien n’est modifié.',
 
+    showProgress: 'Afficher ce que fait le téléchargeur',
+    playAfterDownload: 'Lire le morceau une fois téléchargé',
+    progressWaiting: 'En attente du téléchargeur...',
   },
 }

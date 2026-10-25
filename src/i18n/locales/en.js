@@ -327,6 +327,28 @@ export default {
     unsavedChanges: 'You have unsaved changes. Are you sure you want to close?',
   },
 
+  libraryProblems: {
+    title: 'Library check',
+    introduction:
+      'The library sometimes holds entries whose file is gone, and the same recording more than once. Nothing is removed without your say-so.',
+    missingTitle: '{count} entries whose file is missing',
+    missingBody:
+      'The file is not where the library expects it. It may be on a drive that is not mounted, or it may have been moved or deleted.',
+    identicalTitle: '{count} pairs of identical files',
+    identicalBody:
+      'The two files have the same content, so they are the same audio under two names. Keeping the second one is not keeping anything.',
+    sameRecordingTitle: '{count} pairs that are probably the same recording',
+    sameRecordingBody:
+      'The same title and artist, and the same length. These are usually the same recording from two sources — a rip and a download, or a copy in two folders.',
+    differentRecordingTitle: '{count} pairs with the same name but different lengths',
+    differentRecordingBody:
+      'The same title and artist, but a different length. These are different versions of the same song — a studio take and a live one, or an album version and a single — so neither is removed.',
+    hasLyrics: 'Has lyrics',
+    nothingToDo: 'Nothing to clean up. The library looks right.',
+    removeSelected: 'Remove {count}',
+    removed: 'Removed {count} entries',
+  },
+
   youtube: {
     title: 'Download from YouTube',
     button: 'YouTube',
@@ -343,6 +365,9 @@ export default {
     downloading: 'Downloading...',
     downloaded: 'Downloaded {title} ({album})',
     downloadedWithoutLyrics: 'Downloaded {title}, but {note}',
+    showProgress: 'Show what the downloader is doing',
+    playAfterDownload: 'Play the track when it is downloaded',
+    progressWaiting: 'Waiting for the downloader...',
     duplicateTitle: 'This song is already in your library',
     duplicateBody:
       'There is already a track with this name in the library. Choose what to do with the download.',

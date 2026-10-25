@@ -323,6 +323,23 @@ export default {
     unsavedChanges: 'Ada perubahan yang belum disimpan. Yakin ingin menutup?',
   },
 
+
+  libraryProblems: {
+    title: 'Pemeriksaan pustaka',
+    introduction: 'Pustaka kadang berisi entri yang filenya sudah hilang, atau rekaman yang sama lebih dari sekali. Tidak ada yang dihapus tanpa persetujuan Anda.',
+    missingTitle: '{count} entri tanpa berkas',
+    missingBody: 'Berkas tidak ada di tempat yang diharapkan pustaka. Drive mungkin tidak terpasang, atau berkasnya dipindahkan atau dihapus.',
+    identicalTitle: '{count} pasangan berkas yang identik',
+    identicalBody: 'Kedua berkas punya isi yang sama: audio yang sama dengan dua nama. Menyimpan yang kedua tidak menyimpan apa pun tambahan.',
+    sameRecordingTitle: '{count} pasangan yang kemungkinan rekaman yang sama',
+    sameRecordingBody: 'Judul dan seniman sama, durasi juga sama. Biasanya rekaman yang sama dari dua sumber: hasil rip dan hasil unduhan, atau salinan di dua folder.',
+    differentRecordingTitle: '{count} pasangan dengan nama sama tetapi durasi berbeda',
+    differentRecordingBody: 'Judul dan seniman sama, tapi durasinya berbeda. Ini versi berbeda dari lagu yang sama — studio dan live, atau album dan single — jadi tidak ada yang dihapus.',
+    hasLyrics: 'ada liriknya',
+    nothingToDo: 'Tidak ada yang perlu dibersihkan. Pustaka sudah benar.',
+    removeSelected: 'Hapus {count}',
+    removed: '{count} entri dihapus',
+  },
   youtube: {
     title: 'Unduh dari YouTube',
     button: 'YouTube',
@@ -376,5 +393,8 @@ export default {
     duplicateCancel: 'Jangan unduh',
     duplicateCancelHint: 'Tidak ada yang diunduh dan tidak ada yang berubah.',
 
+    showProgress: 'Tampilkan apa yang sedang dilakukan pengunduh',
+    playAfterDownload: 'Putar lagu setelah diunduh',
+    progressWaiting: 'Menunggu pengunduh...',
   },
 }

@@ -323,6 +323,23 @@ export default {
     unsavedChanges: 'Tienes cambios sin guardar. ¿Seguro que quieres cerrar?',
   },
 
+
+  libraryProblems: {
+    title: 'Revisión de la biblioteca',
+    introduction: 'A veces la biblioteca tiene entradas cuyo archivo ya no está, o la misma grabación más de una vez. No se quita nada sin tu aprobación.',
+    missingTitle: '{count} entradas cuyo archivo falta',
+    missingBody: 'El archivo no está donde la biblioteca lo espera. Puede ser una unidad que no está montada, o un archivo movido o borrado.',
+    identicalTitle: '{count} pares de archivos idénticos',
+    identicalBody: 'Los dos archivos tienen el mismo contenido: es el mismo audio con dos nombres. Quedarse con el segundo no guarda nada más.',
+    sameRecordingTitle: '{count} pares que probablemente son la misma grabación',
+    sameRecordingBody: 'El mismo título y artista, y la misma duración. Suelen ser la misma grabación de dos fuentes: una ripeada y una descargada, o una copia en dos carpetas.',
+    differentRecordingTitle: '{count} pares con el mismo nombre pero distinta duración',
+    differentRecordingBody: 'El mismo título y artista, pero una duración distinta. Son versiones distintas de la misma canción — de estudio y en vivo, o de álbum y single — así que no se quita ninguna.',
+    hasLyrics: 'con letra',
+    nothingToDo: 'No hay nada que limpiar. La biblioteca está bien.',
+    removeSelected: 'Quitar {count}',
+    removed: 'Se quitaron {count} entradas',
+  },
   youtube: {
     title: 'Descargar de YouTube',
     button: 'YouTube',
@@ -376,5 +393,8 @@ export default {
     duplicateCancel: 'No descargar',
     duplicateCancelHint: 'No se descarga nada y no se cambia nada.',
 
+    showProgress: 'Mostrar lo que está haciendo el descargador',
+    playAfterDownload: 'Reproducir la pista cuando termine la descarga',
+    progressWaiting: 'Esperando al descargador...',
   },
 }

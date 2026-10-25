@@ -319,6 +319,23 @@ export default {
     unsavedChanges: '有未保存的修改，确定要关闭吗？',
   },
 
+
+  libraryProblems: {
+    title: '曲库检查',
+    introduction: '曲库里有时会有文件已经不在的条目，也有同一段录音的多个副本。未经你确认，不会删除任何东西。',
+    missingTitle: '{count} 个文件已丢失的条目',
+    missingBody: '文件不在曲库以为它在的位置。可能是移动硬盘没挂载，也可能是文件被移动或删除了。',
+    identicalTitle: '{count} 对完全相同的文件',
+    identicalBody: '两个文件内容完全相同，就是同一段音频存了两份。保留第二份并不能多留一首歌。',
+    sameRecordingTitle: '{count} 对很可能是同一段录音',
+    sameRecordingBody: '歌名、歌手相同，时长也相同。通常是同一段录音的两个来源——比如本地抓的和下载的，或者同一首歌放在了两个文件夹里。',
+    differentRecordingTitle: '{count} 对同名但时长不同的',
+    differentRecordingBody: '歌名、歌手相同，但时长不同。这是同一首歌的不同版本——录音室版和现场版，或者专辑版和单曲版——所以不会删除任何一份。',
+    hasLyrics: '有歌词',
+    nothingToDo: '没有需要清理的，曲库看起来没问题。',
+    removeSelected: '删除 {count} 项',
+    removed: '已删除 {count} 项',
+  },
   youtube: {
     title: '从 YouTube 下载',
     button: 'YouTube',
@@ -372,5 +389,8 @@ export default {
     duplicateCancel: '不下载',
     duplicateCancelHint: '不下载任何东西，也不改动现有文件。',
 
+    showProgress: '显示下载器正在做什么',
+    playAfterDownload: '下载完成后立即播放',
+    progressWaiting: '等待下载器...',
   },
 }

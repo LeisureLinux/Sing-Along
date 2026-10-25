@@ -139,6 +139,31 @@ overwritten without an answer.
 fetched, the same way they are for any other track. A song with no lyrics
 anywhere says so rather than failing: the download itself succeeded.
 
+**The download folder.** If the folder you download into is not one the
+library watches, it is added to the watched list. A file in a folder the
+library does not look at would be dropped by the next scan.
+
+**Watching it happen.** The dialog has a switch that shows what the downloader
+is doing, line by line, with the percentage and the speed. A download of a
+large file takes minutes, and a window that says nothing for three minutes
+looks broken. There is also a switch that plays the track as soon as it is
+downloaded.
+
+**Cleaning the library.** The menu has a check that finds the entries whose
+file is not on the disk — a drive that is not mounted, a folder that was moved
+— and the pairs that look like the same recording. The pairs are sorted by how
+sure the library is:
+
+| | What it means | What can be done |
+| --- | --- | --- |
+| **Identical** | The two files have the same content: the same audio under two names | The second can be removed |
+| **Same recording** | The same title and artist, and the same length: usually one recording from two sources | The second can be removed |
+| **Different recording** | The same title and artist, but a different length: a studio take and a live one, or an album version and a single | **Nothing is removed** — they are different versions of the same song |
+
+A title on its own is never evidence. Two different songs can share a name, so
+a library that removed them would lose music. Nothing is removed without your
+agreement.
+
 **A note on expiry.** A browser rotates its session cookies without warning,
 and a rotated cookie is not refused — the download fails with "Sign in to
 confirm you're not a bot", which blames you for something you did not do. The

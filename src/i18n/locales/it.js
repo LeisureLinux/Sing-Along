@@ -323,6 +323,23 @@ export default {
     unsavedChanges: 'Ci sono modifiche non salvate. Chiudere comunque?',
   },
 
+
+  libraryProblems: {
+    title: 'Controllo della libreria',
+    introduction: 'La libreria a volte contiene voci il cui file non c’è più, o la stessa registrazione più di una volta. Non viene rimosso nulla senza il tuo consenso.',
+    missingTitle: '{count} voci senza file',
+    missingBody: 'Il file non è dove la libreria lo aspetta. Potrebbe essere un disco non montato, o un file spostato o cancellato.',
+    identicalTitle: '{count} coppie di file identici',
+    identicalBody: 'I due file hanno lo stesso contenuto: è lo stesso audio sotto due nomi. Tenere il secondo non conserva niente in più.',
+    sameRecordingTitle: '{count} coppie che sono probabilmente la stessa registrazione',
+    sameRecordingBody: 'Stesso titolo e stesso artista, e stessa durata. Di solito è la stessa registrazione da due fonti: un rip e un download, o una copia in due cartelle.',
+    differentRecordingTitle: '{count} coppie con lo stesso nome ma durata diversa',
+    differentRecordingBody: 'Stesso titolo e stesso artista, ma durata diversa. Sono versioni diverse della stessa canzone — studio e dal vivo, o album e singolo — quindi non viene rimosso nulla.',
+    hasLyrics: 'con testo',
+    nothingToDo: 'Non c’è nulla da ripulire. La libreria sembra a posto.',
+    removeSelected: 'Rimuovi {count}',
+    removed: 'Rimosse {count} voci',
+  },
   youtube: {
     title: 'Scarica da YouTube',
     button: 'YouTube',
@@ -376,5 +393,8 @@ export default {
     duplicateCancel: 'Non scaricare',
     duplicateCancelHint: 'Non viene scaricato nulla e nulla viene modificato.',
 
+    showProgress: 'Mostra cosa sta facendo il downloader',
+    playAfterDownload: 'Riproduci il brano appena scaricato',
+    progressWaiting: 'In attesa del downloader...',
   },
 }

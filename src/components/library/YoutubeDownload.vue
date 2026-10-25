@@ -126,6 +126,45 @@
             {{ $t('youtube.downloadExplanation') }}
           </div>
 
+          <!-- The options. The progress is opt-in: a download of a large file
+               takes minutes, and a window that says nothing for three
+               minutes looks broken — but the report is a lot of text, and a
+               user who does not need it would rather not read it. -->
+          <div class="flex flex-col gap-2">
+            <label class="flex items-center gap-2 text-xs text-neutral-800 dark:text-neutral-200 cursor-pointer">
+              <input v-model="showProgress" type="checkbox" class="mt-0.5" />
+              <span>{{ $t('youtube.showProgress') }}</span>
+            </label>
+            <label class="flex items-center gap-2 text-xs text-neutral-800 dark:text-neutral-200 cursor-pointer">
+              <input v-model="playNow" type="checkbox" class="mt-0.5" />
+              <span>{{ $t('youtube.playAfterDownload') }}</span>
+            </label>
+          </div>
+
+          <!-- The progress, when it is asked for. -->
+          <div
+            v-if="showProgress"
+            class="rounded bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-3 py-2 flex flex-col gap-1"
+          >
+            <div class="text-xs font-bold text-neutral-800 dark:text-neutral-200">
+              {{ progressHeading }}
+            </div>
+            <div
+              v-if="progress.percent !== null"
+              class="h-1.5 w-full rounded bg-neutral-200 dark:bg-neutral-700 overflow-hidden"
+            >
+              <div
+                class="h-full bg-hoa-1100 rounded transition-all"
+                :style="{ width: `${Math.min(100, progress.percent || 0)}%` }"
+              ></div>
+            </div>
+            <div
+              class="text-xs text-neutral-600 dark:text-neutral-400 break-words font-mono"
+            >
+              {{ progress.message }}
+            </div>
+          </div>
+
           <div class="flex justify-center">
             <button
               class="button rounded-full text-xs px-6 py-2"
@@ -148,7 +187,8 @@
 
 <script setup>
 import { invoke } from '@tauri-apps/api/core'
-import { computed, onMounted, ref, watch } from 'vue'
+import { listen } from '@tauri-apps/api/event'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import Loading from '~icons/mdi/loading'
 import { useToast } from 'vue-toastification'
 import { useI18n } from 'vue-i18n'
@@ -171,6 +211,29 @@ const problem = ref('')
 const busy = ref(false)
 const downloading = ref(false)
 const duplicateChoice = ref('replace')
+
+// Whether the progress of the download is reported.
+const showProgress = ref(false)
+// Whether the track plays once it is downloaded.
+const playNow = ref(false)
+
+// The last progress the backend reported.
+const progress = ref({ message: '', percent: null, speed: null, eta: null, total: null })
+
+// A heading for the progress, with the numbers a person wants.
+const progressHeading = computed(() => {
+  const parts = []
+  if (progress.value.percent !== null) {
+    parts.push(`${progress.value.percent.toFixed(1)}%`)
+  }
+  if (progress.value.speed) {
+    parts.push(`${(progress.value.speed / 1024 / 1024).toFixed(2)} MiB/s`)
+  }
+  if (progress.value.eta) {
+    parts.push(`ETA ${Math.floor(progress.value.eta / 60)}:${String(progress.value.eta % 60).padStart(2, '0')}`)
+  }
+  return parts.length ? parts.join(' · ') : t('youtube.progressWaiting')
+})
 
 // The answer the user gave to the download prompt, if any.
 const lyricScript = ref('ask')
@@ -221,9 +284,21 @@ const problemHint = computed(() =>
  * YouTube publishes in whatever script the uploader chose, so without this
  * a reader would get a file whose title they cannot type back into a search.
  */
+let unlistenProgress = null
+
 onMounted(async () => {
   const config = await invoke('get_config')
   lyricScript.value = config.lyric_script ?? 'ask'
+
+  // The progress arrives as an event. The listener is removed when the
+  // dialog closes, so that a closed dialog does not keep updating.
+  unlistenProgress = await listen('youtube-download-progress', event => {
+    progress.value = event.payload
+  })
+})
+
+onUnmounted(() => {
+  unlistenProgress?.()
 })
 
 const probe = async () => {
@@ -250,6 +325,8 @@ const download = async () => {
     const result = await invoke('download_youtube_track', {
       url: url.value.trim(),
       duplicateChoice: duplicateChoice.value,
+      playNow: playNow.value,
+      showProgress: showProgress.value,
       lyricScript: lyricScript.value,
       locale: i18n.global.locale.value,
     })
