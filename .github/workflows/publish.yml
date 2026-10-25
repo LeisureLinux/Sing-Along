@@ -124,25 +124,23 @@ jobs:
       # The upstream workflow pinned libwebkit2gtk to a specific version that
       # only existed on one runner image; that breaks as soon as the image moves.
       # The app needs webkit2gtk-4.1 and ALSA, nothing more specific.
-      - name: prepare apt cache dirs (ubuntu only)
+      #
+      # The package lists are read fresh every time, and nothing is cached.
+      #
+      # The caching that was here saved about twenty minutes per release and
+      # it was not worth it: `actions/cache` cannot archive
+      # `/var/lib/apt/lists/lock` — the files belong to root — so every save
+      # failed with a tar error and a warning. Worse, a restored cache is a
+      # snapshot of one afternoon's package lists, and a snapshot that has
+      # moved on is how a build ends up with a different webkit than the one
+      # it was tested against.
+      #
+      # The builds are the same either way: `apt-get update` runs, the
+      # packages are installed from the current archive, and the runner image
+      # moves on. What the cache changed was which archive they came from,
+      # which is a thing worth not changing.
+      - name: update apt metadata (ubuntu only)
         if: matrix.platform == 'ubuntu-24.04'
-        run: |
-          sudo install -d -m 0755 /var/lib/apt/lists /var/cache/apt/archives
-
-      - name: cache apt (ubuntu only)
-        if: matrix.platform == 'ubuntu-24.04'
-        id: apt-cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            /var/lib/apt/lists
-            /var/cache/apt/archives
-          key: ${{ runner.os }}-${{ runner.arch }}-apt-ubuntu-24.04-${{ hashFiles('.github/workflows/publish.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ runner.arch }}-apt-ubuntu-24.04-
-
-      - name: update apt metadata (ubuntu only, cache miss)
-        if: matrix.platform == 'ubuntu-24.04' && steps.apt-cache.outputs.cache-hit != 'true'
         run: sudo apt-get update
 
       - name: install dependencies (ubuntu only)
