@@ -155,6 +155,12 @@ line, with the percentage and the speed; the other plays the track as soon as
 it is downloaded. The progress arrives as a `youtube-download-progress`
 event, which the backend emits while the download runs.
 
+The YouTube dialog searches the YouTube Music catalogue rather than taking a
+pasted URL: the point is to pick songs, and a pasted URL is a link to one of
+them. The catalogue that is searched is the one for the interface language, and
+an empty search shows the songs that are popular there. Several songs can be
+picked at once; the download command takes a list and fetches them in turn.
+
 The metadata repair is a third dialog, also reached from the menu. It finds
 the album names that came from a folder — a name under more than one artist,
 because a real album belongs to one — looks the tracks up in the release

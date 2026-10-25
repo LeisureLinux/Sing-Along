@@ -60,11 +60,13 @@ the audio tags.
 no key — and writes the front cover into the audio file's tags. Off by default,
 because it rewrites your files.
 
-**Download a track from YouTube.** Paste a YouTube or YouTube Music link and
-the track is fetched through your own `yt-dlp`, named after the artist and the
-title, with the album and the cover taken from the release database rather
-than from YouTube — and the Chinese text converted to the script you asked for.
-See [Downloading from YouTube](#downloading-from-youtube) below.
+**Download songs from YouTube Music.** Search the YouTube Music catalogue,
+tick the songs you want, and they are fetched through your own `yt-dlp` — named
+after the artist and the title, with the album and the cover taken from the
+release database rather than from YouTube, and the Chinese text converted to
+the script you asked for. The catalogue that is searched is the one for your
+language, and an empty search shows the songs that are popular there. See
+[Downloading from YouTube](#downloading-from-youtube) below.
 
 **Seventeen UI languages.** English, 简体中文, 繁體中文, 日本語, 한국어, Español,
 Français, Deutsch, Italiano, Português (Brasil), Polski, Türkçe, Русский,
@@ -87,10 +89,15 @@ rather than by free text.
 
 ## Downloading from YouTube
 
-The YouTube button in the library header fetches a track through your own
-`yt-dlp`. The downloader is not built in: `yt-dlp` is the only thing that
-knows how to talk to YouTube, and it changes every week, so a copy of it here
-would be a copy that stops working.
+The YouTube button in the library header searches the YouTube Music catalogue
+and downloads what you pick. The downloader is not built in: `yt-dlp` is the
+only thing that knows how to talk to YouTube, and it changes every week, so a
+copy of it here would be a copy that stops working.
+
+The search is the catalogue of your language — the songs a Chinese reader
+sees are the ones the Chinese catalogue has, and an empty search shows the
+songs that are popular there. Several songs can be picked at once, and they
+are downloaded in turn; one that is unavailable does not stop the others.
 
 **What you need**
 

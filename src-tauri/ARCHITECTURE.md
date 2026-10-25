@@ -646,6 +646,31 @@ looser than the title comparison, because the names are written by hand:
 The comparison is made in one Chinese script, so a track in Traditional and
 one in Simplified are recognised as the same song.
 
+### The catalogue search (`ytmusic.rs`)
+
+`music.youtube.com/youtubei/v1/search` is the internal API the web player
+searches through, and it answers with the songs rather than with the videos.
+
+The filter in the request decides what comes back. The one for songs is
+`EgWKAQIIAWoMEA4QChADEAQQCRAF`; without it the answer is albums and
+artists, which carry no video id and so cannot be downloaded.
+
+**The locale.** The country decides which catalogue is searched and the
+language decides how the results are spelled. Both come from the interface
+language, because that is what the user chose. A Chinese reader in Taiwan
+gets the Taiwanese catalogue.
+
+**The popular songs.** The charts themselves are not available without a
+paid subscription, so the songs a region is listening to are found by
+searching for the words that region uses for them — "熱門歌曲" in Taiwan,
+"人気曲" in Japan. The search is answered from that region's catalogue, so
+the answer is the songs the region is listening to.
+
+**The collections.** The answer holds the songs *and* the collections that
+were put together around them: a "20 songs of X" album, a DJ mix, a chart.
+Those are not songs, and they are dropped — a collection has a long title and
+a count in it, and a song has a name and an artist.
+
 ### The order of the steps
 
 1. The cookie export is converted and checked. This is first because it is

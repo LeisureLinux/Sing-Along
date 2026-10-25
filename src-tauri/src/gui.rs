@@ -2547,6 +2547,7 @@ pub fn run() {
             crate::repair_gui::look_up_album_tracks,
             crate::repair_gui::repair_tracks,
             crate::repair_gui::find_non_utf8_tracks,
+            crate::youtube_gui::search_youtube_music,
         ])
         .setup({
             let tray_available = tray_available.clone();

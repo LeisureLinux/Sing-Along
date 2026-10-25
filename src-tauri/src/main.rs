@@ -41,6 +41,7 @@ pub mod word_sync;
 pub mod youtube;
 #[cfg(feature = "gui")]
 pub mod youtube_gui;
+pub mod ytmusic;
 pub mod ytdlp;
 
 /// Entry point for the shipped application and the headless CLI.

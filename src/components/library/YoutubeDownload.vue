@@ -6,29 +6,30 @@
     :lock-scroll="true"
     @close="emit('close')"
   >
-    <div class="grow overflow-hidden flex flex-col gap-6">
-      <form class="flex flex-col flex-none gap-4" @submit.prevent="probe">
-        <div>
-          <label for="youtube-url" class="group-label mb-1">{{ $t('youtube.url') }}</label>
+    <div class="grow overflow-hidden flex flex-col gap-4">
+      <!-- The search. The catalogue is searched, not a URL pasted: the point
+           is to pick songs, and a pasted URL is a link to one of them. -->
+      <form class="flex flex-col flex-none gap-2" @submit.prevent="search">
+        <div class="flex gap-2">
           <input
-            id="youtube-url"
-            v-model="url"
+            id="youtube-query"
+            v-model="query"
             type="text"
             class="input w-full py-1.5 px-2"
-            :placeholder="$t('youtube.urlPlaceholder')"
+            :placeholder="$t('youtube.searchPlaceholder')"
             :disabled="busy"
           />
-        </div>
-
-        <div class="flex justify-center gap-2">
           <button
-            class="button rounded-full text-xs px-6 py-2"
-            :class="{ 'button-disabled': busy || !url, 'button-primary': !busy && url }"
-            :disabled="busy || !url"
+            class="button button-primary rounded-full text-xs px-5 py-1.5"
+            :class="{ 'button-disabled': busy }"
+            :disabled="busy"
             type="submit"
           >
-            {{ $t('youtube.lookUp') }}
+            {{ $t('youtube.search') }}
           </button>
+        </div>
+        <div class="text-xs text-neutral-500 dark:text-neutral-400">
+          {{ $t('youtube.searchHint', { region: regionName }) }}
         </div>
       </form>
 
@@ -52,84 +53,44 @@
           >
             {{ problem }}
           </div>
-          <button class="button button-normal px-4 py-1.5 text-xs rounded-full" @click="probe">
+          <button class="button button-normal px-4 py-1.5 text-xs rounded-full" @click="search">
             {{ $t('actions.retry') }}
           </button>
         </div>
 
-        <div v-else-if="info" class="flex flex-col gap-4 h-full overflow-auto">
-          <div
-            class="rounded bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 px-3 py-2"
-          >
-            <div class="font-bold text-neutral-800 dark:text-neutral-200">{{ info.title }}</div>
-            <div class="text-sm text-neutral-900 dark:text-neutral-400">
-              <span>{{ info.artist || $t('youtube.unknownArtist') }}</span>
-            </div>
-            <div class="text-sm text-neutral-900 dark:text-neutral-400">
-              <span>{{ $t('youtube.album') }}: </span>
-              <span>{{ info.correctedAlbum || info.album || $t('youtube.unknownAlbum') }}</span>
-            </div>
-            <div
-              v-if="info.correctedAlbum && info.correctedAlbum !== info.album"
-              class="text-xs text-neutral-500 dark:text-neutral-400"
+        <div v-else class="flex flex-col h-full gap-3 overflow-auto">
+          <!-- The songs. Each one is a row with a checkbox, so a user can
+               pick as many as they want. -->
+          <div class="flex flex-col gap-1">
+            <label
+              v-for="song in songs"
+              :key="song.videoId"
+              class="flex items-start gap-2 rounded px-2 py-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
             >
-              {{ $t('youtube.albumCorrected') }}
-            </div>
-          </div>
-
-          <!-- The library already has this recording. What to do about it is
-               the user's decision: the file on disk may be a better copy, or
-               the library entry may be a rip they would rather keep. -->
-          <div
-            v-if="info.existingTrack"
-            class="rounded bg-yellow-50 dark:bg-neutral-900 border border-yellow-300 dark:border-neutral-800 px-3 py-2 flex flex-col gap-2"
-          >
-            <div class="text-sm font-bold text-neutral-800 dark:text-neutral-200">
-              {{ $t('youtube.duplicateTitle') }}
-            </div>
-            <div class="text-xs text-neutral-700 dark:text-neutral-400 break-words">
-              {{ $t('youtube.duplicateBody') }}
-            </div>
-            <div
-              class="text-xs text-neutral-600 dark:text-neutral-400 break-words"
-            >
-              {{ $t('youtube.duplicateExisting') }}:
-              <span class="font-bold">{{ info.existingTrack.title }}</span>
-              <span> — {{ info.existingTrack.artist }}</span>
-              <span v-if="info.existingTrack.hasLyrics"> · {{ $t('youtube.hasLyrics') }}</span>
-            </div>
-
-            <div class="flex flex-col gap-1 mt-1">
-              <label
-                v-for="choice in duplicateChoices"
-                :key="choice.value"
-                class="flex items-start gap-2 text-xs text-neutral-800 dark:text-neutral-200 cursor-pointer"
-              >
-                <input
-                  v-model="duplicateChoice"
-                  type="radio"
-                  name="youtube-duplicate"
-                  :value="choice.value"
-                  class="mt-0.5"
-                />
-                <span>
-                  <span class="font-bold">{{ choice.label }}</span>
-                  <span class="block text-neutral-600 dark:text-neutral-400">{{
-                    choice.hint
-                  }}</span>
+              <input
+                v-model="selected"
+                type="checkbox"
+                :value="song.url"
+                class="mt-1"
+              />
+              <span class="flex flex-col grow min-w-0">
+                <span class="font-bold text-sm text-neutral-800 dark:text-neutral-200 truncate">
+                  {{ song.title }}
                 </span>
-              </label>
-            </div>
+                <span class="text-xs text-neutral-600 dark:text-neutral-400 truncate">
+                  {{ song.artist }}
+                  <span v-if="song.album"> · {{ song.album }}</span>
+                  <span v-if="song.duration"> · {{ humanDuration(song.duration) }}</span>
+                </span>
+              </span>
+            </label>
           </div>
 
-          <div class="text-xs text-neutral-500 dark:text-neutral-400">
-            {{ $t('youtube.downloadExplanation') }}
+          <div v-if="!songs.length" class="flex justify-center items-center h-full text-sm text-neutral-400">
+            {{ $t('youtube.noResults') }}
           </div>
 
-          <!-- The options. The progress is opt-in: a download of a large file
-               takes minutes, and a window that says nothing for three
-               minutes looks broken — but the report is a lot of text, and a
-               user who does not need it would rather not read it. -->
+          <!-- The options. -->
           <div class="flex flex-col gap-2">
             <label class="flex items-center gap-2 text-xs text-neutral-800 dark:text-neutral-200 cursor-pointer">
               <input v-model="showProgress" type="checkbox" class="mt-0.5" />
@@ -158,27 +119,45 @@
                 :style="{ width: `${Math.min(100, progress.percent || 0)}%` }"
               ></div>
             </div>
-            <div
-              class="text-xs text-neutral-600 dark:text-neutral-400 break-words font-mono"
-            >
+            <div class="text-xs text-neutral-600 dark:text-neutral-400 break-words font-mono">
               {{ progress.message }}
             </div>
           </div>
 
-          <div class="flex justify-center">
+          <div class="flex justify-center gap-2">
             <button
               class="button rounded-full text-xs px-6 py-2"
-              :class="{ 'button-disabled': downloading, 'button-primary': !downloading }"
-              :disabled="downloading"
+              :class="{ 'button-disabled': downloading || !selected.length, 'button-primary': !downloading && selected.length }"
+              :disabled="downloading || !selected.length"
               @click="download"
             >
-              {{ downloading ? $t('youtube.downloading') : $t('youtube.download') }}
+              {{
+                downloading
+                  ? $t('youtube.downloading')
+                  : $t('youtube.downloadSelected', { count: selected.length })
+              }}
             </button>
           </div>
-        </div>
 
-        <div v-else class="flex justify-center items-center h-full text-sm text-neutral-400">
-          {{ $t('youtube.hint') }}
+          <!-- What the download did. -->
+          <div v-if="results.length" class="flex flex-col gap-1">
+            <div
+              v-for="result in results"
+              :key="result.path || result.title"
+              class="text-xs text-neutral-600 dark:text-neutral-400"
+            >
+              <span class="font-bold text-neutral-800 dark:text-neutral-200">
+                {{ result.title || $t('youtube.unknownTitle') }}
+              </span>
+              <span v-if="result.path">
+                — {{ result.album || $t('youtube.unknownAlbum') }}
+                <span v-if="result.lyricsFound"> · {{ $t('youtube.hasLyrics') }}</span>
+              </span>
+              <span v-if="result.lyricsNote" class="block text-yellow-700 dark:text-yellow-400">
+                {{ result.lyricsNote }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -188,12 +167,13 @@
 <script setup>
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import Loading from '~icons/mdi/loading'
 import { useToast } from 'vue-toastification'
 import { useI18n } from 'vue-i18n'
 import BaseModal from '@/components/common/BaseModal.vue'
 import { classifyDownloadError } from '@/utils/youtube-errors.js'
+import { humanDuration } from '@/utils/human-duration.js'
 import i18n from '@/i18n/index.js'
 
 // The cause names are the keys of the translations, so the first letter has
@@ -205,12 +185,13 @@ const emit = defineEmits(['close'])
 const { t } = useI18n()
 const toast = useToast()
 
-const url = ref('')
-const info = ref(null)
+const query = ref('')
+const songs = ref([])
+const selected = ref([])
 const problem = ref('')
 const busy = ref(false)
 const downloading = ref(false)
-const duplicateChoice = ref('replace')
+const results = ref([])
 
 // Whether the progress of the download is reported.
 const showProgress = ref(false)
@@ -219,6 +200,13 @@ const playNow = ref(false)
 
 // The last progress the backend reported.
 const progress = ref({ message: '', percent: null, speed: null, eta: null, total: null })
+
+// The answer the user gave to the download prompt, if any.
+const lyricScript = ref('ask')
+
+// The name of the region the catalogue is searched in, so the user knows
+// which songs they are being offered.
+const regionName = computed(() => t(`youtube.regions.${i18n.global.locale.value}`))
 
 // A heading for the progress, with the numbers a person wants.
 const progressHeading = computed(() => {
@@ -230,38 +218,11 @@ const progressHeading = computed(() => {
     parts.push(`${(progress.value.speed / 1024 / 1024).toFixed(2)} MiB/s`)
   }
   if (progress.value.eta) {
-    parts.push(`ETA ${Math.floor(progress.value.eta / 60)}:${String(progress.value.eta % 60).padStart(2, '0')}`)
+    parts.push(
+      `ETA ${Math.floor(progress.value.eta / 60)}:${String(progress.value.eta % 60).padStart(2, '0')}`
+    )
   }
   return parts.length ? parts.join(' · ') : t('youtube.progressWaiting')
-})
-
-// The answer the user gave to the download prompt, if any.
-const lyricScript = ref('ask')
-
-// What can be done about a track the library already holds. The order is the
-// order a person would think in: the common case first, the way out last.
-const duplicateChoices = computed(() => [
-  {
-    value: 'replace',
-    label: t('youtube.duplicateReplace'),
-    hint: t('youtube.duplicateReplaceHint'),
-  },
-  {
-    value: 'keepBoth',
-    label: t('youtube.duplicateKeepBoth'),
-    hint: t('youtube.duplicateKeepBothHint'),
-  },
-  {
-    value: 'cancel',
-    label: t('youtube.duplicateCancel'),
-    hint: t('youtube.duplicateCancelHint'),
-  },
-])
-
-// A new track means a new decision: the previous answer was about a
-// different song.
-watch(info, () => {
-  duplicateChoice.value = 'replace'
 })
 
 /**
@@ -275,15 +236,55 @@ const problemHint = computed(() =>
   t(`youtube.error${capitalize(classifyDownloadError(problem.value))}`)
 )
 
-/**
- * The Chinese script the metadata should end up in.
- *
- * The answer the user gave to the download prompt wins, and the interface
- * language is the fallback: a Traditional-Chinese reader wants the metadata
- * in Traditional, and a Simplified-Chinese reader wants it in Simplified.
- * YouTube publishes in whatever script the uploader chose, so without this
- * a reader would get a file whose title they cannot type back into a search.
- */
+const search = async () => {
+  busy.value = true
+  problem.value = ''
+  try {
+    songs.value = await invoke('search_youtube_music', {
+      query: query.value.trim(),
+      locale: i18n.global.locale.value,
+    })
+  } catch (error) {
+    console.error(error)
+    problem.value = String(error)
+    songs.value = []
+  } finally {
+    busy.value = false
+  }
+}
+
+const download = async () => {
+  downloading.value = true
+  results.value = []
+  try {
+    results.value = await invoke('download_youtube_track', {
+      urls: selected.value,
+      duplicateChoice: 'replace',
+      playNow: playNow.value,
+      showProgress: showProgress.value,
+      lyricScript: lyricScript.value,
+      locale: i18n.global.locale.value,
+    })
+
+    const done = results.value.filter(result => result.path).length
+    const withLyrics = results.value.filter(result => result.lyricsFound).length
+
+    if (done) {
+      toast.success(
+        t('youtube.downloadedCount', {
+          count: done,
+          lyrics: withLyrics,
+        })
+      )
+    }
+  } catch (error) {
+    console.error(error)
+    toast.error(String(error))
+  } finally {
+    downloading.value = false
+  }
+}
+
 let unlistenProgress = null
 
 onMounted(async () => {
@@ -295,66 +296,14 @@ onMounted(async () => {
   unlistenProgress = await listen('youtube-download-progress', event => {
     progress.value = event.payload
   })
+
+  // The songs the region is listening to are offered first: a user who opens
+  // the dialog without a query wants to see what is popular, not an empty
+  // list.
+  search()
 })
 
 onUnmounted(() => {
   unlistenProgress?.()
 })
-
-const probe = async () => {
-  busy.value = true
-  problem.value = ''
-  info.value = null
-  try {
-    info.value = await invoke('probe_youtube_track', {
-      url: url.value.trim(),
-      lyricScript: lyricScript.value,
-      locale: i18n.global.locale.value,
-    })
-  } catch (error) {
-    console.error(error)
-    problem.value = String(error)
-  } finally {
-    busy.value = false
-  }
-}
-
-const download = async () => {
-  downloading.value = true
-  try {
-    const result = await invoke('download_youtube_track', {
-      url: url.value.trim(),
-      duplicateChoice: duplicateChoice.value,
-      playNow: playNow.value,
-      showProgress: showProgress.value,
-      lyricScript: lyricScript.value,
-      locale: i18n.global.locale.value,
-    })
-    // The lyrics are part of the outcome, so they are part of the message: a
-    // download that succeeded but produced a song without lyrics is a
-    // different thing from one that produced a complete song, and the user
-    // is the one who has to know which they got.
-    if (result.lyricsFound) {
-      toast.success(
-        t('youtube.downloaded', {
-          title: result.title,
-          album: result.album || t('youtube.unknownAlbum'),
-        })
-      )
-    } else {
-      toast.info(
-        t('youtube.downloadedWithoutLyrics', {
-          title: result.title,
-          note: result.lyricsNote || '',
-        })
-      )
-    }
-    emit('close')
-  } catch (error) {
-    console.error(error)
-    toast.error(String(error))
-  } finally {
-    downloading.value = false
-  }
-}
 </script>

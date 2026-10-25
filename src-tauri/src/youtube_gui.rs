@@ -565,7 +565,9 @@ pub async fn probe_youtube_track(
 /// the new file shows up without the user doing anything.
 #[tauri::command]
 pub async fn download_youtube_track(
-    url: String,
+    // The songs to fetch. One is the usual case, but a user who picked five
+    // songs from the search wants five downloads, not five round trips.
+    urls: Vec<String>,
     // What to do about a track the library already holds: "replace"
     // overwrites the file, "keepBoth" puts the download beside it under a
     // different name, and "cancel" does nothing. A string rather than an
@@ -586,7 +588,7 @@ pub async fn download_youtube_track(
     locale: String,
     app_state: tauri::State<'_, crate::state::AppState>,
     app_handle: tauri::AppHandle,
-) -> Result<YoutubeDownloadResult, String> {
+) -> Result<Vec<YoutubeDownloadResult>, String> {
     let (config, directories) = {
         let conn_guard = app_state.db.lock().unwrap();
         let conn = conn_guard.as_ref().unwrap();
@@ -612,7 +614,76 @@ pub async fn download_youtube_track(
 
     let script = script_target(lyric_script.as_deref(), &locale);
 
-    let choice = match duplicate_choice.as_deref() {
+    if urls.is_empty() {
+        return Err("no song was chosen to download".to_owned());
+    }
+
+    // Every song is fetched in turn, and the ones that fail do not stop the
+    // others: a batch of five songs where one is unavailable should still
+    // deliver the other four.
+    let mut results = Vec::new();
+    for url in &urls {
+        match download_one(
+            url,
+            duplicate_choice.as_deref(),
+            play_now.unwrap_or(false),
+            show_progress.unwrap_or(false),
+            &script,
+            &locale,
+            &app_state,
+            &app_handle,
+        )
+        .await
+        {
+            Ok(result) => results.push(result),
+            Err(error) => {
+                // The failure is reported as a result rather than raised, so
+                // that one bad song does not lose the ones that worked.
+                results.push(YoutubeDownloadResult {
+                    path: String::new(),
+                    title: String::new(),
+                    album: None,
+                    artist: None,
+                    album_corrected: false,
+                    cover_corrected: false,
+                    track_id: None,
+                    lyrics_found: false,
+                    lyrics_note: Some(error),
+                    track: None,
+                });
+            }
+        }
+    }
+
+    Ok(results)
+}
+
+/// Download one song and fix up its metadata.
+///
+/// The steps are the ones a single download needs: the download itself, the
+/// correction of the album and the artwork, the addition to the library, and
+/// the lyrics.
+#[allow(clippy::too_many_arguments)]
+async fn download_one(
+    url: &str,
+    duplicate_choice: Option<&str>,
+    play_now: bool,
+    show_progress: bool,
+    script: &crate::script_convert::ScriptTarget,
+    locale: &str,
+    app_state: &tauri::State<'_, crate::state::AppState>,
+    app_handle: &tauri::AppHandle,
+) -> Result<YoutubeDownloadResult, String> {
+    let _ = locale;
+    let (config, directories) = {
+        let conn_guard = app_state.db.lock().unwrap();
+        let conn = conn_guard.as_ref().unwrap();
+        let config = crate::db::get_config(conn).map_err(|err| err.to_string())?;
+        let directories = crate::db::get_directories(conn).unwrap_or_default();
+        (config, directories)
+    };
+
+    let choice = match duplicate_choice {
         Some("replace") => DuplicateChoice::Replace,
         Some("keepBoth") => DuplicateChoice::KeepBoth,
         Some("cancel") => DuplicateChoice::Cancel,
@@ -624,11 +695,26 @@ pub async fn download_youtube_track(
         return Err("the download was cancelled".to_owned());
     }
 
+    // Where the file goes: the directory the user chose, or the first one the
+    // library watches, which is where the rest of their music already is.
+    let output_dir = if config.ytdlp_output_dir.trim().is_empty() {
+        directories
+            .into_iter()
+            .next()
+            .map(PathBuf::from)
+            .ok_or_else(|| {
+                "there is no library directory to download into. Add one first."
+                    .to_owned()
+            })?
+    } else {
+        PathBuf::from(config.ytdlp_output_dir.trim())
+    };
+
     // The file name is worked out before the download, because "keep both"
     // needs a name that is not taken. The name `yt-dlp` would choose is the
     // artist and the title, so that is what is checked.
     let name_suffix = if choice == DuplicateChoice::KeepBoth {
-        find_free_suffix(&config, &output_dir, url.trim(), script).await?
+        find_free_suffix(&config, &output_dir, url.trim(), *script).await?
     } else {
         String::new()
     };
@@ -638,12 +724,12 @@ pub async fn download_youtube_track(
         Some(output_dir),
         choice == DuplicateChoice::Replace,
         &name_suffix,
-        script,
+        *script,
     );
 
     // The progress is reported as an event, so that the dialog can show it
     // without polling.
-    if show_progress.unwrap_or(false) {
+    if show_progress {
         let app_handle = app_handle.clone();
         options.progress = Some(std::sync::Arc::new(move |update: crate::ytdlp::DownloadProgress| {
             let _ = app_handle.emit("youtube-download-progress", &update);
@@ -739,7 +825,7 @@ pub async fn download_youtube_track(
     // no lyrics of its own, and the sources this project uses may not hold
     // this recording either. So a failure is reported rather than raised.
     let (lyrics_found, lyrics_note) = match track_id {
-        Some(track_id) => fetch_lyrics_for(track_id, &app_handle, script).await,
+        Some(track_id) => fetch_lyrics_for(track_id, &app_handle, *script).await,
         None => (false, Some("the file was not added to the library".to_owned())),
     };
 
@@ -767,7 +853,7 @@ pub async fn download_youtube_track(
     // The track starts playing when the user asked for it. The queue is the
     // library, so that "next" moves on to the song after this one rather
     // than to nothing.
-    if play_now.unwrap_or(false) {
+    if play_now {
         if let Some(track) = &track {
             let queue: Vec<i64> = {
                 let conn_guard = app_state.db.lock().ok();
@@ -1015,4 +1101,28 @@ pub async fn remove_library_entries(
 
     tx.commit().map_err(|err| err.to_string())?;
     Ok(removed)
+}
+
+/// Search the YouTube Music catalogue.
+///
+/// The query is the user's; an empty one means the songs the region is
+/// listening to, which is what the download dialog offers first.
+#[tauri::command]
+pub async fn search_youtube_music(
+    query: String,
+    locale: String,
+    app_state: tauri::State<'_, crate::state::AppState>,
+) -> Result<Vec<crate::ytmusic::Song>, String> {
+    let config = {
+        let conn_guard = app_state.db.lock().map_err(|err| err.to_string())?;
+        let conn = conn_guard.as_ref().unwrap();
+        crate::db::get_config(conn).map_err(|err| err.to_string())?
+    };
+
+    let client = crate::http::client(&config.proxy_url, 20).map_err(|err| err.to_string())?;
+    let region = crate::ytmusic::region_for_locale(&locale);
+
+    crate::ytmusic::search_songs(&client, &query, region, 20)
+        .await
+        .map_err(|err| err.to_string())
 }
